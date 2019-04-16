@@ -14,7 +14,7 @@ const CqPort = 5990
 const LocalMulticast = "224.0.0.73:%d"
 
 func main() {
-	var refAddPtr = flag.String("ref", "cwc,nodestone.io:7388", "--ref=host:port")
+	var refAddPtr = flag.String("ref", "cwc0.nodestone.io:7388", "--ref=host:port")
 	var cqPtr = flag.Bool("cq", false, "--cq is CQ mode, no server, local broadcast")
 	var localPort = flag.Int("port", CqPort, "--port=<local-udp-port>")
 	var keyIn = flag.String("keyin", "17", "-keyin=17")
@@ -31,15 +31,15 @@ func main() {
 	var morseIO cwc.IO
 
 	if len(*serialDevice) > 0 {
-		morseIO = &cwc.PiGPIO{}
+		morseIO = cwc.NewSerialIO()
 		morseIO.SetConfig("serialDevice", *serialDevice)
 	} else {
-		morseIO = &cwc.SerialIO{}
+		morseIO =  cwc.NewPiGPIO()
 	}
 	morseIO.SetConfig("keyIn", *keyIn)
 	morseIO.SetConfig("keyOut", *keyOut)
 
-	if (cqMode) {
+	if cqMode {
 		mcAddress := fmt.Sprintf(LocalMulticast, *localPort)
 		log.Printf("Starting in CQ mode with local multicast address %s", mcAddress)
 

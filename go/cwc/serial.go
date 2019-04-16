@@ -13,6 +13,16 @@ type SerialIO struct {
 	useCTS bool
 }
 
+func NewSerialIO() *SerialIO {
+	serialIO := SerialIO{
+		config: make(ConfigMap),
+		port: nil,
+		useRTS: true,
+		useCTS: true,
+	}
+	return &serialIO
+}
+
 func (s *SerialIO) Open() error {
 	serialDevice := s.config["serialDevice"]
 

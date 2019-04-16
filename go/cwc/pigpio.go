@@ -9,6 +9,13 @@ type PiGPIO struct {
 	input rpio.Pin
 }
 
+func NewPiGPIO() *PiGPIO {
+	pigpio := PiGPIO{
+		config: make(ConfigMap),
+	}
+	return &pigpio
+}
+
 func (g *PiGPIO) Open() error {
 	err := rpio.Open()
 	if err != nil {

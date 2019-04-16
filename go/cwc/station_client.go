@@ -15,12 +15,6 @@ func StationClient(cqMode bool, addr string, morseIO IO) {
 
 	go RunRx(morseIO)
 
-
-
-
-
-
-
 	// Reflector mode
 	// opt: time sync with server
 	// opt: set callsign
