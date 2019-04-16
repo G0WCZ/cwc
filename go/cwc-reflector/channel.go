@@ -76,7 +76,6 @@ func (c *Channel) Unsubscribe(address net.Addr) {
 // and always return to sender (who can ignore if they wish, or can use as net sidetone
 func (c *Channel) Broadcast(event bitoip.CarrierEventPayload, localAddress *net.UDPAddr) {
 	for _, v := range c.Subscribers {
-		// don't broadcast back to sender
 		bitoip.UDPTx(bitoip.CarrierEvent, event, v.address.String(), localAddress)
 	}
 

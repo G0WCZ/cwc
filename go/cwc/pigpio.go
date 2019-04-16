@@ -33,16 +33,16 @@ func (g *PiGPIO) ConfigMap() ConfigMap {
 	return g.config
 }
 
-func (g *PiGPIO) Bit() uint8 {
-	if g.input.Read() ==  rpio.High {
-		return 0x01
+func (g *PiGPIO) Bit() bool {
+	if g.input.Read() == rpio.High {
+		return true
 	} else {
-		return 0x00
+		return false
 	}
 }
 
-func (g *PiGPIO) SetBit(bit0 uint8) {
-	if bit0 & 0x01 > 0 {
+func (g *PiGPIO) SetBit(bit0 bool) {
+	if bit0 {
 		g.output.High()
 	} else {
 		g.output.Low()

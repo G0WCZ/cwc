@@ -1,7 +1,6 @@
 package cwc
 
 import (
-	"github.com/stianeikeland/go-rpio"
 	"go.bug.st/serial.v1"
 	"log"
 	"strings"
@@ -10,6 +9,8 @@ import (
 type SerialIO struct {
 	config ConfigMap
 	port serial.Port
+	useRTS bool
+	useCTS bool
 }
 
 func (s *SerialIO) Open() error {
@@ -26,6 +27,9 @@ func (s *SerialIO) Open() error {
 		log.Fatal(err)
 	}
 
+	s.useRTS = strings.EqualFold(s.config["keyOut"], "RTS")
+	s.useCTS = strings.EqualFold(s.config["keyIn"], "CTS")
+
 	return nil
 }
 
@@ -37,33 +41,34 @@ func (s *SerialIO) ConfigMap() ConfigMap {
 	return s.config
 }
 
-func (s *SerialIO) Bit() uint8 {
-	info := s.port.Info
-	info.
-	if s.port.Description()
-
+func (s *SerialIO) Bit() bool {
+	bits, err := s.port.GetModemStatusBits()
+	if err != nil {
+		log.Fatalf("Port bit read failed %v", err)
+		return false
 	}
-	if s.input.Read() ==  rpio.High {
-		return 0x01
+	if (s.useCTS) {
+		return bits.CTS
 	} else {
-		return 0x00
+		return bits.DSR
 	}
 }
 
-func (s *SerialIO) SetBit(bit0 uint8) {
-	if strings.EqualFold("RTS", s.config["keyIn"]) {
-		s.port.SetRTS(bits)
-	} sles
-	if bit0 & 0x01 > 0 {
-		s.output.High()
+func (s *SerialIO) SetBit(bit bool) {
+	var err error
+	if s.useRTS {
+		err = s.port.SetRTS(bit)
 	} else {
-		s.output.Low()
+		err = s.port.SetDTR(bit)
+	}
+	if err != nil {
+		log.Fatalf("port bit set failed: %v", err)
 	}
 }
 
 
 func (s *SerialIO) Close() {
-	// pass
+	s.port.Close()
 }
 
 

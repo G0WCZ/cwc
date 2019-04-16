@@ -24,7 +24,7 @@ const MaxEvents = 100
 var TickTime = DefaultTickTime
 var SendWait = DefaultSendWait
 
-var LastBit byte = 0x01 // input is active high
+var LastBit bool = false
 
 type Event struct {
 	startTime time.Time
@@ -45,7 +45,7 @@ func SetSendWait(sw time.Duration) {
 }
 
 func RunRx(morseIO IO) {
-	LastBit = 0 // make sure turned off to begin -- the default state
+	LastBit = false // make sure turned off to begin -- the default state
 	ticker = time.NewTicker(TickTime)
 	Startup()
 
@@ -59,12 +59,11 @@ func RunRx(morseIO IO) {
 			Sample(t)
 		}
 	}
-
 }
 
 func Stop() {
 	done <- true
-	LastBit = 0
+	LastBit = false
 	morseIO.Close()
 }
 
@@ -77,10 +76,16 @@ func Startup() {
 
 // Sample input
 func Sample(t time.Time) {
-	bit := morseIO.Bit()
-	if bit != LastBit {
+	rxBit := morseIO.Bit()
+	if rxBit != LastBit {
 		// change so record it
-		LastBit = bit
+		LastBit = rxBit
+
+		var bit uint8 = 0
+
+		if rxBit {
+			bit = 1
+		}
 		events = append(events, Event{t, bitoip.BitEvent(bit) })
 		if  len(events) >= MaxEvents {
 			Flush()

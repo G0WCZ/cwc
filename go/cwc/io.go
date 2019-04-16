@@ -9,8 +9,8 @@ type IO interface {
 	Open() error
 	SetConfig(string, string)
 	ConfigMap() ConfigMap
-	Bit() uint8
-	SetBit(bit0 uint8)
+	Bit() bool
+	SetBit(bool)
 	Close()
 }
 
