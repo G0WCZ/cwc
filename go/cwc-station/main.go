@@ -27,6 +27,10 @@ func main() {
 	cqMode := *cqPtr
 	refAddress := *refAddPtr
 
+	// context
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	// Morse Hardware
 	var morseIO cwc.IO
 
@@ -43,11 +47,11 @@ func main() {
 		mcAddress := fmt.Sprintf(LocalMulticast, *localPort)
 		log.Printf("Starting in CQ mode with local multicast address %s", mcAddress)
 
-		cwc.StationClient(true, mcAddress, morseIO)
+		cwc.StationClient(ctx, true, mcAddress, morseIO)
 	} else {
 		log.Printf("Connecting to reflector %s", refAddress)
 
-		cwc.StationClient(false, refAddress, morseIO)
+		cwc.StationClient(ctx, false, refAddress, morseIO)
 	}
 }
 

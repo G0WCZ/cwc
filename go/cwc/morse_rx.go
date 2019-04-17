@@ -1,6 +1,7 @@
 package cwc
 
 import (
+	"context"
 	"log"
 	"time"
 )
@@ -44,9 +45,10 @@ func SetSendWait(sw time.Duration) {
 	SendWait = sw
 }
 
-func RunRx(morseIO IO) {
+func RunRx(ctx context.Context, morseIO IO, toSend chan bitoip.CarrierEventPayload) {
 	LastBit = false // make sure turned off to begin -- the default state
 	ticker = time.NewTicker(TickTime)
+
 	Startup()
 
 	for {
@@ -75,7 +77,8 @@ func Startup() {
 }
 
 // Sample input
-func Sample(t time.Time) {
+// TODO should have some sort of back-off if not used recently for power saving
+func Sample(t time.Time, toSend chan bitoip.CarrierEventPayload) {
 	rxBit := morseIO.Bit()
 	if rxBit != LastBit {
 		// change so record it
@@ -88,23 +91,23 @@ func Sample(t time.Time) {
 		}
 		events = append(events, Event{t, bitoip.BitEvent(bit) })
 		if  len(events) >= MaxEvents {
-			Flush()
+			Flush(toSend)
 			return
 		}
 	}
 	if len(events)> 0 && t.Sub(events[0].startTime) >= DefaultSendWait {
-		Flush()
+		Flush(toSend)
 	}
 }
 
 
 // Flush events into an output stream
-func Flush() {
+func Flush(toSend chan bitoip.CarrierEventPayload) {
 	log.Printf("Flushing events %v", events)
 	if len(events) > 0 {
-		BuildPayload(events)
+		toSend <- BuildPayload(events)
+		events = events[:0]
 	}
-	events = events[:0]
 }
 
 func BuildPayload(events []Event) bitoip.CarrierEventPayload {
