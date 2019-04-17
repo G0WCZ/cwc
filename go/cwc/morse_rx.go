@@ -49,7 +49,7 @@ func RunRx(ctx context.Context, morseIO IO, toSend chan bitoip.CarrierEventPaylo
 	LastBit = false // make sure turned off to begin -- the default state
 	ticker = time.NewTicker(TickTime)
 
-	Startup()
+	Startup(morseIO)
 
 	for {
 		select {
@@ -58,18 +58,18 @@ func RunRx(ctx context.Context, morseIO IO, toSend chan bitoip.CarrierEventPaylo
 			return
 
 		case t := <-ticker.C:
-			Sample(t)
+			Sample(t, toSend, morseIO)
 		}
 	}
 }
 
-func Stop() {
+func Stop(morseIO IO) {
 	done <- true
 	LastBit = false
 	morseIO.Close()
 }
 
-func Startup() {
+func Startup(morseIO IO) {
 	err := morseIO.Open()
 	if err != nil {
 		log.Fatalf("Can't access Morse hardware: %s", err)
@@ -78,7 +78,7 @@ func Startup() {
 
 // Sample input
 // TODO should have some sort of back-off if not used recently for power saving
-func Sample(t time.Time, toSend chan bitoip.CarrierEventPayload) {
+func Sample(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO) {
 	rxBit := morseIO.Bit()
 	if rxBit != LastBit {
 		// change so record it

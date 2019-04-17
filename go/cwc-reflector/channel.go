@@ -44,7 +44,7 @@ func ChannelIds() []uint16 {
  */
 func GetChannel(channel_id bitoip.ChannelIdType) Channel {
 	if channel, ok := channels[channel_id]; ok {
-		return channel;
+		return channel
 	} else {
 		channels[channel_id] = NewChannel(channel_id)
 		return channels[channel_id]
@@ -54,14 +54,16 @@ func GetChannel(channel_id bitoip.ChannelIdType) Channel {
 /**
  * subscribe to this channel
  */
-func (c *Channel) Subscribe(address net.Addr) {
+func (c *Channel) Subscribe(address net.Addr) bitoip.CarrierKeyType {
 	if subscriber, ok := c.Addresses[address.String()]; ok {
 		subscriber.last_tx = time.Now()
+		return subscriber.key
 	} else {
 		c.LastKey += 1
 		subscriber := Subscriber{c.LastKey, address, time.Now()}
 		c.Subscribers[c.LastKey] = subscriber
 		c.Addresses[address.String()] = subscriber
+		return subscriber.key
 	}
 }
 

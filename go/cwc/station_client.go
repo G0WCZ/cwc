@@ -1,6 +1,9 @@
 package cwc
 
-import "context"
+import (
+	"context"
+	"log"
+)
 import "../bitoip"
 
 // General client
@@ -12,33 +15,43 @@ func StationClient(ctx context.Context, cqMode bool, addr string, morseIO IO) {
 
 	// if talking to reflector, do some setup
 	if !cqMode {
-
-
-
+		// TODO:
+		// Reflector mode setup
+		// 1/ time sync with server
+		// 2/ set callsign
+		// 3/ list channels
+		// 4/ suscribe channel(s)
+		// 5/ save carrier id
 	}
+
 	toSend := make(chan bitoip.CarrierEventPayload)
 
 	go RunRx(ctx, morseIO, toSend)
-
-	var cep bitoip.CarrierEventPayload
 
 	for {
 		select {
 		case <- ctx.Done():
 			return
-		case cep <- toSend:
-
+		case cep := <- toSend:
+			log.Printf("carrier event payload to send: %v", cep)
+			// TODO fill in some channel details
+			bitoip.UDPTx(bitoip.CarrierEvent, cep, addr,nil)
 		}
 	}
 
+	toMorse := make(chan bitoip.CarrierEventPayload)
 
+	go bitoip.UDPRx(ctx, addr, toMorse)
 
-	// Reflector mode
-	// opt: time sync with server
-	// opt: set callsign
-	// list channels
-	// suscribe channel(s)
-	// save carrier id
+	for {
+		select {
+		case <-ctx.Done():
+			return
 
+		case tm := <- toMorse:
+			log.Printf("carrier events to morse: %v", toMorse)
 
+		}
+	}
 }
+

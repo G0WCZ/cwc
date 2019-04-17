@@ -9,7 +9,13 @@ import (
 
 const maxBufferSize = 508
 
-func UDPRx(ctx context.Context, address net.UDPAddr, handler func(MessageVerb, Payload, net.Addr)) {
+type RxMSG struct {
+	Verb MessageVerb
+	Payload Payload
+	SrcAddress net.Addr
+}
+
+func UDPRx(ctx context.Context, address net.UDPAddr, messages chan RxMSG) {
 	pc, err := net.ListenPacket("udp", address.String())
 
 	if err != nil {
@@ -34,7 +40,7 @@ func UDPRx(ctx context.Context, address net.UDPAddr, handler func(MessageVerb, P
 
 			verb, payload := DecodePacket(buffer)
 
-			handler(verb, payload, addr)
+			messages <- RxMSG{verb, payload, addr}
 		}
 	}()
 

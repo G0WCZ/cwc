@@ -28,23 +28,45 @@ func ReflectorServer(ctx context.Context, address string) {
 	}
 	log.Printf("Starting reflector on %s", address)
 
-	bitoip.UDPRx(ctx, *serverAddress, Handler)
+	messages := make(chan bitoip.RxMSG)
+
+	bitoip.UDPRx(ctx, *serverAddress, messages)
+
+	for {
+		select {
+		case <- ctx.Done():
+			return
+		case m := <- messages:
+			Handler(m)
+		}
+	}
 }
 
 /**
 	Handle an incoming message to the reflector
  */
-func Handler(verb bitoip.MessageVerb, payload bitoip.Payload, remote_address net.Addr) {
-	switch verb {
+func Handler(msg bitoip.RxMSG) {
+	switch msg.Verb {
 	case bitoip.EnumerateChannels:
 		responsePayload := new(bitoip.ListChannelsPayload)
 		copy(responsePayload.Channels[:], ChannelIds())
 		bitoip.UDPTx(bitoip.ListChannels,
-					 responsePayload,
-					 remote_address.String(),
+					 msg.Payload,
+					 msg.SrcAddress.String(),
 					 serverAddress)
 
 	case bitoip.CarrierEvent:
+		ce := msg.Payload.(bitoip.CarrierEventPayload)
+		channel := GetChannel(ce.Channel)
+		channel.Subscribe(msg.SrcAddress) //make sure this user subscribed
+		channel.Broadcast(ce, serverAddress)
 
+	case bitoip.ListenRequest:
+		lr := msg.Payload.(bitoip.ListenRequestPayload)
+		channel := GetChannel(lr.Channel)
+		key := channel.Subscribe(msg.SrcAddress)
+		lcp := bitoip.ListenConfirmPayload{lr.Channel, key}
+
+		bitoip.UDPTx(bitoip.ListenConfirm, lcp, msg.SrcAddress.String(), serverAddress)
 	}
 }

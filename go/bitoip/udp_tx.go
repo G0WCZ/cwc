@@ -7,6 +7,7 @@ import (
 
 
 func UDPTx(verb MessageVerb, payload Payload, address string, local_address *net.UDPAddr) {
+	// TODO: make efficient
 	resolved_address, err := net.ResolveUDPAddr("udp", address)
 
 	if err != nil {
