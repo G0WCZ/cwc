@@ -94,6 +94,7 @@ type CarrierEventPayload struct {
 	CarrierKey CarrierKeyType
 	StartTimeStamp int64
 	BitEvents [MaxBitEvents]CarrierBitEvent
+	SendTime int64
 }
 
 var messagePayload = map[MessageVerb]reflect.Type {

@@ -9,27 +9,36 @@ import (
 
 const maxBufferSize = 508
 
+var conn *net.UDPConn
+
 type RxMSG struct {
 	Verb MessageVerb
 	Payload Payload
-	SrcAddress net.Addr
+	SrcAddress net.UDPAddr
 }
 
-func UDPRx(ctx context.Context, address net.UDPAddr, messages chan RxMSG) {
-	pc, err := net.ListenPacket("udp", address.String())
+func UDPConnection() *net.UDPConn {
+	return conn
+}
+
+func UDPRx(ctx context.Context, address *net.UDPAddr, messages chan RxMSG) {
+	var err error
+	conn, err = net.ListenUDP("udp", address)
+	defer conn.Close()
 
 	if err != nil {
+		log.Panicf("Can not open local connection: %v", err)
 		return
 	}
 
-	defer pc.Close()
+	log.Printf("UDP Rx connection: %v", conn)
 
 	buffer := make([]byte, maxBufferSize)
 	doneChan := make(chan error, 1)
 
 	go func() {
 		for {
-			n, addr, err := pc.ReadFrom(buffer)
+			n, addr, err := conn.ReadFromUDP(buffer)
 
 			if err != nil {
 				doneChan <- err
@@ -40,7 +49,9 @@ func UDPRx(ctx context.Context, address net.UDPAddr, messages chan RxMSG) {
 
 			verb, payload := DecodePacket(buffer)
 
-			messages <- RxMSG{verb, payload, addr}
+			log.Printf("got %v", payload)
+
+			messages <- RxMSG{verb, payload, *addr}
 		}
 	}()
 
@@ -50,5 +61,4 @@ func UDPRx(ctx context.Context, address net.UDPAddr, messages chan RxMSG) {
 		err = ctx.Err()
 	case err = <-doneChan:
 	}
-
 }

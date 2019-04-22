@@ -6,24 +6,12 @@ import (
 )
 
 
-func UDPTx(verb MessageVerb, payload Payload, address string, local_address *net.UDPAddr) {
-	// TODO: make efficient
-	resolved_address, err := net.ResolveUDPAddr("udp", address)
-
-	if err != nil {
-		log.Printf("Error resolving address %s %v", address, err)
-		return
-	}
-
-	connection, err := net.DialUDP("udp", local_address, resolved_address)
-
-	if err != nil {
-		log.Printf("UDP Dial Error %v", err)
-		return
-	}
+func UDPTx(verb MessageVerb, payload Payload, resolvedAddress *net.UDPAddr) {
 
 	messagePayload := EncodePayload(verb, payload)
-
-	connection.Write(messagePayload)
+	connection := UDPConnection()
+	log.Printf("udp connection %v", connection)
+	n, err := connection.WriteToUDP(messagePayload, resolvedAddress)
+	log.Printf("sent: %d, err %v", n, err)
 }
 

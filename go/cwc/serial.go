@@ -34,7 +34,7 @@ func (s *SerialIO) Open() error {
 	s.port = port
 
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Can not open serial port: %v", err)
 	}
 
 	s.useRTS = strings.EqualFold(s.config["keyOut"], "RTS")

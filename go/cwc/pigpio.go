@@ -1,6 +1,8 @@
 package cwc
 
-import rpio "github.com/stianeikeland/go-rpio"
+import (
+	"github.com/stianeikeland/go-rpio"
+)
 
 
 type PiGPIO struct {
@@ -42,9 +44,9 @@ func (g *PiGPIO) ConfigMap() ConfigMap {
 
 func (g *PiGPIO) Bit() bool {
 	if g.input.Read() == rpio.High {
-		return true
-	} else {
 		return false
+	} else {
+		return true
 	}
 }
 
