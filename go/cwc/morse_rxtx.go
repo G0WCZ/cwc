@@ -160,7 +160,7 @@ var TxQueue = make([]Event, 100)
 // that will be sent out based on the tick timing
 func QueueForTransmit(carrierEvents *bitoip.CarrierEventPayload) {
 	// compose into events
-	newEvents := make([]Event, 1)
+	newEvents := make([]Event, 0)
 	//start := time.Unix(0, carrierEvents.StartTimeStamp)
 	now := time.Now()
 	for _, ce := range carrierEvents.BitEvents {
@@ -189,7 +189,7 @@ func TransmitToHardware(t time.Time, morseIO IO) {
 
 	if len(TxQueue) > 0 && TxQueue[0].startTime.Before(now) {
 		be := TxQueue[0].bitEvent
-		morseIO.SetBit(!(be & bitoip.BitOn == 0))
+		morseIO.SetBit(!((be & bitoip.BitOn) == 0))
 		TxQueue = TxQueue[1:]
 	}
 

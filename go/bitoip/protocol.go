@@ -1,5 +1,0 @@
-package bitoip
-
-func receive ()  {
-	
-}

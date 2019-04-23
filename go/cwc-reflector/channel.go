@@ -73,7 +73,7 @@ func (c *Channel) Subscribe(address net.UDPAddr) bitoip.CarrierKeyType {
 	}
 }
 
-func (c *Channel) Unsubscribe(address net.Addr) {
+func (c *Channel) Unsubscribe(address net.UDPAddr) {
 	if subscriber, ok := c.Addresses[address.String()]; ok {
 		delete(c.Subscribers, subscriber.key)
 		delete(c.Addresses, subscriber.address.String())

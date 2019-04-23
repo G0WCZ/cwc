@@ -141,7 +141,8 @@ func TestCarrierEventPayload (t *testing.T) {
 	payload := CarrierEventPayload{
 		99, 0xeeee,
 		0,
-		[MaxBitEvents]CarrierBitEvent{onEvent, offEvent, lastEvent}}
+		[MaxBitEvents]CarrierBitEvent{onEvent, offEvent, lastEvent},
+		 0}
 
 	myBytes := EncodePayload(verb, payload)
 
