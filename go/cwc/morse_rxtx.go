@@ -1,8 +1,8 @@
 package cwc
 
 import (
+	"github.com/golang/glog"
 	"context"
-	"log"
 	"sort"
 	"sync"
 	"time"
@@ -76,7 +76,7 @@ func Stop(morseIO IO) {
 func Startup(morseIO IO) {
 	err := morseIO.Open()
 	if err != nil {
-		log.Fatalf("Can't access Morse hardware: %s", err)
+		glog.Fatalf("Can't access Morse hardware: %s", err)
 	}
 }
 
@@ -99,12 +99,14 @@ func Sample(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO) {
 		RxMutex.Lock()
 		events = append(events, Event{t, bitoip.BitEvent(bit) })
 		RxMutex.Unlock()
-		if  len(events) >= MaxEvents {
+		if  (len(events) >= MaxEvents - 1) && (events[len(events)-1].bitEvent & bitoip.BitOn == 0) {
 			events = Flush(events, toSend)
 			return
 		}
 	}
-	if len(events)> 0 && ((t.Sub(events[0].startTime) >= MaxSendTimespan) ||
+	if len(events)> 0 &&
+		(events[len(events)-1].bitEvent & bitoip.BitOn == 0) &&
+		((t.Sub(events[0].startTime) >= MaxSendTimespan) ||
 		(t.Sub(events[len(events) - 1].startTime) >= BreakinTime)) {
 		events = Flush(events, toSend)
 	}
@@ -113,7 +115,7 @@ func Sample(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO) {
 
 // Flush events into an output stream
 func Flush(events []Event, toSend chan bitoip.CarrierEventPayload) []Event {
-	log.Printf("Flushing events %v", events)
+	glog.V(2).Infof("Flushing events %v", events)
 	RxMutex.Lock()
 	if len(events) > 0 {
 		toSend <- BuildPayload(events)
@@ -177,8 +179,8 @@ func QueueForTransmit(carrierEvents *bitoip.CarrierEventPayload) {
 	TxQueue = append(TxQueue, newEvents...)
 
 	sort.Slice(TxQueue, func(i, j int) bool {return TxQueue[i].startTime.Before(TxQueue[j].startTime)})
-
 	TxMutex.Unlock()
+	glog.V(2).Infof("TXQueue is now: %v", TxQueue)
 }
 
 

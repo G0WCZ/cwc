@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"github.com/golang/glog"
 	"net"
 )
 import (
@@ -57,18 +57,18 @@ func GetChannel(channel_id bitoip.ChannelIdType) *Channel {
  * subscribe to this channel
  */
 func (c *Channel) Subscribe(address net.UDPAddr) bitoip.CarrierKeyType {
-	log.Printf("subscribe from: %v", address)
-	log.Printf("channels: %v", channels)
+	glog.Infof("subscribe from: %v", address)
+	glog.Infof("channels: %v", channels)
 	if subscriber, ok := c.Addresses[address.String()]; ok {
 		subscriber.last_tx = time.Now()
-		log.Printf("suscribe existing key %d", subscriber.key)
+		glog.V(2).Infof("suscribe existing key %d", subscriber.key)
 		return subscriber.key
 	} else {
 		c.LastKey += 1
 		subscriber := Subscriber{c.LastKey, address, time.Now()}
 		c.Subscribers[c.LastKey] = subscriber
 		c.Addresses[address.String()] = subscriber
-		log.Printf("suscribe new key %d", subscriber.key)
+		glog.V(1).Infof("suscribe new key %d", subscriber.key)
 		return subscriber.key
 	}
 }
@@ -84,7 +84,7 @@ func (c *Channel) Unsubscribe(address net.UDPAddr) {
 // and always return to sender (who can ignore if they wish, or can use as net sidetone
 func (c *Channel) Broadcast(event bitoip.CarrierEventPayload) {
 	for _, v := range c.Subscribers {
-		log.Printf("sending to subs %v: %v", v.address, event)
+		glog.V(2).Infof("sending to subs %v: %v", v.address, event)
 		bitoip.UDPTx(bitoip.CarrierEvent, event, &v.address)
 	}
 

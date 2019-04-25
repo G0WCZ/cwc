@@ -3,7 +3,7 @@
 ## The Idea
 
 The idea:  A little box that you can plug a key and headphones into.  It Wifi connects to your phone 
-hotspot.  It has a channel selector.   Dial up a channel and tx/tx CW on that channel. That's it.    
+hotspot.  It has a channel selector.   Dial up a channel and tx/rx CW on that channel. That's it.    
 
 This is an internet transceiver for CW that you can take with you.  It aims to be more like a radio than a computer. 
 

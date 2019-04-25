@@ -1,7 +1,7 @@
 package bitoip
 
 import (
-	"log"
+	"github.com/golang/glog"
 	"net"
 )
 
@@ -10,8 +10,8 @@ func UDPTx(verb MessageVerb, payload Payload, resolvedAddress *net.UDPAddr) {
 
 	messagePayload := EncodePayload(verb, payload)
 	connection := UDPConnection()
-	log.Printf("udp connection %v", connection)
+	glog.V(1).Infof("udp connection %v", connection)
 	n, err := connection.WriteToUDP(messagePayload, resolvedAddress)
-	log.Printf("sent: %d, err %v", n, err)
+	glog.V(1).Infof("sent: %d, err %v", n, err)
 }
 

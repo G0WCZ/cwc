@@ -2,7 +2,7 @@ package cwc
 
 import (
 	"go.bug.st/serial.v1"
-	"log"
+	"github.com/golang/glog"
 	"strings"
 )
 
@@ -26,7 +26,7 @@ func NewSerialIO() *SerialIO {
 func (s *SerialIO) Open() error {
 	serialDevice := s.config["serialDevice"]
 
-	log.Printf("Opening serial port %s", serialDevice)
+	glog.Infof("Opening serial port %s", serialDevice)
 
 	mode := &serial.Mode{}
 
@@ -34,7 +34,7 @@ func (s *SerialIO) Open() error {
 	s.port = port
 
 	if err != nil {
-		log.Fatalf("Can not open serial port: %v", err)
+		glog.Fatalf("Can not open serial port: %v", err)
 	}
 
 	s.useRTS = strings.EqualFold(s.config["keyOut"], "RTS")
@@ -54,7 +54,7 @@ func (s *SerialIO) ConfigMap() ConfigMap {
 func (s *SerialIO) Bit() bool {
 	bits, err := s.port.GetModemStatusBits()
 	if err != nil {
-		log.Fatalf("Port bit read failed %v", err)
+		glog.Fatalf("Port bit read failed %v", err)
 		return false
 	}
 	if (s.useCTS) {
@@ -72,10 +72,9 @@ func (s *SerialIO) SetBit(bit bool) {
 		err = s.port.SetDTR(bit)
 	}
 	if err != nil {
-		log.Fatalf("port bit set failed: %v", err)
+		glog.Fatalf("port bit set failed: %v", err)
 	}
 }
-
 
 func (s *SerialIO) Close() {
 	s.port.Close()

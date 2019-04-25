@@ -2,7 +2,7 @@ package main
 
 import (
 	"../bitoip"
-	"log"
+	"github.com/golang/glog"
 	"net"
 )
 /**
@@ -19,7 +19,7 @@ func Handler(serverAddress *net.UDPAddr, msg bitoip.RxMSG) {
 
 	case bitoip.CarrierEvent:
 		ce := msg.Payload.(*bitoip.CarrierEventPayload)
-		log.Printf("got carrier event %v", ce)
+		glog.V(1).Infof("got carrier event %v", ce)
 		channel := GetChannel(ce.Channel)
 		channel.Subscribe(msg.SrcAddress) //make sure this user subscribed
 		channel.Broadcast(*ce)

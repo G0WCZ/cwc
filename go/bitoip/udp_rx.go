@@ -1,9 +1,8 @@
 package bitoip
 
 import (
-	"log"
-	"fmt"
 	"context"
+	"github.com/golang/glog"
 	"net"
 )
 
@@ -27,11 +26,11 @@ func UDPRx(ctx context.Context, address *net.UDPAddr, messages chan RxMSG) {
 	defer conn.Close()
 
 	if err != nil {
-		log.Panicf("Can not open local connection: %v", err)
+		glog.Fatalf("Can not open local connection: %v", err)
 		return
 	}
 
-	log.Printf("UDP Rx connection: %v", conn)
+	glog.V(2).Infof("UDP Rx connection: %v", conn)
 
 	buffer := make([]byte, maxBufferSize)
 	doneChan := make(chan error, 1)
@@ -45,11 +44,11 @@ func UDPRx(ctx context.Context, address *net.UDPAddr, messages chan RxMSG) {
 				return
 			}
 
-			log.Printf("packet rx: %#v", buffer[0:n])
+			glog.V(2).Infof("packet rx: %#v", buffer[0:n])
 
 			verb, payload := DecodePacket(buffer)
 
-			log.Printf("got %v", payload)
+			glog.V(2).Infof("udp rx got %v", payload)
 
 			messages <- RxMSG{verb, payload, *addr}
 		}
@@ -57,7 +56,6 @@ func UDPRx(ctx context.Context, address *net.UDPAddr, messages chan RxMSG) {
 
 	select {
 	case <-ctx.Done():
-		fmt.Println("cancelled")
 		err = ctx.Err()
 	case err = <-doneChan:
 	}

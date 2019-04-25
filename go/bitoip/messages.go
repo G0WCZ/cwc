@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"log"
 	"reflect"
+	"github.com/golang/glog"
 	)
 
 // conservative UDP payload in bytes
@@ -152,7 +153,7 @@ func DecodePacket(lineBuffer []byte) (MessageVerb, interface{}) {
 	if payloadObj != nil {
 		err := binary.Read(buffer, byteOrder, payloadObj)
 		if (err != nil) {
-			log.Fatalf("Error reading message for %d, %v", verb, err)
+			glog.Fatalf("Error reading message for %d, %v", verb, err)
 			return verb, nil
 		}
 	}

@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"log"
+	"github.com/golang/glog"
 	"net"
 			"context"
 	"../bitoip"
@@ -23,10 +23,10 @@ func ReflectorServer(ctx context.Context, address string) {
 
 	serverAddress, err := net.ResolveUDPAddr("udp", address)
 	if err != nil {
-		log.Fatalf("Can't use address %s: %s", address, err)
+		glog.Fatalf("Can't use address %s: %s", address, err)
 		os.Exit(1)
 	}
-	log.Printf("Starting reflector on %s", address)
+	glog.Infof("Starting reflector on %s", address)
 
 	messages := make(chan bitoip.RxMSG)
 

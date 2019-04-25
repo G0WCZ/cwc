@@ -1,13 +1,13 @@
 package main
 
 import (
+	"../bitoip"
 	"context"
-	"log"
+	"github.com/golang/glog"
+	"gotest.tools/assert"
 	"net"
 	"sort"
 	"testing"
-	"gotest.tools/assert"
-	"../bitoip"
 	"time"
 )
 
@@ -106,7 +106,7 @@ func XTestBroadcastToSubscriber(t *testing.T) {
 	ce := carrierEventPayload()
 	add := "localhost:2020"
 	addr, _ := net.ResolveUDPAddr("udp", add)
-	log.Printf("addr: %v", addr)
+	glog.Infof("addr: %v", addr)
 	c1.Subscribe(*addr)
 
 

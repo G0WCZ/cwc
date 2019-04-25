@@ -2,7 +2,7 @@ package cwc
 
 import (
 	"context"
-	"log"
+	"github.com/golang/glog"
 	"net"
 	"../bitoip"
 	"time"
@@ -18,7 +18,7 @@ func StationClient(ctx context.Context, cqMode bool, addr string, morseIO IO, te
 	resolvedAddress, err := net.ResolveUDPAddr("udp", addr)
 
 	if err != nil {
-		log.Printf("Error resolving address %s %v", addr, err)
+		glog.Errorf("Error resolving address %s %v", addr, err)
 		return
 	}
 	toSend := make(chan bitoip.CarrierEventPayload)
@@ -30,7 +30,7 @@ func StationClient(ctx context.Context, cqMode bool, addr string, morseIO IO, te
 	localRxAddress, err := net.ResolveUDPAddr("udp", "0.0.0.0:8873")
 
 	if err != nil {
-		log.Printf("Can't allocate local address: %v", err)
+		glog.Errorf("Can't allocate local address: %v", err)
 	}
 
 	// UDP Receiver
@@ -60,7 +60,7 @@ func StationClient(ctx context.Context, cqMode bool, addr string, morseIO IO, te
 			return
 
 		case cep := <- toSend:
-			log.Printf("carrier event payload to send: %v", cep)
+			glog.V(2).Infof("carrier event payload to send: %v", cep)
 			// TODO fill in some channel details
 			bitoip.UDPTx(bitoip.CarrierEvent, cep, resolvedAddress)
 			if testFeedback {
@@ -70,7 +70,7 @@ func StationClient(ctx context.Context, cqMode bool, addr string, morseIO IO, te
 		case tm := <- toMorse:
 			switch tm.Verb {
 			case bitoip.CarrierEvent:
-				log.Printf("carrier events to morse: %v", tm)
+				glog.V(2).Infof("carrier events to morse: %v", tm)
 				QueueForTransmit(tm.Payload.(*bitoip.CarrierEventPayload))
 			}
 		}
