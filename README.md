@@ -34,9 +34,69 @@ See bitoip.md for the on-the-wire protocol details.
 * in development: Raspberry Pi GPIO / or Mac & Linux * maybe windows with serial port
 * planning for: Arduino/NodeMCU
 
+# Pi Zero default setup
+GPIO pinouts:
+```
+BCM17 - connector pin 11 - morse out
+BCM27 - connector pin 13 - morse in - use 10k pullup resistor to 3V3
+BCM13 - conncetor pin 33 - PWM audio morse out.  
+```
+See https://cdn-learn.adafruit.com/downloads/pdf/adding-basic-audio-ouput-to-raspberry-pi-zero.pdf for details
+of audio output circuit.  Basically voltage divider and low-pass filter to make a head phone output.
+
+Run with a command like
+```
+# add -v 2 for lots of debugging output
+sudo ./cwc-station -ref=cwc0.nodestone.io:7388 -sidetone 500 -logtostderr
+
+```
+
+Full set of command-line flags:
+```
+Usage of ./cwc-station:
+  -alsologtostderr
+    	log to standard error as well as files
+  -cq
+    	--cq is CQ mode, no server, local broadcast
+  -keyin string
+    	-keyin=17 (default "17")
+  -keyout string
+    	-keyout=27 (default "27")
+  -log_backtrace_at value
+    	when logging hits line file:N, emit a stack trace
+  -log_dir string
+    	If non-empty, write log files in this directory
+  -logtostderr
+    	log to standard error instead of files
+  -port int
+    	--port=<local-udp-port> (default 5990)
+  -ref string
+    	--ref=host:port (default "cwc0.nodestone.io:7388")
+  -serial string
+    	-serial=<serial-device-name>
+  -sidetone string
+    	-sidetone 450 to send 450hz tone on keyout (default "0")
+  -stderrthreshold value
+    	logs at or above this threshold go to stderr
+  -test
+    	--test to put into local feedback test
+  -v value
+    	log level for V logs
+  -vmodule value
+    	comma-separated list of pattern=N settings for file-filtered logging
+
+
+```
+
+# To fix
+1. `-sidetone` option is really pw audio out, not a sidetone 
+2. need to fix up duty cycle of pwm output one good output circuit added.
+
 # Who did this
 Ideas by Grae G0WCZ and the online radio club MX0ONL
 
 Go implementation (for RPi and others) by Grae G0WCZ
+
+
 
 
