@@ -76,6 +76,8 @@ func (s *SerialIO) SetBit(bit bool) {
 	}
 }
 
+func (s *SerialIO) SetToneOut(_ bool) {}
+
 func (s *SerialIO) Close() {
 	s.port.Close()
 }

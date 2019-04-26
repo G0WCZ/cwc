@@ -13,7 +13,7 @@ import (
 // Else the client of a reflector
 // CQ mode is really simple. Only really have to tx and rx carrier events
 
-func StationClient(ctx context.Context, cqMode bool, addr string, morseIO IO, testFeedback bool) {
+func StationClient(ctx context.Context, cqMode bool, addr string, morseIO IO, testFeedback bool, echo bool) {
 
 	resolvedAddress, err := net.ResolveUDPAddr("udp", addr)
 
@@ -25,7 +25,7 @@ func StationClient(ctx context.Context, cqMode bool, addr string, morseIO IO, te
 	toMorse := make(chan bitoip.RxMSG)
 
 	// Morse receiver
-	go RunMorseRx(ctx, morseIO, toSend)
+	go RunMorseRx(ctx, morseIO, toSend, echo)
 
 	localRxAddress, err := net.ResolveUDPAddr("udp", "0.0.0.0:8873")
 
@@ -72,6 +72,11 @@ func StationClient(ctx context.Context, cqMode bool, addr string, morseIO IO, te
 			case bitoip.CarrierEvent:
 				glog.V(2).Infof("carrier events to morse: %v", tm)
 				QueueForTransmit(tm.Payload.(*bitoip.CarrierEventPayload))
+
+			case bitoip.ListenConfirm:
+				glog.V(2).Infof("listen confirm: %v", tm)
+				lc := tm.Payload.(*bitoip.ListenConfirmPayload)
+				SetCarrierKey(lc.CarrierKey)
 			}
 		}
 	}

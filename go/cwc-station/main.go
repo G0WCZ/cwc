@@ -19,8 +19,9 @@ func main() {
 	var keyIn = flag.String("keyin", "17", "-keyin=17")
 	var keyOut = flag.String("keyout", "27", "-keyout=27")
 	var serialDevice = flag.String("serial", "", "-serial=<serial-device-name>")
-	var testFeeback = flag.Bool("test", false, "--test to put into local feedback test")
+	var testFeedback = flag.Bool("test", false, "--test to put into local feedback test mode")
 	var sidetoneFreq = flag.String("sidetone", "0", "-sidetone 450 to send 450hz tone on keyout")
+	var echo = flag.Bool("echo", false, "-echo turns on remote echo of all sent morse")
 
 	flag.Parse()
 
@@ -49,10 +50,10 @@ func main() {
 		mcAddress := fmt.Sprintf(LocalMulticast, *localPort)
 		glog.Infof("Starting in CQ mode with local multicast address %s", mcAddress)
 
-		cwc.StationClient(ctx, true, mcAddress, morseIO, *testFeeback)
+		cwc.StationClient(ctx, true, mcAddress, morseIO, *testFeedback, *echo)
 	} else {
 		glog.Infof("Connecting to reflector %s", refAddress)
 
-		cwc.StationClient(ctx, false, refAddress, morseIO, *testFeeback)
+		cwc.StationClient(ctx, false, refAddress, morseIO, *testFeedback, *echo)
 	}
 }

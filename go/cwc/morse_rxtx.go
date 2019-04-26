@@ -41,6 +41,7 @@ var RxMutex = sync.Mutex{}
 var ticker *time.Ticker
 var done = make(chan bool)
 
+
 func SetTickTime(tt time.Duration) {
 	TickTime = tt
 }
@@ -49,7 +50,15 @@ func SetSendWait(sw time.Duration) {
 	SendWait = sw
 }
 
-func RunMorseRx(ctx context.Context, morseIO IO, toSend chan bitoip.CarrierEventPayload) {
+var localEcho bool
+var carrierKey bitoip.CarrierKeyType
+
+func SetCarrierKey(ck bitoip.CarrierKeyType) {
+	carrierKey = ck
+}
+
+func RunMorseRx(ctx context.Context, morseIO IO, toSend chan bitoip.CarrierEventPayload, echo bool) {
+	localEcho = echo
 	LastBit = false // make sure turned off to begin -- the default state
 	ticker = time.NewTicker(TickTime)
 
@@ -90,6 +99,7 @@ func Sample(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO) {
 	if rxBit != LastBit {
 		// change so record it
 		LastBit = rxBit
+		morseIO.SetToneOut(rxBit)
 
 		var bit uint8 = 0
 
@@ -129,7 +139,7 @@ func BuildPayload(events []Event) bitoip.CarrierEventPayload {
 	baseTime := events[0].startTime.UnixNano()
 	cep := bitoip.CarrierEventPayload{
 		0,
-		0,
+		carrierKey,
 		baseTime,
 		[bitoip.MaxBitEvents]bitoip.CarrierBitEvent{},
 		time.Now().UnixNano(),
@@ -161,25 +171,29 @@ var TxQueue = make([]Event, 100)
 // Queue this stuff for sending... Basically add to queue
 // that will be sent out based on the tick timing
 func QueueForTransmit(carrierEvents *bitoip.CarrierEventPayload) {
-	// compose into events
-	newEvents := make([]Event, 0)
-	//start := time.Unix(0, carrierEvents.StartTimeStamp)
-	now := time.Now()
-	for _, ce := range carrierEvents.BitEvents {
-		newEvents = append(newEvents, Event{
-			now.Add(time.Duration(ce.TimeOffset)),
-			ce.BitEvent,
-		})
-		if (ce.BitEvent & bitoip.LastEvent) > 0 {
-			break
+	if localEcho || (carrierEvents.CarrierKey != carrierKey) {
+		// compose into events
+		newEvents := make([]Event, 0)
+		//start := time.Unix(0, carrierEvents.StartTimeStamp)
+		now := time.Now()
+		for _, ce := range carrierEvents.BitEvents {
+			newEvents = append(newEvents, Event{
+				now.Add(time.Duration(ce.TimeOffset)),
+				ce.BitEvent,
+			})
+			if (ce.BitEvent & bitoip.LastEvent) > 0 {
+				break
+			}
 		}
+		TxMutex.Lock()
+
+		TxQueue = append(TxQueue, newEvents...)
+
+		sort.Slice(TxQueue, func(i, j int) bool { return TxQueue[i].startTime.Before(TxQueue[j].startTime) })
+		TxMutex.Unlock()
+	} else {
+		glog.V(2).Infof("ignoring own carrier")
 	}
-	TxMutex.Lock()
-
-	TxQueue = append(TxQueue, newEvents...)
-
-	sort.Slice(TxQueue, func(i, j int) bool {return TxQueue[i].startTime.Before(TxQueue[j].startTime)})
-	TxMutex.Unlock()
 	glog.V(2).Infof("TXQueue is now: %v", TxQueue)
 }
 

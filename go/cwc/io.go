@@ -11,6 +11,7 @@ type IO interface {
 	ConfigMap() ConfigMap
 	Bit() bool
 	SetBit(bool)
+	SetToneOut(bool)
 	Close()
 }
 
