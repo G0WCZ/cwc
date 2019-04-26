@@ -7,6 +7,9 @@ import (
 	"strconv"
 )
 
+// PWM settings
+const OnDutyCycle = uint32(1)
+const PWMCycleLength = uint32(32)
 
 type PiGPIO struct {
 	config ConfigMap
@@ -77,20 +80,27 @@ func (g *PiGPIO) Bit() bool {
 func (g *PiGPIO) SetBit(bit0 bool) {
 	if bit0 {
 		g.output.High()
-		if g.pwm {
-			g.pwmOut.DutyCycle(1, 32)
-		}
+		g.SetPwm(true)
 	} else {
 		g.output.Low()
-		if g.pwm {
-			g.pwmOut.DutyCycle(0, 32)
-		}
+		g.SetPwm(false)
 	}
 }
 
+func (g *  PiGPIO) SetPwm(v bool) {
+	if g.pwm {
+		var dutyLen uint32
+
+		if v {
+			dutyLen = OnDutyCycle
+		} else {
+			dutyLen = 0
+		}
+		g.pwmOut.DutyCycle(dutyLen, PWMCycleLength)
+	}
+}
 
 func (g *PiGPIO) Close() {
 	// pass
 }
-
 
