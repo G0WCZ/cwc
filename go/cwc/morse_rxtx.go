@@ -51,14 +51,33 @@ func SetSendWait(sw time.Duration) {
 }
 
 var localEcho bool
+
+var channelId bitoip.ChannelIdType
+
+func SetChannelId(cId bitoip.ChannelIdType) {
+	channelId = cId
+}
+
+func ChannelId () bitoip.ChannelIdType {
+	return channelId
+}
+
 var carrierKey bitoip.CarrierKeyType
 
 func SetCarrierKey(ck bitoip.CarrierKeyType) {
 	carrierKey = ck
 }
 
-func RunMorseRx(ctx context.Context, morseIO IO, toSend chan bitoip.CarrierEventPayload, echo bool) {
+func CarrierKey() bitoip.CarrierKeyType {
+	return carrierKey
+}
+
+
+
+func RunMorseRx(ctx context.Context, morseIO IO, toSend chan bitoip.CarrierEventPayload, echo bool,
+	channel bitoip.ChannelIdType) {
 	localEcho = echo
+	channelId = channel
 	LastBit = false // make sure turned off to begin -- the default state
 	ticker = time.NewTicker(TickTime)
 
@@ -138,7 +157,7 @@ func Flush(events []Event, toSend chan bitoip.CarrierEventPayload) []Event {
 func BuildPayload(events []Event) bitoip.CarrierEventPayload {
 	baseTime := events[0].startTime.UnixNano()
 	cep := bitoip.CarrierEventPayload{
-		0,
+		channelId,
 		carrierKey,
 		baseTime,
 		[bitoip.MaxBitEvents]bitoip.CarrierBitEvent{},
@@ -171,7 +190,8 @@ var TxQueue = make([]Event, 100)
 // Queue this stuff for sending... Basically add to queue
 // that will be sent out based on the tick timing
 func QueueForTransmit(carrierEvents *bitoip.CarrierEventPayload) {
-	if localEcho || (carrierEvents.CarrierKey != carrierKey) {
+	if (localEcho || (carrierEvents.CarrierKey != carrierKey)) &&
+		carrierEvents.Channel == channelId {
 		// compose into events
 		newEvents := make([]Event, 0)
 		//start := time.Unix(0, carrierEvents.StartTimeStamp)
