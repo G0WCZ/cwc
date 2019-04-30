@@ -23,12 +23,12 @@ func UDPConnection() *net.UDPConn {
 func UDPRx(ctx context.Context, address *net.UDPAddr, messages chan RxMSG) {
 	var err error
 	conn, err = net.ListenUDP("udp", address)
-	defer conn.Close()
 
 	if err != nil {
 		glog.Fatalf("Can not open local connection: %v", err)
 		return
 	}
+	defer conn.Close()
 
 	glog.V(2).Infof("UDP Rx connection: %v", conn)
 

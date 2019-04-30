@@ -54,7 +54,7 @@ func StationClient(ctx context.Context, cqMode bool,
 		_, err := r.Read(csBase[0:16])
 
 		if err != nil {
-			glog.Error("Callsign %s can not be encoded", callsign)
+			glog.Errorf("Callsign %s can not be encoded", callsign)
 		}
 
 		bitoip.UDPTx(bitoip.ListenRequest, bitoip.ListenRequestPayload{
@@ -86,6 +86,7 @@ func StationClient(ctx context.Context, cqMode bool,
 			case bitoip.ListenConfirm:
 				glog.V(2).Infof("listen confirm: %v", tm)
 				lc := tm.Payload.(*bitoip.ListenConfirmPayload)
+				glog.Infof("listening channel %d with carrier key %d", lc.Channel, lc.CarrierKey)
 				SetCarrierKey(lc.CarrierKey)
 			}
 		}

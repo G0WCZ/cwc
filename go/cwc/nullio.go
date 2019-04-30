@@ -8,6 +8,12 @@ const BitIn = "bitin"
 const BitOut = "bitout"
 const ToneOut = "toneout"
 
+func NewNullIO() *NullIO {
+	return &NullIO{
+		config: make(ConfigMap),
+	}
+}
+
 func (n *NullIO) Open() error {
 	return nil
 }

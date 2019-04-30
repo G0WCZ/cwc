@@ -42,19 +42,33 @@ func (g *PiGPIO) Open() error {
 
 	// PCM output
 	if (sFreq > 0) {
+		pcmPinNo, err := strconv.Atoi(g.config["pcmOut"])
+		if err != nil {
+			log.Fatalf("bad pcmout value: %s", g.config["pcmOut"])
+		}
 		g.pwm = true
-		g.pwmOut = rpio.Pin(13)
+		g.pwmOut = rpio.Pin(pcmPinNo)
 		g.pwmOut.Mode(rpio.Pwm)
 		g.pwmOut.Freq(sFreq * 32)
 		g.pwmOut.DutyCycle(0, 32)
 	}
 
+	outPin, err := strconv.Atoi(g.config["keyout"])
+	if err != nil {
+		log.Fatalf("bad key value: %s", g.config["keyout"])
+	}
+
+	inPin, err := strconv.Atoi(g.config["keyin"])
+	if err != nil {
+		log.Fatalf("bad keyin value %s", g.config["keyin"])
+	}
+
 	// Pin output
-	g.output = rpio.Pin(17) // header pin 11 BCM17
+	g.output = rpio.Pin(outPin)
 	g.output.Output()
 	g.output.Low()
 
-    g.input = rpio.Pin(27) // header pin 13 BCM27
+    g.input = rpio.Pin(inPin) // header pin 13 BCM27
     g.input.Input()
     g.input.PullUp()
 
