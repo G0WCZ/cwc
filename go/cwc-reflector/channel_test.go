@@ -27,7 +27,7 @@ func TestGetChannel(t *testing.T) {
 func TestSubscribeWhenNotSubscribed(t *testing.T) {
 	channel1 := GetChannel(21)
 	addr, _ := net.ResolveUDPAddr("udp", "localhost:2020")
-	channel1.Subscribe(*addr)
+	channel1.Subscribe(*addr,"G0WCZ")
 	assert.Equal(t, len(channel1.Addresses), 1)
 	assert.Equal(t, len(channel1.Subscribers), 1)
 }
@@ -35,17 +35,17 @@ func TestSubscribeWhenNotSubscribed(t *testing.T) {
 func TestSubscribeWhenSubscribed(t *testing.T) {
 	channel1 := GetChannel(21)
 	addr, _ := net.ResolveUDPAddr("udp", "localhost:2020")
-	channel1.Subscribe(*addr)
+	channel1.Subscribe(*addr, "G0WCZ")
 	assert.Equal(t, len(channel1.Addresses), 1)
 	assert.Equal(t, len(channel1.Subscribers), 1)
-	channel1.Subscribe(*addr)
+	channel1.Subscribe(*addr, "G0WCZ")
 	assert.Equal(t, len(channel1.Addresses), 1)
 	assert.Equal(t, len(channel1.Subscribers), 1)
 }
 func TestUnsubscribeWhenSubscribed(t *testing.T) {
 	channel2 := GetChannel(22)
 	addr, _ := net.ResolveUDPAddr("udp", "localhost:2020")
-	channel2.Subscribe(*addr)
+	channel2.Subscribe(*addr, "G0WCZ")
 	assert.Equal(t, len(channel2.Addresses), 1)
 	assert.Equal(t, len(channel2.Subscribers), 1)
 	channel2.Unsubscribe(*addr)
@@ -107,7 +107,7 @@ func XTestBroadcastToSubscriber(t *testing.T) {
 	add := "localhost:2020"
 	addr, _ := net.ResolveUDPAddr("udp", add)
 	glog.Infof("addr: %v", addr)
-	c1.Subscribe(*addr)
+	c1.Subscribe(*addr, "G0WCZ")
 
 
 	pc, _ := net.ListenPacket("udp", add)

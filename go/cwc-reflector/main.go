@@ -32,6 +32,8 @@ func ReflectorServer(ctx context.Context, address string) {
 
 	go bitoip.UDPRx(ctx, serverAddress, messages)
 
+	go APIServer(ctx, &channels)
+
 	for {
 		select {
 		case <- ctx.Done():

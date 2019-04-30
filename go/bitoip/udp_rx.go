@@ -22,6 +22,7 @@ func UDPConnection() *net.UDPConn {
 
 func UDPRx(ctx context.Context, address *net.UDPAddr, messages chan RxMSG) {
 	var err error
+
 	conn, err = net.ListenUDP("udp", address)
 
 	if err != nil {
