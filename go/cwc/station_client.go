@@ -1,12 +1,12 @@
 package cwc
 
 import (
+	"../bitoip"
 	"context"
 	"github.com/golang/glog"
 	"net"
-	"../bitoip"
-	"time"
 	"strings"
+	"time"
 )
 
 // General client
@@ -30,17 +30,17 @@ func StationClient(ctx context.Context, cqMode bool,
 	// Morse receiver
 	go RunMorseRx(ctx, morseIO, toSend, echo, channel)
 
-	localRxAddress, err := net.ResolveUDPAddr("udp", "0.0.0.0:8873")
+	localRxAddress, err := net.ResolveUDPAddr("udp", "0.0.0.0:0")
 
 	if err != nil {
-		glog.Errorf("Can't allocate local address: %v", err)
+		glog.Fatalf("Can't allocate local address: %v", err)
 	}
 
 	// UDP Receiver
 	go bitoip.UDPRx(ctx, localRxAddress, toMorse)
 
 	if !cqMode {
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second * 1)
 		// TODO: full reflector mode implementation
 		// Reflector mode setup
 		// 1/ time sync with server

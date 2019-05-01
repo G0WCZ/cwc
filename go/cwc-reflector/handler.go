@@ -4,6 +4,7 @@ import (
 	"../bitoip"
 	"github.com/golang/glog"
 	"net"
+	"strings"
 )
 /**
 	Handle an incoming message to the reflector
@@ -21,13 +22,13 @@ func Handler(serverAddress *net.UDPAddr, msg bitoip.RxMSG) {
 		ce := msg.Payload.(*bitoip.CarrierEventPayload)
 		glog.V(1).Infof("got carrier event %v", ce)
 		channel := GetChannel(ce.Channel)
-		channel.Subscribe(msg.SrcAddress) //make sure this user subscribed
+		channel.Subscribe(msg.SrcAddress, "????????") //make sure this user subscribed
 		channel.Broadcast(*ce)
 
 	case bitoip.ListenRequest:
 		lr := msg.Payload.(*bitoip.ListenRequestPayload)
 		channel := GetChannel(lr.Channel)
-		key := channel.Subscribe(msg.SrcAddress)
+		key := channel.Subscribe(msg.SrcAddress, strings.Trim(string(lr.Callsign[:]), "\x00"))
 		lcp := bitoip.ListenConfirmPayload{lr.Channel, key}
 
 		bitoip.UDPTx(bitoip.ListenConfirm, lcp, &msg.SrcAddress)
