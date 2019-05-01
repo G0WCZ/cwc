@@ -48,10 +48,10 @@ func main() {
 	} else {
 		morseIO =  cwc.NewPiGPIO()
 	}
-	morseIO.SetConfig("keyIn", *keyIn)
-	morseIO.SetConfig("keyOut", *keyOut)
-	morseIO.SetConfig("pcmOut", *pcmOut)
-	morseIO.SetConfig("sidetoneFreq", *sidetoneFreq)
+	morseIO.SetConfig(cwc.Keyin, *keyIn)
+	morseIO.SetConfig(cwc.Keyout, *keyOut)
+	morseIO.SetConfig(cwc.Pcmout, *pcmOut)
+	morseIO.SetConfig(cwc.Sidetonefreq, *sidetoneFreq)
 
 	if cqMode {
 		mcAddress := fmt.Sprintf(LocalMulticast, *localPort)

@@ -37,8 +37,8 @@ func (s *SerialIO) Open() error {
 		glog.Fatalf("Can not open serial port: %v", err)
 	}
 
-	s.useRTS = strings.EqualFold(s.config["keyOut"], "RTS")
-	s.useCTS = strings.EqualFold(s.config["keyIn"], "CTS")
+	s.useRTS = strings.EqualFold(s.config[Keyout], "RTS")
+	s.useCTS = strings.EqualFold(s.config[Keyin], "CTS")
 
 	return nil
 }
