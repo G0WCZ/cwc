@@ -6,6 +6,7 @@ import (
 	"net"
 	"../bitoip"
 	"time"
+	"strings"
 )
 
 // General client
@@ -13,7 +14,9 @@ import (
 // Else the client of a reflector
 // CQ mode is really simple. Only really have to tx and rx carrier events
 
-func StationClient(ctx context.Context, cqMode bool, addr string, morseIO IO, testFeedback bool, echo bool) {
+func StationClient(ctx context.Context, cqMode bool,
+	addr string, morseIO IO, testFeedback bool, echo bool,
+	channel bitoip.ChannelIdType, callsign string) {
 
 	resolvedAddress, err := net.ResolveUDPAddr("udp", addr)
 
@@ -25,7 +28,7 @@ func StationClient(ctx context.Context, cqMode bool, addr string, morseIO IO, te
 	toMorse := make(chan bitoip.RxMSG)
 
 	// Morse receiver
-	go RunMorseRx(ctx, morseIO, toSend, echo)
+	go RunMorseRx(ctx, morseIO, toSend, echo, channel)
 
 	localRxAddress, err := net.ResolveUDPAddr("udp", "0.0.0.0:8873")
 
@@ -47,8 +50,15 @@ func StationClient(ctx context.Context, cqMode bool, addr string, morseIO IO, te
 		// 5/ save carrier id
 
 		var csBase [16]byte
+		r := strings.NewReader(callsign)
+		_, err := r.Read(csBase[0:16])
+
+		if err != nil {
+			glog.Errorf("Callsign %s can not be encoded", callsign)
+		}
+
 		bitoip.UDPTx(bitoip.ListenRequest, bitoip.ListenRequestPayload{
-			0,
+			channel,
 			 csBase,
 			},
 			resolvedAddress,
@@ -76,6 +86,7 @@ func StationClient(ctx context.Context, cqMode bool, addr string, morseIO IO, te
 			case bitoip.ListenConfirm:
 				glog.V(2).Infof("listen confirm: %v", tm)
 				lc := tm.Payload.(*bitoip.ListenConfirmPayload)
+				glog.Infof("listening channel %d with carrier key %d", lc.Channel, lc.CarrierKey)
 				SetCarrierKey(lc.CarrierKey)
 			}
 		}
