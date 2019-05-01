@@ -32,7 +32,7 @@ func (g *PiGPIO) Open() error {
 	if err != nil {
 		return err
 	}
-	sFreq, err := strconv.Atoi(g.config["sidetoneFreq"])
+	sFreq, err := strconv.Atoi(g.config[Sidetonefreq])
 
 	if err != nil {
 		log.Fatalf("Bad sidetone frequency")
@@ -42,9 +42,9 @@ func (g *PiGPIO) Open() error {
 
 	// PCM output
 	if (sFreq > 0) {
-		pcmPinNo, err := strconv.Atoi(g.config["pcmOut"])
+		pcmPinNo, err := strconv.Atoi(g.config[Pcmout])
 		if err != nil {
-			log.Fatalf("bad pcmout value: %s", g.config["pcmOut"])
+			log.Fatalf("bad pcmout value: %s", g.config[Pcmout])
 		}
 		g.pwm = true
 		g.pwmOut = rpio.Pin(pcmPinNo)
@@ -53,14 +53,14 @@ func (g *PiGPIO) Open() error {
 		g.pwmOut.DutyCycle(0, 32)
 	}
 
-	outPin, err := strconv.Atoi(g.config["keyout"])
+	outPin, err := strconv.Atoi(g.config[Keyout])
 	if err != nil {
-		log.Fatalf("bad key value: %s", g.config["keyout"])
+		log.Fatalf("bad key value: %s", g.config[Keyout])
 	}
 
-	inPin, err := strconv.Atoi(g.config["keyin"])
+	inPin, err := strconv.Atoi(g.config[Keyin])
 	if err != nil {
-		log.Fatalf("bad keyin value %s", g.config["keyin"])
+		log.Fatalf("bad keyin value %s", g.config[Keyin])
 	}
 
 	// Pin output

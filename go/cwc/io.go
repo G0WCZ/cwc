@@ -16,3 +16,9 @@ type IO interface {
 }
 
 type ConfigMap map[string]string
+
+// Config consts
+const Keyin = "keyin"
+const Keyout = "keyout"
+const Pcmout = "pcmout"
+const Sidetonefreq = "sidetonefreq"
