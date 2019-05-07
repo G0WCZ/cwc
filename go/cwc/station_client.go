@@ -59,17 +59,22 @@ func StationClient(ctx context.Context, cqMode bool,
 
 		bitoip.UDPTx(bitoip.ListenRequest, bitoip.ListenRequestPayload{
 			channel,
-			 csBase,
-			},
+			csBase,
+		},
 			resolvedAddress,
 		)
 	}
+
+	lastUDPSend := time.Now()
+
+	keepAliveTick := time.Tick(20 * time.Second)
+
 	for {
 		select {
-		case <- ctx.Done():
+		case <-ctx.Done():
 			return
 
-		case cep := <- toSend:
+		case cep := <-toSend:
 			glog.V(2).Infof("carrier event payload to send: %v", cep)
 			// TODO fill in some channel details
 			bitoip.UDPTx(bitoip.CarrierEvent, cep, resolvedAddress)
@@ -77,7 +82,7 @@ func StationClient(ctx context.Context, cqMode bool,
 				QueueForTransmit(&cep)
 			}
 
-		case tm := <- toMorse:
+		case tm := <-toMorse:
 			switch tm.Verb {
 			case bitoip.CarrierEvent:
 				glog.V(2).Infof("carrier events to morse: %v", tm)
@@ -89,7 +94,23 @@ func StationClient(ctx context.Context, cqMode bool,
 				glog.Infof("listening channel %d with carrier key %d", lc.Channel, lc.CarrierKey)
 				SetCarrierKey(lc.CarrierKey)
 			}
+
+		case kat := <-keepAliveTick:
+			if kat.Sub(lastUDPSend) > time.Duration(20*time.Second) {
+				lastUDPSend = kat
+				p := bitoip.CarrierEventPayload{
+					channel,
+					CarrierKey(),
+					time.Now().UnixNano(),
+					[bitoip.MaxBitEvents]bitoip.CarrierBitEvent{
+						bitoip.CarrierBitEvent{0, bitoip.BitOff | bitoip.LastEvent},
+					},
+					kat.UnixNano(),
+				}
+				glog.V(2).Info("sending keepalive")
+				bitoip.UDPTx(bitoip.CarrierEvent, p, resolvedAddress)
+			}
 		}
+
 	}
 }
-
