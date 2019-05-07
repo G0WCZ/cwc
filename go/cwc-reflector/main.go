@@ -38,6 +38,8 @@ func ReflectorServer(ctx context.Context, address string) {
 
 	go APIServer(ctx, &channels)
 
+	go Supervisor(ctx)
+
 	for {
 		select {
 		case <- ctx.Done():
