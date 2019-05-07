@@ -65,6 +65,14 @@ func StationClient(ctx context.Context, cqMode bool,
 		)
 	}
 
+	// Do time sync
+
+	commonTimeOffset := int64(0)
+
+	bitoip.UDPTx(bitoip.TimeSync, bitoip.TimeSyncPayload{
+		time.Now().UnixNano(),
+	}, resolvedAddress)
+
 	lastUDPSend := time.Now()
 
 	keepAliveTick := time.Tick(20 * time.Second)
@@ -93,6 +101,13 @@ func StationClient(ctx context.Context, cqMode bool,
 				lc := tm.Payload.(*bitoip.ListenConfirmPayload)
 				glog.Infof("listening channel %d with carrier key %d", lc.Channel, lc.CarrierKey)
 				SetCarrierKey(lc.CarrierKey)
+
+			case bitoip.TimeSyncResponse:
+				glog.V(2).Infof("time sync response %v", tm)
+				tsr := tm.Payload.(*bitoip.TimeSyncResponsePayload)
+				now := time.Now().UnixNano()
+				commonTimeOffset = ((2*tsr.CurrentTime) - tsr.GivenTime - now) / 2
+				glog.V(2).Infof("time offset %d", commonTimeOffset)
 			}
 
 		case kat := <-keepAliveTick:

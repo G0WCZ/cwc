@@ -5,6 +5,7 @@ import (
 	"github.com/golang/glog"
 	"net"
 	"strings"
+	"time"
 )
 /**
 	Handle an incoming message to the reflector
@@ -32,5 +33,16 @@ func Handler(serverAddress *net.UDPAddr, msg bitoip.RxMSG) {
 		lcp := bitoip.ListenConfirmPayload{lr.Channel, key}
 
 		bitoip.UDPTx(bitoip.ListenConfirm, lcp, &msg.SrcAddress)
+
+	case bitoip.TimeSync:
+		ts := msg.Payload.(*bitoip.TimeSyncPayload)
+
+		tsr := bitoip.TimeSyncResponsePayload{
+			ts.CurrentTime,
+		   time.Now().UnixNano(),
+		}
+
+		bitoip.UDPTx(bitoip.TimeSyncResponse, tsr, &msg.SrcAddress)
 	}
+
 }
