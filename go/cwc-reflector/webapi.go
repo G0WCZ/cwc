@@ -9,6 +9,8 @@ import (
 const APIPort = ":7380"
 
 func APIServer(ctx context.Context, channels *ChannelMap) {
+	gin.SetMode(gin.ReleaseMode)
+
 	router := gin.Default()
 	router.GET("/channels", func(c *gin.Context) {
 		c.JSON(http.StatusOK, *channels)
