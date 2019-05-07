@@ -18,4 +18,3 @@ func APIServer(ctx context.Context, channels *ChannelMap) {
 
 	router.Run(APIPort)
 }
-

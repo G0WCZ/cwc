@@ -39,31 +39,30 @@ func StationClient(ctx context.Context, cqMode bool,
 	// UDP Receiver
 	go bitoip.UDPRx(ctx, localRxAddress, toMorse)
 
-	if !cqMode {
-		time.Sleep(time.Second * 1)
-		// TODO: full reflector mode implementation
-		// Reflector mode setup
-		// 1/ time sync with server
-		// 2/ set callsign
-		// 3/ list channels
-		// 4/ suscribe channel(s)
-		// 5/ save carrier id
+	var csBase [16]byte
 
-		var csBase [16]byte
-		r := strings.NewReader(callsign)
-		_, err := r.Read(csBase[0:16])
+	time.Sleep(time.Second * 1)
+	// TODO: full reflector mode implementation
+	// Reflector mode setup
+	// 1/ time sync with server
+	// 2/ set callsign
+	// 3/ list channels
+	// 4/ suscribe channel(s)
+	// 5/ save carrier id
 
-		if err != nil {
-			glog.Errorf("Callsign %s can not be encoded", callsign)
-		}
+	r := strings.NewReader(callsign)
+	_, err = r.Read(csBase[0:16])
 
-		bitoip.UDPTx(bitoip.ListenRequest, bitoip.ListenRequestPayload{
-			channel,
-			csBase,
-		},
-			resolvedAddress,
-		)
+	if err != nil {
+		glog.Errorf("Callsign %s can not be encoded", callsign)
 	}
+
+	bitoip.UDPTx(bitoip.ListenRequest, bitoip.ListenRequestPayload{
+		channel,
+		csBase,
+		},
+		resolvedAddress,
+	)
 
 	lastUDPSend := time.Now()
 
@@ -98,17 +97,12 @@ func StationClient(ctx context.Context, cqMode bool,
 		case kat := <-keepAliveTick:
 			if kat.Sub(lastUDPSend) > time.Duration(20*time.Second) {
 				lastUDPSend = kat
-				p := bitoip.CarrierEventPayload{
+				p := bitoip.ListenRequestPayload{
 					channel,
-					CarrierKey(),
-					time.Now().UnixNano(),
-					[bitoip.MaxBitEvents]bitoip.CarrierBitEvent{
-						bitoip.CarrierBitEvent{0, bitoip.BitOff | bitoip.LastEvent},
-					},
-					kat.UnixNano(),
+					csBase,
 				}
 				glog.V(2).Info("sending keepalive")
-				bitoip.UDPTx(bitoip.CarrierEvent, p, resolvedAddress)
+				bitoip.UDPTx(bitoip.ListenRequest, p, resolvedAddress)
 			}
 		}
 
