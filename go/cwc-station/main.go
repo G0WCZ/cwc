@@ -37,6 +37,10 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	fmt.Println(DisplayVersion())
+
+	glog.Info(DisplayVersion())
+
 	// Morse Hardware
 	var morseIO cwc.IO
 
