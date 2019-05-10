@@ -20,6 +20,7 @@ type Channel struct {
 	ChannelId bitoip.ChannelIdType
 	Subscribers map[bitoip.CarrierKeyType]Subscriber
 	Addresses map[string]Subscriber
+	Callsigns map[string]Subscriber
 	LastKey bitoip.CarrierKeyType
 }
 
@@ -32,6 +33,8 @@ func NewChannel(channelId bitoip.ChannelIdType) Channel {
 		 channelId,
 		make(map[bitoip.CarrierKeyType]Subscriber),
 		 make(map[string]Subscriber),
+		  make(map[string]Subscriber),
+
 		   1,
 	}
 }
@@ -64,13 +67,17 @@ func (c *Channel) Subscribe(address net.UDPAddr, callsign string) bitoip.Carrier
 	glog.Infof("channels: %v", channels)
 	if subscriber, ok := c.Addresses[address.String()]; ok {
 		subscriber.LastTx = time.Now()
-		glog.V(2).Infof("suscribe existing key %d", subscriber.Key)
+		c.Addresses[address.String()] = subscriber
+		c.Subscribers[subscriber.Key] = subscriber
+		c.Callsigns[callsign] = subscriber
+		glog.V(2).Infof("subscribe existing key %d", subscriber.Key)
 		return subscriber.Key
 	} else {
 		c.LastKey += 1
 		subscriber := Subscriber{c.LastKey, address, time.Now(), callsign}
 		c.Subscribers[c.LastKey] = subscriber
 		c.Addresses[address.String()] = subscriber
+		c.Callsigns[callsign] = subscriber
 		glog.V(1).Infof("suscribe new key %d", subscriber.Key)
 		return subscriber.Key
 	}
@@ -80,6 +87,7 @@ func (c *Channel) Unsubscribe(address net.UDPAddr) {
 	if subscriber, ok := c.Addresses[address.String()]; ok {
 		delete(c.Subscribers, subscriber.Key)
 		delete(c.Addresses, subscriber.Address.String())
+		delete(c.Callsigns, subscriber.Callsign)
 	}
 }
 
@@ -93,4 +101,27 @@ func (c *Channel) Broadcast(event bitoip.CarrierEventPayload) {
 
 }
 
+func SuperviseChannels(t time.Time, timeout time.Duration) int {
+	removed := 0
+	for _, channel := range channels {
+		for key, sub := range channel.Subscribers {
+			if t.Sub(sub.LastTx) > timeout {
+				delete(channel.Subscribers, key)
+				removed += 1
+				for add, sub := range channel.Addresses {
+					if sub.Key == key {
+						delete(channel.Addresses, add)
+					}
+				}
+				for call, sub := range channel.Callsigns {
+					if sub.Key == key {
+						delete(channel.Addresses, call)
+					}
+				}
+			}
+		}
+	}
+
+	return removed
+}
 

@@ -1,3 +1,5 @@
 #!/bin/bash
 env GOOS=linux GOARCH=arm GOARM=5 go build
+ssh pi@cwc1.local "sudo systemctl stop cwc-station"
 scp cwc-station pi@cwc1.local:station/cwc-station
+ssh pi@cwc1.local "sudo systemctl start cwc-station"
