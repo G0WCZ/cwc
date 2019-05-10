@@ -66,6 +66,11 @@ func StationClient(ctx context.Context, cqMode bool,
 	}
 
 	// Do time sync
+	const timeOffsetBucketSize = 5
+
+	timeOffsetIndex := 0
+	timeOffsets := make([]int64, timeOffsetBucketSize, timeOffsetBucketSize)
+	timeOffsetSum := int64(0)
 
 	commonTimeOffset := int64(0)
 
@@ -106,7 +111,14 @@ func StationClient(ctx context.Context, cqMode bool,
 				glog.V(2).Infof("time sync response %v", tm)
 				tsr := tm.Payload.(*bitoip.TimeSyncResponsePayload)
 				now := time.Now().UnixNano()
-				commonTimeOffset = ((2*tsr.CurrentTime) - tsr.GivenTime - now) / 2
+				latestTimeOffset := ((2*tsr.CurrentTime) - tsr.GivenTime - now) / 2
+				timeOffsetSum -= timeOffsets[timeOffsetIndex]
+				timeOffsets[timeOffsetIndex] = latestTimeOffset
+				timeOffsetSum += latestTimeOffset
+				timeOffsetIndex = (timeOffsetIndex + 1) % timeOffsetBucketSize
+				commonTimeOffset = timeOffsetSum / timeOffsetBucketSize
+				SetTimeOffset(commonTimeOffset)
+
 				glog.V(2).Infof("time offset %d", commonTimeOffset)
 			}
 

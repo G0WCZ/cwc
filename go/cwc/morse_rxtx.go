@@ -72,6 +72,11 @@ func CarrierKey() bitoip.CarrierKeyType {
 	return carrierKey
 }
 
+var timeOffset = int64(0)
+
+func SetTimeOffset(t int64) {
+	timeOffset = t
+}
 
 
 func RunMorseRx(ctx context.Context, morseIO IO, toSend chan bitoip.CarrierEventPayload, echo bool,
