@@ -127,7 +127,7 @@ Usage of ./cwc-station:
 ```
 
 # Who did this
-Ideas by Grae G0WCZ and the online radio club MX0ONL
+Concept by Grae G0WCZ, Andy M0VVA and The Online Radio Club MX0ONL
 
 Go implementation (for RPi and others) by Grae G0WCZ
 
