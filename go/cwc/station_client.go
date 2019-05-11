@@ -73,9 +73,11 @@ func StationClient(ctx context.Context, cqMode bool,
 
 	commonTimeOffset := int64(0)
 
-	bitoip.UDPTx(bitoip.TimeSync, bitoip.TimeSyncPayload{
-		time.Now().UnixNano(),
-	}, resolvedAddress)
+	for i := 0; i < timeOffsetBucketSize; i++ {
+		bitoip.UDPTx(bitoip.TimeSync, bitoip.TimeSyncPayload{
+			time.Now().UnixNano(),
+		}, resolvedAddress)
+	}
 
 	lastUDPSend := time.Now()
 
@@ -110,15 +112,23 @@ func StationClient(ctx context.Context, cqMode bool,
 				glog.V(2).Infof("time sync response %v", tm)
 				tsr := tm.Payload.(*bitoip.TimeSyncResponsePayload)
 				now := time.Now().UnixNano()
-				latestTimeOffset := ((2*tsr.CurrentTime) - tsr.GivenTime - now) / 2
-				timeOffsetSum -= timeOffsets[timeOffsetIndex]
+
+				latestTimeOffset := ((tsr.ServerRxTime - tsr.GivenTime) - (tsr.ServerTxTime - now)) / 2
+				roundTrip := (now - tsr.GivenTime) - (tsr.ServerRxTime - tsr.ServerTxTime)
+
 				timeOffsets[timeOffsetIndex] = latestTimeOffset
-				timeOffsetSum += latestTimeOffset
 				timeOffsetIndex = (timeOffsetIndex + 1) % timeOffsetBucketSize
+
+				timeOffsetSum = 0
+				for i :=0 ; i < timeOffsetBucketSize; i++ {
+					timeOffsetSum += timeOffsets[i]
+				}
 				commonTimeOffset = timeOffsetSum / timeOffsetBucketSize
 				SetTimeOffset(commonTimeOffset)
 
-				glog.V(2).Infof("time offset %d", commonTimeOffset)
+				glog.V(2).Infof("timesync: offset %d µs roundtrip %d µs",
+					commonTimeOffset / 1000,
+					roundTrip / 1000)
 			}
 
 		case kat := <-keepAliveTick:

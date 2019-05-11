@@ -47,7 +47,8 @@ type TimeSyncPayload struct {
 
 type TimeSyncResponsePayload struct {
 	GivenTime int64
-	CurrentTime int64
+	ServerRxTime int64
+	ServerTxTime int64
 }
 
 type ListenRequestPayload struct {

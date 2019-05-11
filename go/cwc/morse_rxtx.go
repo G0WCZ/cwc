@@ -166,7 +166,7 @@ func BuildPayload(events []Event) bitoip.CarrierEventPayload {
 		carrierKey,
 		baseTime,
 		[bitoip.MaxBitEvents]bitoip.CarrierBitEvent{},
-		time.Now().UnixNano(),
+		time.Now().UnixNano() + timeOffset,
 	}
 	for i, event := range events {
 		bit := event.bitEvent
@@ -199,11 +199,13 @@ func QueueForTransmit(carrierEvents *bitoip.CarrierEventPayload) {
 		carrierEvents.Channel == channelId {
 		// compose into events
 		newEvents := make([]Event, 0)
-		//start := time.Unix(0, carrierEvents.StartTimeStamp)
-		now := time.Now()
+
+		// remove the calculated server time offset
+		start := time.Unix(0, carrierEvents.StartTimeStamp - carrierEvents.StartTimeStamp)
+
 		for _, ce := range carrierEvents.BitEvents {
 			newEvents = append(newEvents, Event{
-				now.Add(time.Duration(ce.TimeOffset)),
+				start.Add(time.Duration(ce.TimeOffset)),
 				ce.BitEvent,
 			})
 			if (ce.BitEvent & bitoip.LastEvent) > 0 {
@@ -215,6 +217,7 @@ func QueueForTransmit(carrierEvents *bitoip.CarrierEventPayload) {
 		TxQueue = append(TxQueue, newEvents...)
 
 		sort.Slice(TxQueue, func(i, j int) bool { return TxQueue[i].startTime.Before(TxQueue[j].startTime) })
+
 		TxMutex.Unlock()
 	} else {
 		glog.V(2).Infof("ignoring own carrier")

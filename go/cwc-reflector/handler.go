@@ -39,7 +39,8 @@ func Handler(serverAddress *net.UDPAddr, msg bitoip.RxMSG) {
 
 		tsr := bitoip.TimeSyncResponsePayload{
 			ts.CurrentTime,
-		   time.Now().UnixNano(),
+			msg.RxTime,
+			time.Now().UnixNano(),
 		}
 
 		bitoip.UDPTx(bitoip.TimeSyncResponse, tsr, &msg.SrcAddress)
