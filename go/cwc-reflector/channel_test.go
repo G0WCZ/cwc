@@ -85,9 +85,9 @@ func carrierEventPayload() bitoip.CarrierEventPayload {
 		time.Now().UnixNano(),
 		[bitoip.MaxBitEvents]bitoip.CarrierBitEvent{
 			bitoip.CarrierBitEvent{0, bitoip.BitOn},
-			bitoip.CarrierBitEvent{100, bitoip.BitOff & bitoip.LastEvent},
+			bitoip.CarrierBitEvent{100, bitoip.BitOff | bitoip.LastEvent},
 		},
-		0,
+		int64(0),
 	}
 }
 
@@ -99,8 +99,7 @@ func TestBroadcastEmpty(t *testing.T) {
 	c1.Broadcast(ce)
 }
 
-// Disabled, need a better integration-style testing framework.
-func XTestBroadcastToSubscriber(t *testing.T) {
+func TestBroadcastToSubscriber(t *testing.T) {
 	channels = make(map[uint16]*Channel)
 	c1 := GetChannel(1)
 	ce := carrierEventPayload()
@@ -117,6 +116,7 @@ func XTestBroadcastToSubscriber(t *testing.T) {
 	// get one message
 	go func() {
 		_, _, _ = pc.ReadFrom(buffer)
+		//fmt.Printf("raw Rx: %d %v", len(buffer), buffer)
 		doneChan <- buffer
 	}()
 
@@ -138,4 +138,36 @@ func XTestBroadcastToSubscriber(t *testing.T) {
 	assert.DeepEqual(t, payload, &ce)
 	rxce := payload.(*bitoip.CarrierEventPayload)
 	assert.Equal(t, rxce.CarrierKey, uint16(99))
+}
+
+func TestSuperviseChannelsNoSubscribers(t *testing.T) {
+	channels = make(map[uint16]*Channel)
+	_ = GetChannel(1)
+	_ = GetChannel(2)
+	r := SuperviseChannels(time.Now(), time.Duration(10 * time.Minute))
+	assert.Equal(t, r, 0)
+}
+
+func TestSuperviseChannelsNoneRemoved(t *testing.T) {
+	channels = make(map[uint16]*Channel)
+	c1 := GetChannel(1)
+	c2 := GetChannel(2)
+	addr, _ := net.ResolveUDPAddr("udp", "localhost:19234")
+	c1.Subscribe(*addr, "A1AAA")
+	c2.Subscribe(*addr, "A1BBB")
+	r := SuperviseChannels(time.Now(), time.Duration(10 * time.Minute))
+	assert.Equal(t, r, 0)
+}
+
+func TestSuperviseChannels2Removed(t *testing.T) {
+	channels = make(map[uint16]*Channel)
+	c1 := GetChannel(1)
+	c2 := GetChannel(2)
+	addr, _ := net.ResolveUDPAddr("udp", "localhost:19234")
+	c1.Subscribe(*addr, "A1AAA")
+	c2.Subscribe(*addr, "A1BBB")
+	r := SuperviseChannels(time.Now().Add(time.Duration(20 * time.Minute)), time.Duration(10 * time.Minute))
+	assert.Equal(t, r, 2)
+	r = SuperviseChannels(time.Now().Add(time.Duration(20 * time.Minute)), time.Duration(10 * time.Minute))
+	assert.Equal(t, r, 0)
 }
