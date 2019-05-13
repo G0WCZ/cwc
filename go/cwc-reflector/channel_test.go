@@ -16,6 +16,7 @@ func TestNewChannel(t *testing.T) {
 	assert.DeepEqual(t,channel.ChannelId, uint16(33))
 	assert.Equal(t, len(channel.Subscribers), 0)
 	assert.Equal(t, len(channel.Addresses), 0)
+	assert.Equal(t, channel.LastKey, uint16(99))
 }
 
 func TestGetChannel(t *testing.T) {

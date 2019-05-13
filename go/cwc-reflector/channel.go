@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+const LastReservedCarrierKey = 99
+
 type Subscriber struct {
 	Key bitoip.CarrierKeyType
 	Address net.UDPAddr
@@ -34,8 +36,7 @@ func NewChannel(channelId bitoip.ChannelIdType) Channel {
 		make(map[bitoip.CarrierKeyType]Subscriber),
 		 make(map[string]Subscriber),
 		  make(map[string]Subscriber),
-
-		   1,
+		   LastReservedCarrierKey,
 	}
 }
 
