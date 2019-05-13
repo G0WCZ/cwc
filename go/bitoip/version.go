@@ -8,7 +8,7 @@ import "fmt"
  */
 const MajorVersion = uint8(2)
 const MinorVersion = uint8(0)
-const PatchVersion = uint8(0)
+const PatchVersion = uint8(1)
 
 var protocolVersionBytes = []byte{MajorVersion, MinorVersion, PatchVersion}
 var protocolVersionString = fmt.Sprintf("%d.%d.%d", MajorVersion, MinorVersion, PatchVersion)

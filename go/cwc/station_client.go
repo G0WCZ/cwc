@@ -70,8 +70,12 @@ func StationClient(ctx context.Context, cqMode bool,
 	timeOffsetIndex := 0
 	timeOffsets := make([]int64, timeOffsetBucketSize, timeOffsetBucketSize)
 	timeOffsetSum := int64(0)
+	roundTrips := make([]int64, timeOffsetBucketSize, timeOffsetBucketSize)
+	roundTripSum := int64(0)
+
 
 	commonTimeOffset := int64(0)
+	commonRoundTrip := int64(0)
 
 	for i := 0; i < timeOffsetBucketSize; i++ {
 		bitoip.UDPTx(bitoip.TimeSync, bitoip.TimeSyncPayload{
@@ -119,12 +123,20 @@ func StationClient(ctx context.Context, cqMode bool,
 				timeOffsets[timeOffsetIndex] = latestTimeOffset
 				timeOffsetIndex = (timeOffsetIndex + 1) % timeOffsetBucketSize
 
-				timeOffsetSum = 0
+				roundTrips[timeOffsetIndex] = roundTrip
+
+				timeOffsetSum = int64(0)
+				roundTripSum = int64(0)
+
 				for i :=0 ; i < timeOffsetBucketSize; i++ {
 					timeOffsetSum += timeOffsets[i]
+					roundTripSum += roundTrips[i]
 				}
-				commonTimeOffset = timeOffsetSum / timeOffsetBucketSize
+				commonTimeOffset = (timeOffsetSum / timeOffsetBucketSize)
 				SetTimeOffset(commonTimeOffset)
+				commonRoundTrip = (roundTripSum / timeOffsetBucketSize)
+				SetRoundTrip(commonRoundTrip)
+
 
 				glog.V(2).Infof("timesync: offset %d µs roundtrip %d µs",
 					commonTimeOffset / 1000,

@@ -21,8 +21,8 @@ import "../bitoip"
 const Ms = int64(1e6)
 const Us = int64(1000)
 const DefaultTickTime = time.Duration(5 * Ms)
-const MaxSendTimespan = time.Duration(2000 * Ms)
-const BreakinTime = time.Duration(300 * Ms)
+const MaxSendTimespan = time.Duration(1000 * Ms)
+const BreakinTime = time.Duration(100 * Ms)
 const MaxEvents = 100
 
 var TickTime = DefaultTickTime
@@ -76,6 +76,12 @@ var timeOffset = int64(0)
 
 func SetTimeOffset(t int64) {
 	timeOffset = t
+}
+
+var roundTrip = int64(0)
+
+func SetRoundTrip(t int64) {
+	roundTrip = t
 }
 
 
@@ -164,9 +170,9 @@ func BuildPayload(events []Event) bitoip.CarrierEventPayload {
 	cep := bitoip.CarrierEventPayload{
 		channelId,
 		carrierKey,
-		baseTime,
+		baseTime + timeOffset,
 		[bitoip.MaxBitEvents]bitoip.CarrierBitEvent{},
-		time.Now().UnixNano() + timeOffset,
+		time.Now().UnixNano(),
 	}
 	for i, event := range events {
 		bit := event.bitEvent
@@ -201,7 +207,7 @@ func QueueForTransmit(carrierEvents *bitoip.CarrierEventPayload) {
 		newEvents := make([]Event, 0)
 
 		// remove the calculated server time offset
-		start := time.Unix(0, carrierEvents.StartTimeStamp - carrierEvents.StartTimeStamp)
+		start := time.Unix(0, carrierEvents.StartTimeStamp - timeOffset + roundTrip + int64(MaxSendTimespan))
 
 		for _, ce := range carrierEvents.BitEvents {
 			newEvents = append(newEvents, Event{
