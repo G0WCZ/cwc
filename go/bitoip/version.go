@@ -6,7 +6,7 @@ import "fmt"
  * Protocol Version using semantic versioning
  * See: https://semver.org/
  */
-const MajorVersion = uint8(1)
+const MajorVersion = uint8(2)
 const MinorVersion = uint8(0)
 const PatchVersion = uint8(1)
 

@@ -41,12 +41,15 @@ func TestTimeSyncResponse(t *testing.T) {
 	verb := TimeSyncResponse
 	payload := TimeSyncResponsePayload{
 		1,
-		2}
+		2,
+		3}
 
 	myBytes := EncodePayload(verb, payload)
 	assert.DeepEqual(t, myBytes, []uint8{TimeSyncResponse,
 		0, 0, 0, 0, 0, 0, 0, 1,
-		0, 0, 0, 0, 0, 0, 0, 2})
+		0, 0, 0, 0, 0, 0, 0, 2,
+		0, 0, 0, 0, 0, 0, 0, 3})
+
 
 	newVerb, newInt := DecodePacket(myBytes)
 

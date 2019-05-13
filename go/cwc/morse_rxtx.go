@@ -21,8 +21,8 @@ import "../bitoip"
 const Ms = int64(1e6)
 const Us = int64(1000)
 const DefaultTickTime = time.Duration(5 * Ms)
-const MaxSendTimespan = time.Duration(2000 * Ms)
-const BreakinTime = time.Duration(300 * Ms)
+const MaxSendTimespan = time.Duration(1000 * Ms)
+const BreakinTime = time.Duration(100 * Ms)
 const MaxEvents = 100
 
 var TickTime = DefaultTickTime
@@ -72,6 +72,17 @@ func CarrierKey() bitoip.CarrierKeyType {
 	return carrierKey
 }
 
+var timeOffset = int64(0)
+
+func SetTimeOffset(t int64) {
+	timeOffset = t
+}
+
+var roundTrip = int64(0)
+
+func SetRoundTrip(t int64) {
+	roundTrip = t
+}
 
 
 func RunMorseRx(ctx context.Context, morseIO IO, toSend chan bitoip.CarrierEventPayload, echo bool,
@@ -159,7 +170,7 @@ func BuildPayload(events []Event) bitoip.CarrierEventPayload {
 	cep := bitoip.CarrierEventPayload{
 		channelId,
 		carrierKey,
-		baseTime,
+		baseTime + timeOffset,
 		[bitoip.MaxBitEvents]bitoip.CarrierBitEvent{},
 		time.Now().UnixNano(),
 	}
@@ -194,11 +205,13 @@ func QueueForTransmit(carrierEvents *bitoip.CarrierEventPayload) {
 		carrierEvents.Channel == channelId {
 		// compose into events
 		newEvents := make([]Event, 0)
-		//start := time.Unix(0, carrierEvents.StartTimeStamp)
-		now := time.Now()
+
+		// remove the calculated server time offset
+		start := time.Unix(0, carrierEvents.StartTimeStamp - timeOffset + roundTrip + int64(MaxSendTimespan))
+
 		for _, ce := range carrierEvents.BitEvents {
 			newEvents = append(newEvents, Event{
-				now.Add(time.Duration(ce.TimeOffset)),
+				start.Add(time.Duration(ce.TimeOffset)),
 				ce.BitEvent,
 			})
 			if (ce.BitEvent & bitoip.LastEvent) > 0 {
@@ -210,6 +223,7 @@ func QueueForTransmit(carrierEvents *bitoip.CarrierEventPayload) {
 		TxQueue = append(TxQueue, newEvents...)
 
 		sort.Slice(TxQueue, func(i, j int) bool { return TxQueue[i].startTime.Before(TxQueue[j].startTime) })
+
 		TxMutex.Unlock()
 	} else {
 		glog.V(2).Infof("ignoring own carrier")

@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/golang/glog"
 	"net"
+	"time"
 )
 
 const maxBufferSize = 508
@@ -14,6 +15,7 @@ type RxMSG struct {
 	Verb MessageVerb
 	Payload Payload
 	SrcAddress net.UDPAddr
+	RxTime int64
 }
 
 func UDPConnection() *net.UDPConn {
@@ -39,6 +41,7 @@ func UDPRx(ctx context.Context, address *net.UDPAddr, messages chan RxMSG) {
 	go func() {
 		for {
 			n, addr, err := conn.ReadFromUDP(buffer)
+			now := time.Now().UnixNano()
 
 			if err != nil {
 				doneChan <- err
@@ -51,7 +54,7 @@ func UDPRx(ctx context.Context, address *net.UDPAddr, messages chan RxMSG) {
 
 			glog.V(2).Infof("udp rx got %v", payload)
 
-			messages <- RxMSG{verb, payload, *addr}
+			messages <- RxMSG{verb, payload, *addr, now}
 		}
 	}()
 

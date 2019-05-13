@@ -47,7 +47,8 @@ type TimeSyncPayload struct {
 
 type TimeSyncResponsePayload struct {
 	GivenTime int64
-	CurrentTime int64
+	ServerRxTime int64
+	ServerTxTime int64
 }
 
 type ListenRequestPayload struct {
@@ -81,7 +82,7 @@ const (
 )
 
 // slightly random
-const MaxBitEvents = (MaxMessageSizeInBytes - 14) / 5
+const MaxBitEvents = (MaxMessageSizeInBytes - 22) / 5
 const MaxNsPerCarrierEvent = 2 ^ 32
 
 // Offset allows for about 4 seconds of offset
