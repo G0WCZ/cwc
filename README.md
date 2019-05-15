@@ -1,12 +1,9 @@
 # CWC - The CW Commuter
 
 ## Status
-**10 May 2019:**
-
-_There is an annoying bug in the 1.0.1 release. Missing symbols on receive:  https://github.com/G0WCZ/cwc/issues/35_
-
-_We're working on it.  Maybe delay experimentation for a couple of days._
-
+**15 May 2019:**
+Just relased the 2.0.1 protocol and reflector and client.  See https://github.com/G0WCZ/cwc/releases/tag/2.0.1
+for a Raspberry Pi binary.
 
 ## The Idea
 
