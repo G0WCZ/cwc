@@ -17,6 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 package cwc
 
+// Null I/O type
+// useful for testing, doesn't aim to do anything
+// with actual hardware
+
 type NullIO struct {
 	config ConfigMap
 }

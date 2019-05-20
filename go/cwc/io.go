@@ -20,6 +20,8 @@ package cwc
 /**
  * Specifies a device interface interface that can have
  * specific implementations for different I/O setups eg. gpio pins, serial port, audio out generator
+ * Implementations exist for Raspberry Pi GPIO and Serial and No IO so far.  See their implementations
+ * in this package.
  */
 
 type IO interface {

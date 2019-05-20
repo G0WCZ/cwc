@@ -23,6 +23,12 @@ import (
 	"strings"
 )
 
+/*
+ * Serial Hardware
+ * Use RS232 flow control signals for input and output.
+ * Should be reasonably portable across Mac, PC, Linux (incl. Pi)
+ */
+
 type SerialIO struct {
 	config ConfigMap
 	port serial.Port
@@ -30,6 +36,7 @@ type SerialIO struct {
 	useCTS bool
 }
 
+// Create this hardare device
 func NewSerialIO() *SerialIO {
 	serialIO := SerialIO{
 		config: make(ConfigMap),
@@ -40,6 +47,7 @@ func NewSerialIO() *SerialIO {
 	return &serialIO
 }
 
+// Open the port and set bit behaviours
 func (s *SerialIO) Open() error {
 	serialDevice := s.config["serialDevice"]
 
@@ -68,6 +76,7 @@ func (s *SerialIO) ConfigMap() ConfigMap {
 	return s.config
 }
 
+// Read a morse input bit
 func (s *SerialIO) Bit() bool {
 	bits, err := s.port.GetModemStatusBits()
 	if err != nil {
@@ -81,6 +90,7 @@ func (s *SerialIO) Bit() bool {
 	}
 }
 
+// Send a morse output bit
 func (s *SerialIO) SetBit(bit bool) {
 	var err error
 	if s.useRTS {
@@ -93,6 +103,7 @@ func (s *SerialIO) SetBit(bit bool) {
 	}
 }
 
+// No tone sending supported, so this does nothing
 func (s *SerialIO) SetToneOut(_ bool) {}
 
 func (s *SerialIO) Close() {

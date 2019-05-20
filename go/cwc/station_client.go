@@ -26,11 +26,10 @@ import (
 	"time"
 )
 
-// General client
+// General  station client
 // Can be in CQ mode, in which case all is local muticast on the local network
 // Else the client of a reflector
 // CQ mode is really simple. Only really have to tx and rx carrier events
-
 func StationClient(ctx context.Context, cqMode bool,
 	addr string, morseIO IO, testFeedback bool, echo bool,
 	channel bitoip.ChannelIdType, callsign string) {
@@ -41,10 +40,14 @@ func StationClient(ctx context.Context, cqMode bool,
 		glog.Errorf("Error resolving address %s %v", addr, err)
 		return
 	}
+	// channel to send to network
 	toSend := make(chan bitoip.CarrierEventPayload)
+
+	// channel to send to hardware
 	toMorse := make(chan bitoip.RxMSG)
 
-	// Morse receiver
+	// Run the morse receiver in a thread -- this will send and receive via
+	// the hardware
 	go RunMorseRx(ctx, morseIO, toSend, echo, channel)
 
 	localRxAddress, err := net.ResolveUDPAddr("udp", "0.0.0.0:0")
@@ -53,20 +56,15 @@ func StationClient(ctx context.Context, cqMode bool,
 		glog.Fatalf("Can't allocate local address: %v", err)
 	}
 
-	// UDP Receiver
+	// start the UDP Receiver
 	go bitoip.UDPRx(ctx, localRxAddress, toMorse)
 
 	var csBase [16]byte
 
+	// Allow things to catch up. May not be needed anymore
 	time.Sleep(time.Second * 1)
-	// TODO: full reflector mode implementation
-	// Reflector mode setup
-	// 1/ time sync with server
-	// 2/ set callsign
-	// 3/ list channels
-	// 4/ suscribe channel(s)
-	// 5/ save carrier id
 
+	// get callsign into a []byte we can send
 	r := strings.NewReader(callsign)
 	_, err = r.Read(csBase[0:16])
 
@@ -74,6 +72,7 @@ func StationClient(ctx context.Context, cqMode bool,
 		glog.Errorf("Callsign %s can not be encoded", callsign)
 	}
 
+	// transmit a listen request to the configured channel
 	bitoip.UDPTx(bitoip.ListenRequest, bitoip.ListenRequestPayload{
 		channel,
 		csBase,
@@ -82,6 +81,7 @@ func StationClient(ctx context.Context, cqMode bool,
 	)
 
 	// Do time sync
+	// Set up buckets and fill the buckets with time offset and round-trip data
 	const timeOffsetBucketSize = 5
 
 	timeOffsetIndex := 0
@@ -100,10 +100,14 @@ func StationClient(ctx context.Context, cqMode bool,
 		}, resolvedAddress)
 	}
 
+	// set up basis of keepAlive
 	lastUDPSend := time.Now()
 
 	keepAliveTick := time.Tick(20 * time.Second)
 
+	// loop on the toSend (from the hardware to send on UDP) and toMorse (send to the morse hardware)
+	// channels -- and the keepalive as well.
+	// TODO should also redo time sync occasionally as well
 	for {
 		select {
 		case <-ctx.Done():
@@ -134,6 +138,8 @@ func StationClient(ctx context.Context, cqMode bool,
 				tsr := tm.Payload.(*bitoip.TimeSyncResponsePayload)
 				now := time.Now().UnixNano()
 
+				// time offset and roundtrip calculation.  See how NTP does this. Basically
+				// the same algorithm
 				latestTimeOffset := ((tsr.ServerRxTime - tsr.GivenTime) - (tsr.ServerTxTime - now)) / 2
 				roundTrip := (now - tsr.GivenTime) - (tsr.ServerRxTime - tsr.ServerTxTime)
 
@@ -161,6 +167,8 @@ func StationClient(ctx context.Context, cqMode bool,
 			}
 
 		case kat := <-keepAliveTick:
+
+			// check and send a keepalive if nothing else has happened
 			if kat.Sub(lastUDPSend) > time.Duration(20*time.Second) {
 				lastUDPSend = kat
 				p := bitoip.ListenRequestPayload{

@@ -24,18 +24,18 @@ import (
 	"strings"
 	"time"
 )
-/**
-	Handle an incoming message to the reflector
- */
+
+// Handle an incoming message to the reflector
 func Handler(serverAddress *net.UDPAddr, msg bitoip.RxMSG) {
 	switch msg.Verb {
+	// Channel list
 	case bitoip.EnumerateChannels:
 		responsePayload := new(bitoip.ListChannelsPayload)
 		copy(responsePayload.Channels[:], ChannelIds())
 		bitoip.UDPTx(bitoip.ListChannels,
 					 msg.Payload,
 					 &msg.SrcAddress)
-
+	// Carrier morse data
 	case bitoip.CarrierEvent:
 		ce := msg.Payload.(*bitoip.CarrierEventPayload)
 		glog.V(1).Infof("got carrier event %v", ce)
@@ -43,6 +43,7 @@ func Handler(serverAddress *net.UDPAddr, msg bitoip.RxMSG) {
 		channel.Subscribe(msg.SrcAddress, "????????") //make sure this user subscribed
 		channel.Broadcast(*ce)
 
+	// Subscribe request
 	case bitoip.ListenRequest:
 		lr := msg.Payload.(*bitoip.ListenRequestPayload)
 		channel := GetChannel(lr.Channel)
@@ -51,6 +52,7 @@ func Handler(serverAddress *net.UDPAddr, msg bitoip.RxMSG) {
 
 		bitoip.UDPTx(bitoip.ListenConfirm, lcp, &msg.SrcAddress)
 
+	// Time sync
 	case bitoip.TimeSync:
 		ts := msg.Payload.(*bitoip.TimeSyncPayload)
 

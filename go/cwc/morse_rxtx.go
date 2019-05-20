@@ -89,18 +89,22 @@ func CarrierKey() bitoip.CarrierKeyType {
 	return carrierKey
 }
 
+// Clock offset from the reflector
 var timeOffset = int64(0)
 
 func SetTimeOffset(t int64) {
 	timeOffset = t
 }
 
+// round trip delay calculated by the transport
 var roundTrip = int64(0)
 
 func SetRoundTrip(t int64) {
 	roundTrip = t
 }
 
+// RunMorseRx sets the morse hardware (key) receiver going.  This sets up a timer
+// to sample the morse input and runs it.
 
 func RunMorseRx(ctx context.Context, morseIO IO, toSend chan bitoip.CarrierEventPayload, echo bool,
 	channel bitoip.ChannelIdType) {
@@ -136,7 +140,9 @@ func Startup(morseIO IO) {
 	}
 }
 
-// Sample input
+// Sample the input pin for the morse key.
+// This is called (currently) every 5ms to look for a change in input pin.
+//
 // TODO should have some sort of back-off if not used recently for power saving
 func Sample(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO) {
 
@@ -153,14 +159,21 @@ func Sample(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO) {
 		if rxBit {
 			bit = 1
 		}
+
+		// Append the event to the list of on/off events to be sent
 		RxMutex.Lock()
 		events = append(events, Event{t, bitoip.BitEvent(bit) })
 		RxMutex.Unlock()
+
+		// If we have too many events, then send a packet now
 		if  (len(events) >= MaxEvents - 1) && (events[len(events)-1].bitEvent & bitoip.BitOn == 0) {
 			events = Flush(events, toSend)
 			return
 		}
 	}
+
+	// Check to see if we've got an event buffer that needs sending because it has been
+	// hanging around too long.
 	if len(events)> 0 &&
 		(events[len(events)-1].bitEvent & bitoip.BitOn == 0) &&
 		((t.Sub(events[0].startTime) >= MaxSendTimespan) ||
@@ -170,7 +183,8 @@ func Sample(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO) {
 }
 
 
-// Flush events into an output stream
+// Flush events and place in the toSend channel to wake up the UDP sender to
+// transmit the packet.
 func Flush(events []Event, toSend chan bitoip.CarrierEventPayload) []Event {
 	glog.V(2).Infof("Flushing events %v", events)
 	RxMutex.Lock()
@@ -182,6 +196,8 @@ func Flush(events []Event, toSend chan bitoip.CarrierEventPayload) []Event {
 	return events
 }
 
+// Build a payload (CarrierEventPayload) of on and off events. Called from Flush() to
+// make a packet ready to send.
 func BuildPayload(events []Event) bitoip.CarrierEventPayload {
 	baseTime := events[0].startTime.UnixNano()
 	cep := bitoip.CarrierEventPayload{
@@ -211,12 +227,14 @@ func BuildPayload(events []Event) bitoip.CarrierEventPayload {
  * Transmitting morse out a gpio pin
  */
 
-
+// Lock for the Morse Transmit Queue
 var TxMutex = sync.Mutex{}
+
+// Morse Transmit Queue
 var TxQueue = make([]Event, 100)
 
-// Queue this stuff for sending... Basically add to queue
-// that will be sent out based on the tick timing
+// Queue this stuff for sending to hardware -- LED or relay or PWM
+// by adding to queue that will be sent out based on the tick timing
 func QueueForTransmit(carrierEvents *bitoip.CarrierEventPayload) {
 	if (localEcho || (carrierEvents.CarrierKey != carrierKey)) &&
 		carrierEvents.Channel == channelId {
@@ -235,30 +253,35 @@ func QueueForTransmit(carrierEvents *bitoip.CarrierEventPayload) {
 				break
 			}
 		}
+
+		// Lock and append new events
 		TxMutex.Lock()
-
 		TxQueue = append(TxQueue, newEvents...)
-
+		// then sort the output by time (this is probably super slow)
 		sort.Slice(TxQueue, func(i, j int) bool { return TxQueue[i].startTime.Before(TxQueue[j].startTime) })
-
 		TxMutex.Unlock()
 	} else {
+		// don't re-sound our own stuff if echo isn't turned on
 		glog.V(2).Infof("ignoring own carrier")
 	}
 	glog.V(2).Infof("TXQueue is now: %v", TxQueue)
 }
 
-
+// When woken up  (same timer as checking for an incoming bit change)
+// check to see if an output state change is needed and do it.
 func TransmitToHardware(t time.Time, morseIO IO) {
 	now := time.Now()
 
+	// Lock
 	TxMutex.Lock()
 
+	// Change output if needed
 	if len(TxQueue) > 0 && TxQueue[0].startTime.Before(now) {
 		be := TxQueue[0].bitEvent
 		morseIO.SetBit(!((be & bitoip.BitOn) == 0))
 		TxQueue = TxQueue[1:]
 	}
 
+	// Unlock
 	TxMutex.Unlock()
 }

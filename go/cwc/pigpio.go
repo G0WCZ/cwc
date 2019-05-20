@@ -24,6 +24,14 @@ import (
 	"strconv"
 )
 
+/*
+ * PI GPIO Hardware
+ * This does the physical connection to Raspberry PI GPIO pins for
+ * input, output and PWM.
+ */
+
+
+
 // PWM settings
 const OnDutyCycle = uint32(1)
 const PWMCycleLength = uint32(32)
@@ -44,6 +52,7 @@ func NewPiGPIO() *PiGPIO {
 	return &pigpio
 }
 
+// Set up inputs and outputs
 func (g *PiGPIO) Open() error {
 	err := rpio.Open()
 	if err != nil {
@@ -70,11 +79,13 @@ func (g *PiGPIO) Open() error {
 		g.pwmOut.DutyCycle(0, 32)
 	}
 
+	// sending morse to a GPIO
 	outPin, err := strconv.Atoi(g.config[Keyout])
 	if err != nil {
 		log.Fatalf("bad key value: %s", g.config[Keyout])
 	}
 
+	// receiving morse from a GPIO
 	inPin, err := strconv.Atoi(g.config[Keyin])
 	if err != nil {
 		log.Fatalf("bad keyin value %s", g.config[Keyin])
@@ -92,14 +103,17 @@ func (g *PiGPIO) Open() error {
     return nil
 }
 
+// Set a config item on this
 func (g *PiGPIO) SetConfig(key string, value string) {
 	g.config[key] = value
 }
 
+// Get the map of config values
 func (g *PiGPIO) ConfigMap() ConfigMap {
 	return g.config
 }
 
+// ready Morse In hardware
 func (g *PiGPIO) Bit() bool {
 	if g.input.Read() == rpio.High {
 		return false
@@ -108,6 +122,7 @@ func (g *PiGPIO) Bit() bool {
 	}
 }
 
+// Set Morse Out hardware
 func (g *PiGPIO) SetBit(bit0 bool) {
 	if bit0 {
 		g.output.High()
@@ -118,6 +133,7 @@ func (g *PiGPIO) SetBit(bit0 bool) {
 	}
 }
 
+// Set PWM on/off
 func (g *  PiGPIO) SetToneOut(v bool) {
 	if g.pwm {
 		var dutyLen uint32
@@ -131,6 +147,7 @@ func (g *  PiGPIO) SetToneOut(v bool) {
 	}
 }
 
+// Close the interface
 func (g *PiGPIO) Close() {
 	// pass
 }

@@ -24,7 +24,7 @@ import "../bitoip"
  * Protocol Version using semantic versioning
  * See: https://semver.org/
  */
-var stationVersion = "2.0.1"
+var stationVersion = "2.0.2"
 
 func ReflectorVersion() string {
 	return stationVersion

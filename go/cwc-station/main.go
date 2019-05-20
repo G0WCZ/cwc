@@ -30,6 +30,7 @@ const CqPort = 5990
 const LocalMulticast = "224.0.0.73:%d"
 
 func main() {
+	var configFile = flag.String("config", "/boot/cwc-station.txt", "-config <filename>")
 	var refAddPtr = flag.String("ref", "cwc0.nodestone.io:7388", "--ref=host:port")
 	var cqPtr = flag.Bool("cq", false, "--cq is CQ mode, no server, local broadcast")
 	var localPort = flag.Int("port", CqPort, "--port=<local-udp-port>")
@@ -44,7 +45,11 @@ func main() {
 	var callsign = flag.String("de", "", "-de <callsign>")
 	var noIO = flag.Bool("noio",false, "-noio uses fake morse IO connections")
 
+	// parse Command line
 	flag.Parse()
+
+	// read Config file and defaults
+	config := ReadConfig(*configFile)
 
 	// Mode and address
 	cqMode := *cqPtr
