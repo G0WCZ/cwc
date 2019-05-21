@@ -1,0 +1,29 @@
+# Standard Configuration
+#
+NetworkMode = "reflector"
+ReflectorAddress = "cwc0.nodestone.io:7388"
+LocalPort = 5990
+HardwareType = "GPIO"
+SerialDevice = "/dev/some-tty"
+KeyType = "straight"
+SidetoneEnable = true
+SidetoneFrequency = 500
+RemoteEcho = false
+Channel = 0
+Callsign = "MYCALL"
+
+# These are BCM numbers, not actual pins
+# used for GPIO hardware type
+[GPIOPins]
+StatusLED = 22
+SignalLED = 23
+KeyLeft = 17
+KeyRight = 27
+PWMA = 13
+PWMB = 12
+
+# These are signal names
+# use for Serial hardware type
+[SerialPins]
+KeyIn = "CTS"
+KeyOut = "RTS"

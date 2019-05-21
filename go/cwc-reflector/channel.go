@@ -47,6 +47,7 @@ type ChannelMap map[uint16]*Channel
 
 var channels = make(ChannelMap)
 
+// Create a new channel
 func NewChannel(channelId bitoip.ChannelIdType) Channel {
 	return Channel {
 		 channelId,
@@ -57,6 +58,7 @@ func NewChannel(channelId bitoip.ChannelIdType) Channel {
 	}
 }
 
+// Return array of channel Ids of existing channels
 func ChannelIds() []uint16 {
 	keys := make([]uint16, 0, len(channels))
 	for k := range channels {
@@ -64,9 +66,8 @@ func ChannelIds() []uint16 {
 	}
 	return keys
 }
-/**
- * get a channel by channel_id
- */
+
+// Get a channel by channel_id
 func GetChannel(channel_id bitoip.ChannelIdType) *Channel {
 	if channel, ok := channels[channel_id]; ok {
 		return channel
@@ -77,9 +78,8 @@ func GetChannel(channel_id bitoip.ChannelIdType) *Channel {
 	}
 }
 
-/**
- * subscribe to this channel
- */
+// Subscribe to this channel
+// if already susscribed, then update details and LastTx
 func (c *Channel) Subscribe(address net.UDPAddr, callsign string) bitoip.CarrierKeyType {
 	glog.Infof("subscribe from: %v", address)
 	glog.Infof("channels: %v", channels)
@@ -101,6 +101,7 @@ func (c *Channel) Subscribe(address net.UDPAddr, callsign string) bitoip.Carrier
 	}
 }
 
+// Unsubscribe from channel
 func (c *Channel) Unsubscribe(address net.UDPAddr) {
 	if subscriber, ok := c.Addresses[address.String()]; ok {
 		delete(c.Subscribers, subscriber.Key)
@@ -109,7 +110,7 @@ func (c *Channel) Unsubscribe(address net.UDPAddr) {
 	}
 }
 
-// broadcast this carrier event to all on this channel
+// Broadcast this carrier event to all on this channel
 // and always return to sender (who can ignore if they wish, or can use as net sidetone
 func (c *Channel) Broadcast(event bitoip.CarrierEventPayload) {
 	for _, v := range c.Subscribers {
@@ -119,6 +120,8 @@ func (c *Channel) Broadcast(event bitoip.CarrierEventPayload) {
 
 }
 
+// Check through for subscribers that we haven't seem for a while
+// and remove them.
 func SuperviseChannels(t time.Time, timeout time.Duration) int {
 	removed := 0
 	for _, channel := range channels {

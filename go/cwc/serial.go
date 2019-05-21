@@ -23,16 +23,23 @@ import (
 	"strings"
 )
 
+/*
+ * Serial Hardware
+ * Use RS232 flow control signals for input and output.
+ * Should be reasonably portable across Mac, PC, Linux (incl. Pi)
+ */
+
 type SerialIO struct {
-	config ConfigMap
+	config *Config
 	port serial.Port
 	useRTS bool
 	useCTS bool
 }
 
-func NewSerialIO() *SerialIO {
+// Create this hardare device
+func NewSerialIO(config *Config) *SerialIO {
 	serialIO := SerialIO{
-		config: make(ConfigMap),
+		config: config,
 		port: nil,
 		useRTS: true,
 		useCTS: true,
@@ -40,8 +47,9 @@ func NewSerialIO() *SerialIO {
 	return &serialIO
 }
 
+// Open the port and set bit behaviours
 func (s *SerialIO) Open() error {
-	serialDevice := s.config["serialDevice"]
+	serialDevice := s.config.SerialDevice
 
 	glog.Infof("Opening serial port %s", serialDevice)
 
@@ -54,20 +62,13 @@ func (s *SerialIO) Open() error {
 		glog.Fatalf("Can not open serial port: %v", err)
 	}
 
-	s.useRTS = strings.EqualFold(s.config[Keyout], "RTS")
-	s.useCTS = strings.EqualFold(s.config[Keyin], "CTS")
+	s.useRTS = strings.EqualFold(s.config.SerialPins.KeyOut, "RTS")
+	s.useCTS = strings.EqualFold(s.config.SerialPins.KeyIn, "CTS")
 
 	return nil
 }
 
-func (s *SerialIO) SetConfig(key string, value string) {
-	s.config[key] = value
-}
-
-func (s *SerialIO) ConfigMap() ConfigMap {
-	return s.config
-}
-
+// Read a morse input bit
 func (s *SerialIO) Bit() bool {
 	bits, err := s.port.GetModemStatusBits()
 	if err != nil {
@@ -81,6 +82,7 @@ func (s *SerialIO) Bit() bool {
 	}
 }
 
+// Send a morse output bit
 func (s *SerialIO) SetBit(bit bool) {
 	var err error
 	if s.useRTS {
@@ -93,7 +95,10 @@ func (s *SerialIO) SetBit(bit bool) {
 	}
 }
 
+// No tone sending supported, so this does nothing
 func (s *SerialIO) SetToneOut(_ bool) {}
+
+func (s *SerialIO) SetStatusLED(_ bool) {}
 
 func (s *SerialIO) Close() {
 	s.port.Close()

@@ -178,3 +178,4 @@ func DecodePacket(lineBuffer []byte) (MessageVerb, interface{}) {
 	}
 	return verb, payloadObj
 }
+

@@ -20,49 +20,51 @@ package cwc
 import (
 	"github.com/golang/glog"
 	"github.com/stianeikeland/go-rpio"
-	"log"
-	"strconv"
 )
+
+/*
+ * PI GPIO Hardware
+ * This does the physical connection to Raspberry PI GPIO pins for
+ * input, output and PWM.
+ */
+
+
 
 // PWM settings
 const OnDutyCycle = uint32(1)
 const PWMCycleLength = uint32(32)
 
 type PiGPIO struct {
-	config ConfigMap
+	config *Config
 	output rpio.Pin
 	input rpio.Pin
 	pwm bool
 	pwmOut rpio.Pin
+	status rpio.Pin
 }
 
-func NewPiGPIO() *PiGPIO {
+func NewPiGPIO(config *Config) *PiGPIO {
 	pigpio := PiGPIO{
-		config: make(ConfigMap),
+		config: config,
 		pwm: false,
 	}
 	return &pigpio
 }
 
+// Set up inputs and outputs
 func (g *PiGPIO) Open() error {
 	err := rpio.Open()
 	if err != nil {
 		return err
 	}
-	sFreq, err := strconv.Atoi(g.config[Sidetonefreq])
-
-	if err != nil {
-		log.Fatalf("Bad sidetone frequency")
-	}
+	sFreq := g.config.SidetoneFrequency
 
 	glog.Infof("setting sidetone to %d", sFreq)
 
 	// PCM output
-	if (sFreq > 0) {
-		pcmPinNo, err := strconv.Atoi(g.config[Pcmout])
-		if err != nil {
-			log.Fatalf("bad pcmout value: %s", g.config[Pcmout])
-		}
+	if sFreq > 0 {
+		pcmPinNo := g.config.GPIOPins.PWMA
+
 		g.pwm = true
 		g.pwmOut = rpio.Pin(pcmPinNo)
 		g.pwmOut.Mode(rpio.Pwm)
@@ -70,36 +72,33 @@ func (g *PiGPIO) Open() error {
 		g.pwmOut.DutyCycle(0, 32)
 	}
 
-	outPin, err := strconv.Atoi(g.config[Keyout])
-	if err != nil {
-		log.Fatalf("bad key value: %s", g.config[Keyout])
-	}
+	// sending morse to a GPIO
+	outLED := g.config.GPIOPins.SignalLED
 
-	inPin, err := strconv.Atoi(g.config[Keyin])
-	if err != nil {
-		log.Fatalf("bad keyin value %s", g.config[Keyin])
-	}
+	// receiving morse from a GPIO
+	inPin := g.config.GPIOPins.KeyLeft
+
+	statusPin := g.config.GPIOPins.StatusLED
 
 	// Pin output
-	g.output = rpio.Pin(outPin)
+	g.output = rpio.Pin(outLED)
 	g.output.Output()
 	g.output.Low()
 
-    g.input = rpio.Pin(inPin) // header pin 13 BCM27
+	// Input pin
+    g.input = rpio.Pin(inPin)
     g.input.Input()
     g.input.PullUp()
+
+    // Status LED
+    g.status = rpio.Pin(statusPin)
+	g.output.Output()
+	g.output.Low()
 
     return nil
 }
 
-func (g *PiGPIO) SetConfig(key string, value string) {
-	g.config[key] = value
-}
-
-func (g *PiGPIO) ConfigMap() ConfigMap {
-	return g.config
-}
-
+// ready Morse In hardware
 func (g *PiGPIO) Bit() bool {
 	if g.input.Read() == rpio.High {
 		return false
@@ -108,6 +107,7 @@ func (g *PiGPIO) Bit() bool {
 	}
 }
 
+// Set Morse Out hardware
 func (g *PiGPIO) SetBit(bit0 bool) {
 	if bit0 {
 		g.output.High()
@@ -118,6 +118,7 @@ func (g *PiGPIO) SetBit(bit0 bool) {
 	}
 }
 
+// Set PWM on/off
 func (g *  PiGPIO) SetToneOut(v bool) {
 	if g.pwm {
 		var dutyLen uint32
@@ -127,11 +128,21 @@ func (g *  PiGPIO) SetToneOut(v bool) {
 		} else {
 			dutyLen = 0
 		}
+
 		g.pwmOut.DutyCycle(dutyLen, PWMCycleLength)
 	}
 }
 
+// Close the interface
 func (g *PiGPIO) Close() {
-	// pass
+	g.status.Low()
+}
+
+func (g *PiGPIO) SetStatusLED(s bool) {
+	if s {
+		g.status.High()
+	} else {
+		g.status.Low()
+	}
 }
 
