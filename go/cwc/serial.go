@@ -98,6 +98,8 @@ func (s *SerialIO) SetBit(bit bool) {
 // No tone sending supported, so this does nothing
 func (s *SerialIO) SetToneOut(_ bool) {}
 
+func (s *SerialIO) SetStatusLED(_ bool) {}
+
 func (s *SerialIO) Close() {
 	s.port.Close()
 }

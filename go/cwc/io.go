@@ -29,6 +29,7 @@ type IO interface {
 	Bit() bool
 	SetBit(bool)
 	SetToneOut(bool)
+	SetStatusLED(bool)
 	Close()
 }
 

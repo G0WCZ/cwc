@@ -40,6 +40,7 @@ type PiGPIO struct {
 	input rpio.Pin
 	pwm bool
 	pwmOut rpio.Pin
+	status rpio.Pin
 }
 
 func NewPiGPIO(config *Config) *PiGPIO {
@@ -77,6 +78,8 @@ func (g *PiGPIO) Open() error {
 	// receiving morse from a GPIO
 	inPin := g.config.GPIOPins.KeyLeft
 
+	statusPin := g.config.GPIOPins.StatusLED
+
 	// Pin output
 	g.output = rpio.Pin(outLED)
 	g.output.Output()
@@ -86,6 +89,11 @@ func (g *PiGPIO) Open() error {
     g.input = rpio.Pin(inPin)
     g.input.Input()
     g.input.PullUp()
+
+    // Status LED
+    g.status = rpio.Pin(statusPin)
+	g.output.Output()
+	g.output.Low()
 
     return nil
 }
@@ -120,12 +128,21 @@ func (g *  PiGPIO) SetToneOut(v bool) {
 		} else {
 			dutyLen = 0
 		}
+
 		g.pwmOut.DutyCycle(dutyLen, PWMCycleLength)
 	}
 }
 
 // Close the interface
 func (g *PiGPIO) Close() {
-	// pass
+	g.status.Low()
+}
+
+func (g *PiGPIO) SetStatusLED(s bool) {
+	if s {
+		g.status.High()
+	} else {
+		g.status.Low()
+	}
 }
 

@@ -67,6 +67,8 @@ func (n * NullIO) SetToneOut(b bool) {
 	n.state.Toneout = b
 }
 
+func (n * NullIO) SetStatusLED(s bool) {}
+
 func (* NullIO) Close() {}
 
 

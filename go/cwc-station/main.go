@@ -24,7 +24,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/golang/glog"
-
 )
 
 const maxBufferSize = 508

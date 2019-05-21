@@ -126,6 +126,7 @@ func StationClient(ctx context.Context, config *Config, morseIO IO) {
 	for {
 		select {
 		case <-ctx.Done():
+			morseIO.SetStatusLED(false)
 			return
 
 		case cep := <-toSend:
@@ -134,6 +135,10 @@ func StationClient(ctx context.Context, config *Config, morseIO IO) {
 			bitoip.UDPTx(bitoip.CarrierEvent, cep, resolvedAddress)
 
 		case tm := <-toMorse:
+
+			// we have data, so turn signal LED on
+			morseIO.SetStatusLED(true)
+
 			switch tm.Verb {
 			case bitoip.CarrierEvent:
 				glog.V(2).Infof("carrier events to morse: %v", tm)
@@ -180,8 +185,12 @@ func StationClient(ctx context.Context, config *Config, morseIO IO) {
 
 		case kat := <-keepAliveTick:
 
+
 			// check and send a keepalive if nothing else has happened
 			if kat.Sub(lastUDPSend) > time.Duration(20 * time.Second) {
+				// turn off Status LED - to be turned back on by response above
+				morseIO.SetStatusLED(false)
+
 				lastUDPSend = kat
 				p := bitoip.ListenRequestPayload{
 					config.Channel,
@@ -190,6 +199,8 @@ func StationClient(ctx context.Context, config *Config, morseIO IO) {
 				glog.V(2).Info("sending keepalive")
 				bitoip.UDPTx(bitoip.ListenRequest, p, resolvedAddress)
 			}
+
+			// do time sync
 			case tst := <-timeSyncTick:
 				timeSyncCount += 1
 				if timeSyncCount == 5 {
@@ -197,11 +208,13 @@ func StationClient(ctx context.Context, config *Config, morseIO IO) {
 					timeSyncTick = time.Tick(140 * time.Second)
 				}
 
+				// turn off Status LED - to be turned back on by response above
+				morseIO.SetStatusLED(false)
+
 				glog.V(2).Info("sending timesync")
 				bitoip.UDPTx(bitoip.TimeSync, bitoip.TimeSyncPayload{
 				tst.UnixNano(),
 				}, resolvedAddress)
 		}
-
 	}
 }
