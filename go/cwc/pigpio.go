@@ -92,8 +92,8 @@ func (g *PiGPIO) Open() error {
 
     // Status LED
     g.status = rpio.Pin(statusPin)
-	g.output.Output()
-	g.output.Low()
+	g.status.Output()
+	g.status.Low()
 
     return nil
 }
