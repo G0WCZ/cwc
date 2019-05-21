@@ -22,16 +22,20 @@ package cwc
 // with actual hardware
 
 type NullIO struct {
-	config ConfigMap
+	config *Config
+	state State
 }
 
-const BitIn = "bitin"
-const BitOut = "bitout"
-const ToneOut = "toneout"
+type State struct {
+	Bitin bool
+	Bitout bool
+	Toneout bool
+}
 
-func NewNullIO() *NullIO {
+func NewNullIO(config *Config) *NullIO {
 	return &NullIO{
-		config: make(ConfigMap),
+		config: config,
+		state: State{false, false, false},
 	}
 }
 
@@ -39,32 +43,28 @@ func (n *NullIO) Open() error {
 	return nil
 }
 
-func (n *NullIO) SetConfig(key string, value string) {
-	n.config[key] = value
-}
-
-func (n *NullIO) ConfigMap() ConfigMap {
+func (n *NullIO) Config() *Config {
 	return n.config
 }
 
+func (n *NullIO) SetState(state State) {
+	n.state = state
+}
+
+func (n *NullIO) State() State {
+	return n.state
+}
+
 func (n *NullIO) Bit() bool {
-	return n.config[BitIn] == "true"
+	return n.state.Bitin
 }
 
 func (n *NullIO) SetBit(b bool) {
-	if b {
-		n.config[BitOut] = "true"
-	} else {
-		n.config[BitOut] = "false"
-	}
+	n.state.Bitout = b
 }
 
 func (n * NullIO) SetToneOut(b bool) {
-	if b {
-		n.config[ToneOut] = "true"
-	} else {
-		n.config[ToneOut] = "false"
-	}
+	n.state.Toneout = b
 }
 
 func (* NullIO) Close() {}

@@ -15,7 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-package main
+package cwc
 
 import (
 	"../bitoip"
@@ -28,7 +28,9 @@ import (
 type Config struct {
 	NetworkMode string
 	ReflectorAddress string
+	LocalPort int
 	HardwareType string // GPIO or Serial or None
+	SerialDevice string // unix device or COM port
 	KeyType string // straight or paddle or bug -- only straight curently supported
 	SidetoneEnable bool
 	SidetoneFrequency int
@@ -62,7 +64,9 @@ type SerialPins struct {
 var defaultConfig = Config{
 	NetworkMode:       "Reflector",
 	ReflectorAddress:  "cwc0.nodestone.io:7388",
+	LocalPort:			5990,
 	HardwareType:      "GPIO", // GPIO or Serial or None
+	SerialDevice:      "/dev/unknown",
 	KeyType:		   "straight",
 	SidetoneEnable:    true,
 	SidetoneFrequency: 500,

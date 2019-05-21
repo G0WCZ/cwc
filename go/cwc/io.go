@@ -26,8 +26,6 @@ package cwc
 
 type IO interface {
 	Open() error
-	SetConfig(string, string)
-	ConfigMap() ConfigMap
 	Bit() bool
 	SetBit(bool)
 	SetToneOut(bool)

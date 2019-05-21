@@ -63,6 +63,6 @@ func TestFlushMultipleEvents(t *testing.T) {
 	assert.Equal(t, cbe.Channel, uint16(0))
 	assert.Equal(t, cbe.CarrierKey, uint16(0))
 	assert.Equal(t, cbe.StartTimeStamp, t1.UnixNano())
-	assert.Equal(t, len(cbe.BitEvents), 37)
+	assert.Equal(t, len(cbe.BitEvents), 35)
 }
 

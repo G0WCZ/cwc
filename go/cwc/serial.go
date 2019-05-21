@@ -30,16 +30,16 @@ import (
  */
 
 type SerialIO struct {
-	config ConfigMap
+	config *Config
 	port serial.Port
 	useRTS bool
 	useCTS bool
 }
 
 // Create this hardare device
-func NewSerialIO() *SerialIO {
+func NewSerialIO(config *Config) *SerialIO {
 	serialIO := SerialIO{
-		config: make(ConfigMap),
+		config: config,
 		port: nil,
 		useRTS: true,
 		useCTS: true,
@@ -49,7 +49,7 @@ func NewSerialIO() *SerialIO {
 
 // Open the port and set bit behaviours
 func (s *SerialIO) Open() error {
-	serialDevice := s.config["serialDevice"]
+	serialDevice := s.config.SerialDevice
 
 	glog.Infof("Opening serial port %s", serialDevice)
 
@@ -62,18 +62,10 @@ func (s *SerialIO) Open() error {
 		glog.Fatalf("Can not open serial port: %v", err)
 	}
 
-	s.useRTS = strings.EqualFold(s.config[Keyout], "RTS")
-	s.useCTS = strings.EqualFold(s.config[Keyin], "CTS")
+	s.useRTS = strings.EqualFold(s.config.SerialPins.KeyOut, "RTS")
+	s.useCTS = strings.EqualFold(s.config.SerialPins.KeyIn, "CTS")
 
 	return nil
-}
-
-func (s *SerialIO) SetConfig(key string, value string) {
-	s.config[key] = value
-}
-
-func (s *SerialIO) ConfigMap() ConfigMap {
-	return s.config
 }
 
 // Read a morse input bit

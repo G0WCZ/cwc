@@ -20,8 +20,6 @@ package cwc
 import (
 	"github.com/golang/glog"
 	"github.com/stianeikeland/go-rpio"
-	"log"
-	"strconv"
 )
 
 /*
@@ -37,16 +35,16 @@ const OnDutyCycle = uint32(1)
 const PWMCycleLength = uint32(32)
 
 type PiGPIO struct {
-	config ConfigMap
+	config *Config
 	output rpio.Pin
 	input rpio.Pin
 	pwm bool
 	pwmOut rpio.Pin
 }
 
-func NewPiGPIO() *PiGPIO {
+func NewPiGPIO(config *Config) *PiGPIO {
 	pigpio := PiGPIO{
-		config: make(ConfigMap),
+		config: config,
 		pwm: false,
 	}
 	return &pigpio
@@ -58,20 +56,14 @@ func (g *PiGPIO) Open() error {
 	if err != nil {
 		return err
 	}
-	sFreq, err := strconv.Atoi(g.config[Sidetonefreq])
-
-	if err != nil {
-		log.Fatalf("Bad sidetone frequency")
-	}
+	sFreq := g.config.SidetoneFrequency
 
 	glog.Infof("setting sidetone to %d", sFreq)
 
 	// PCM output
-	if (sFreq > 0) {
-		pcmPinNo, err := strconv.Atoi(g.config[Pcmout])
-		if err != nil {
-			log.Fatalf("bad pcmout value: %s", g.config[Pcmout])
-		}
+	if sFreq > 0 {
+		pcmPinNo := g.config.GPIOPins.PWMA
+
 		g.pwm = true
 		g.pwmOut = rpio.Pin(pcmPinNo)
 		g.pwmOut.Mode(rpio.Pwm)
@@ -80,37 +72,22 @@ func (g *PiGPIO) Open() error {
 	}
 
 	// sending morse to a GPIO
-	outPin, err := strconv.Atoi(g.config[Keyout])
-	if err != nil {
-		log.Fatalf("bad key value: %s", g.config[Keyout])
-	}
+	outLED := g.config.GPIOPins.SignalLED
 
 	// receiving morse from a GPIO
-	inPin, err := strconv.Atoi(g.config[Keyin])
-	if err != nil {
-		log.Fatalf("bad keyin value %s", g.config[Keyin])
-	}
+	inPin := g.config.GPIOPins.KeyLeft
 
 	// Pin output
-	g.output = rpio.Pin(outPin)
+	g.output = rpio.Pin(outLED)
 	g.output.Output()
 	g.output.Low()
 
-    g.input = rpio.Pin(inPin) // header pin 13 BCM27
+	// Input pin
+    g.input = rpio.Pin(inPin)
     g.input.Input()
     g.input.PullUp()
 
     return nil
-}
-
-// Set a config item on this
-func (g *PiGPIO) SetConfig(key string, value string) {
-	g.config[key] = value
-}
-
-// Get the map of config values
-func (g *PiGPIO) ConfigMap() ConfigMap {
-	return g.config
 }
 
 // ready Morse In hardware

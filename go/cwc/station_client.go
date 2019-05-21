@@ -20,19 +20,27 @@ package cwc
 import (
 	"../bitoip"
 	"context"
+	"fmt"
 	"github.com/golang/glog"
 	"net"
 	"strings"
 	"time"
 )
 
+const LocalMulticast = "224.0.0.73:%d"
+
 // General  station client
-// Can be in CQ mode, in which case all is local muticast on the local network
+// Can be in local mode, in which case all is local muticast on the local network
 // Else the client of a reflector
-// CQ mode is really simple. Only really have to tx and rx carrier events
-func StationClient(ctx context.Context, cqMode bool,
-	addr string, morseIO IO, testFeedback bool, echo bool,
-	channel bitoip.ChannelIdType, callsign string) {
+func StationClient(ctx context.Context, config *Config, morseIO IO) {
+	var addr string;
+	if config.NetworkMode == "local" {
+		addr = fmt.Sprintf(LocalMulticast, config.LocalPort)
+		glog.Infof("Starting in local mode with local multicast address %s", addr)
+	} else {
+		addr = config.ReflectorAddress
+		glog.Infof("Connecting to reflector %s", addr)
+	}
 
 	resolvedAddress, err := net.ResolveUDPAddr("udp", addr)
 
@@ -48,7 +56,7 @@ func StationClient(ctx context.Context, cqMode bool,
 
 	// Run the morse receiver in a thread -- this will send and receive via
 	// the hardware
-	go RunMorseRx(ctx, morseIO, toSend, echo, channel)
+	go RunMorseRx(ctx, morseIO, toSend, config.RemoteEcho, config.Channel)
 
 	localRxAddress, err := net.ResolveUDPAddr("udp", "0.0.0.0:0")
 
@@ -65,16 +73,16 @@ func StationClient(ctx context.Context, cqMode bool,
 	time.Sleep(time.Second * 1)
 
 	// get callsign into a []byte we can send
-	r := strings.NewReader(callsign)
+	r := strings.NewReader(config.Callsign)
 	_, err = r.Read(csBase[0:16])
 
 	if err != nil {
-		glog.Errorf("Callsign %s can not be encoded", callsign)
+		glog.Errorf("Callsign %s can not be encoded", config.Callsign)
 	}
 
 	// transmit a listen request to the configured channel
 	bitoip.UDPTx(bitoip.ListenRequest, bitoip.ListenRequestPayload{
-		channel,
+		config.Channel,
 		csBase,
 		},
 		resolvedAddress,
@@ -94,16 +102,23 @@ func StationClient(ctx context.Context, cqMode bool,
 	commonTimeOffset := int64(0)
 	commonRoundTrip := int64(0)
 
+
+	// set up basis of keepAlive
+	lastUDPSend := time.Now()
+
+	keepAliveTick := time.Tick(20 * time.Second)
+
+	// start off with fast time syncs, gets slowed down later
+	timeSyncTick := time.Tick(5 * time.Second)
+
 	for i := 0; i < timeOffsetBucketSize; i++ {
 		bitoip.UDPTx(bitoip.TimeSync, bitoip.TimeSyncPayload{
 			time.Now().UnixNano(),
 		}, resolvedAddress)
 	}
 
-	// set up basis of keepAlive
-	lastUDPSend := time.Now()
 
-	keepAliveTick := time.Tick(20 * time.Second)
+	timeSyncCount := 0
 
 	// loop on the toSend (from the hardware to send on UDP) and toMorse (send to the morse hardware)
 	// channels -- and the keepalive as well.
@@ -117,9 +132,6 @@ func StationClient(ctx context.Context, cqMode bool,
 			glog.V(2).Infof("carrier event payload to send: %v", cep)
 			// TODO fill in some channel details
 			bitoip.UDPTx(bitoip.CarrierEvent, cep, resolvedAddress)
-			if testFeedback {
-				QueueForTransmit(&cep)
-			}
 
 		case tm := <-toMorse:
 			switch tm.Verb {
@@ -163,21 +175,32 @@ func StationClient(ctx context.Context, cqMode bool,
 
 				glog.V(2).Infof("timesync: offset %d µs roundtrip %d µs",
 					commonTimeOffset / 1000,
-					roundTrip / 1000)
+					commonRoundTrip / 1000)
 			}
 
 		case kat := <-keepAliveTick:
 
 			// check and send a keepalive if nothing else has happened
-			if kat.Sub(lastUDPSend) > time.Duration(20*time.Second) {
+			if kat.Sub(lastUDPSend) > time.Duration(20 * time.Second) {
 				lastUDPSend = kat
 				p := bitoip.ListenRequestPayload{
-					channel,
+					config.Channel,
 					csBase,
 				}
 				glog.V(2).Info("sending keepalive")
 				bitoip.UDPTx(bitoip.ListenRequest, p, resolvedAddress)
 			}
+			case tst := <-timeSyncTick:
+				timeSyncCount += 1
+				if timeSyncCount == 5 {
+					// slow down after initial syncs
+					timeSyncTick = time.Tick(140 * time.Second)
+				}
+
+				glog.V(2).Info("sending timesync")
+				bitoip.UDPTx(bitoip.TimeSync, bitoip.TimeSyncPayload{
+				tst.UnixNano(),
+				}, resolvedAddress)
 		}
 
 	}
