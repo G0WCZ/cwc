@@ -19,18 +19,33 @@ package main
 
 import (
 	"context"
+	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 const APIPort = ":7380"
 
+func renderer() multitemplate.Renderer {
+	r := multitemplate.NewRenderer()
+	r.AddFromFiles("index", "web/tmpl/base.html", "web/tmpl/index.html")
+	return r
+}
+
 func APIServer(ctx context.Context, channels *ChannelMap) {
 	gin.SetMode(gin.ReleaseMode)
 
 	router := gin.Default()
-	router.GET("/channels", func(c *gin.Context) {
+	router.Static("/static", "./web/root")
+	router.HTMLRender = renderer()
+
+	router.GET("/api/channels", func(c *gin.Context) {
 		c.JSON(http.StatusOK, *channels)
+	})
+	router.GET("/", func(c *gin.Context) {
+		c.HTML(200, "index", gin.H{
+			"xtitle": "HTML templater",
+		})
 	})
 
 	router.Run(APIPort)
