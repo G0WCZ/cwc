@@ -18,18 +18,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package main
 
 import (
+	"../bitoip"
 	"context"
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
+	"html/template"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 const APIPort = ":7380"
 
 func renderer() multitemplate.Renderer {
+	funcMap := template.FuncMap{
+		"timefmt": func(t time.Time, f string) string { return t.Format(f) },
+	}
 	r := multitemplate.NewRenderer()
-	r.AddFromFiles("index", "web/tmpl/base.html", "web/tmpl/index.html")
+	r.AddFromFilesFuncs("index", funcMap, "web/tmpl/base.html", "web/tmpl/index.html")
+	r.AddFromFilesFuncs("channel", funcMap, "web/tmpl/base.html", "web/tmpl/channel.html")
 	return r
 }
 
@@ -43,18 +50,17 @@ func APIServer(ctx context.Context, channels *ChannelMap, address string) {
 	router.GET("/api/channels", func(c *gin.Context) {
 		c.JSON(http.StatusOK, *channels)
 	})
-	router.GET("/channel/:cid", func(c * gin.Context) {
-			id, err := strconv.Atoi(c.Param("cid"))
-			if err != nil {
-				c.AbortWithStatus(http.StatusNotFound)
-			}
-			else {
-				c.HTML(200, "channel", gin.H{
-					"HostAndPort": address,
-					"Channel":    GetChannel(ChannelIdType(id)),
-				})
-			}
-	}
+	router.GET("/channels/:cid", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("cid"))
+		if err != nil {
+			c.AbortWithStatus(http.StatusNotFound)
+		} else {
+			c.HTML(200, "channel", gin.H{
+				"HostAndPort": address,
+				"Channel":     *GetChannel(bitoip.ChannelIdType(id)),
+			})
+		}
+	})
 
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(200, "index", gin.H{
