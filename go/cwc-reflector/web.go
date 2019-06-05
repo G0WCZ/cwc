@@ -32,7 +32,7 @@ func renderer() multitemplate.Renderer {
 	return r
 }
 
-func APIServer(ctx context.Context, channels *ChannelMap) {
+func APIServer(ctx context.Context, channels *ChannelMap, address string) {
 	gin.SetMode(gin.ReleaseMode)
 
 	router := gin.Default()
@@ -44,7 +44,8 @@ func APIServer(ctx context.Context, channels *ChannelMap) {
 	})
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(200, "index", gin.H{
-			"xtitle": "HTML templater",
+			"HostAndPort": address,
+			"Channels":    channels,
 		})
 	})
 

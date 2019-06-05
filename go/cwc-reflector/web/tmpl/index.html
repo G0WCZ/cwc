@@ -1,7 +1,27 @@
-{{block "title" .}}boom{{end}}
+{{block "title" .}}{{.HostAndPort}}{{end}}
 
 {{block "content" .}}
-<h1>Hello world</h1>
+    <h1>CWC Reflector: {{.HostAndPort}}</h1>
+        <div class="container-fluid">
+            <h2>Channels</h2>
+            <table class="table">
+                <thead>
+                <th>Channel</th>
+                <th>Subscribers</th>
+                </thead>
+                <tbody>
 
-
+            {{range $n, $c := $.Channels}}
+                <tr>
+                    <td><a href="/channels/{{$n}}">{{$n}}</a></td>
+                    <td>{{len $c.Subscribers}}</td>
+                </tr>
+                <p>{{$n}}</p>
+            {{else}}
+                <tr><td colspan="2">No channels!</td></tr>
+            {{end}}
+                </tbody>
+            </table>
+        </div>
 {{end}}
+
