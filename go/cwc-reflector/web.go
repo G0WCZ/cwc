@@ -22,6 +22,7 @@ import (
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 )
 
 const APIPort = ":7380"
@@ -42,6 +43,19 @@ func APIServer(ctx context.Context, channels *ChannelMap, address string) {
 	router.GET("/api/channels", func(c *gin.Context) {
 		c.JSON(http.StatusOK, *channels)
 	})
+	router.GET("/channel/:cid", func(c * gin.Context) {
+			id, err := strconv.Atoi(c.Param("cid"))
+			if err != nil {
+				c.AbortWithStatus(http.StatusNotFound)
+			}
+			else {
+				c.HTML(200, "channel", gin.H{
+					"HostAndPort": address,
+					"Channel":    GetChannel(ChannelIdType(id)),
+				})
+			}
+	}
+
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(200, "index", gin.H{
 			"HostAndPort": address,

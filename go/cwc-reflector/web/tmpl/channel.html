@@ -1,20 +1,21 @@
-{{block "title" .}}{{.HostAndPort}}{{end}}
+{{block "title" .}}{{.HostAndPort}} Channel {{.Channel.ChannelId}}{{end}}
 
 {{block "content" .}}
-    <h1>CWC Reflector: {{.HostAndPort}}</h1>
+    <h1>Channel {{.Channel.ChannelId}}</h1>
         <div class="container-fluid">
-            <h2>Channels</h2>
+            <h2>Listening</h2>
             <table class="table table-striped table-hover">
                 <thead class="thead-dark">
-                <th>Channel</th>
-                <th>Subscribers</th>
+                <th>Callsign</th>
+                <th>Last Listen</th>
+                <th>Last Transmit</th>
                 </thead>
                 <tbody>
 
-            {{range $n, $c := $.Channels}}
+            {{range $call, $c := $.Callsigns}}
                 <tr>
-                    <td><a href="/channels/{{$n}}">{{$n}}</a></td>
-                    <td>{{len $c.Subscribers}}</td>
+                    <td>{{$call}}</a></td>
+                    <td>{{$c.}}</td>
                 </tr>
                 <p>{{$n}}</p>
             {{else}}
