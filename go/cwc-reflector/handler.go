@@ -33,14 +33,13 @@ func Handler(serverAddress *net.UDPAddr, msg bitoip.RxMSG) {
 		responsePayload := new(bitoip.ListChannelsPayload)
 		copy(responsePayload.Channels[:], ChannelIds())
 		bitoip.UDPTx(bitoip.ListChannels,
-					 msg.Payload,
-					 &msg.SrcAddress)
+			msg.Payload,
+			&msg.SrcAddress)
 	// Carrier morse data
 	case bitoip.CarrierEvent:
 		ce := msg.Payload.(*bitoip.CarrierEventPayload)
 		glog.V(1).Infof("got carrier event %v", ce)
 		channel := GetChannel(ce.Channel)
-		channel.Subscribe(msg.SrcAddress, "????????") //make sure this user subscribed
 		channel.Broadcast(*ce)
 
 	// Subscribe request

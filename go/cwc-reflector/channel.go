@@ -29,18 +29,19 @@ import (
 const LastReservedCarrierKey = 99
 
 type Subscriber struct {
-	Key bitoip.CarrierKeyType
-	Address net.UDPAddr
-	LastTx time.Time
-	Callsign string
+	Key        bitoip.CarrierKeyType
+	Address    net.UDPAddr
+	LastTx     time.Time
+	LastListen time.Time
+	Callsign   string
 }
 
 type Channel struct {
-	ChannelId bitoip.ChannelIdType
+	ChannelId   bitoip.ChannelIdType
 	Subscribers map[bitoip.CarrierKeyType]Subscriber
-	Addresses map[string]Subscriber
-	Callsigns map[string]Subscriber
-	LastKey bitoip.CarrierKeyType
+	Addresses   map[string]Subscriber
+	Callsigns   map[string]Subscriber
+	LastKey     bitoip.CarrierKeyType
 }
 
 type ChannelMap map[uint16]*Channel
@@ -49,12 +50,12 @@ var channels = make(ChannelMap)
 
 // Create a new channel
 func NewChannel(channelId bitoip.ChannelIdType) Channel {
-	return Channel {
-		 channelId,
+	return Channel{
+		channelId,
 		make(map[bitoip.CarrierKeyType]Subscriber),
-		 make(map[string]Subscriber),
-		  make(map[string]Subscriber),
-		   LastReservedCarrierKey,
+		make(map[string]Subscriber),
+		make(map[string]Subscriber),
+		LastReservedCarrierKey,
 	}
 }
 
@@ -84,7 +85,7 @@ func (c *Channel) Subscribe(address net.UDPAddr, callsign string) bitoip.Carrier
 	glog.Infof("subscribe from: %v", address)
 	glog.Infof("channels: %v", channels)
 	if subscriber, ok := c.Addresses[address.String()]; ok {
-		subscriber.LastTx = time.Now()
+		subscriber.LastListen = time.Now()
 		c.Addresses[address.String()] = subscriber
 		c.Subscribers[subscriber.Key] = subscriber
 		c.Callsigns[callsign] = subscriber
@@ -92,7 +93,7 @@ func (c *Channel) Subscribe(address net.UDPAddr, callsign string) bitoip.Carrier
 		return subscriber.Key
 	} else {
 		c.LastKey += 1
-		subscriber := Subscriber{c.LastKey, address, time.Now(), callsign}
+		subscriber := Subscriber{c.LastKey, address, *new(time.Time), time.Now(), callsign}
 		c.Subscribers[c.LastKey] = subscriber
 		c.Addresses[address.String()] = subscriber
 		c.Callsigns[callsign] = subscriber
@@ -113,6 +114,8 @@ func (c *Channel) Unsubscribe(address net.UDPAddr) {
 // Broadcast this carrier event to all on this channel
 // and always return to sender (who can ignore if they wish, or can use as net sidetone
 func (c *Channel) Broadcast(event bitoip.CarrierEventPayload) {
+	txr := c.Subscribers[event.CarrierKey]
+	txr.LastTx = time.Now()
 	for _, v := range c.Subscribers {
 		glog.V(2).Infof("sending to subs %v: %v", v.Address, event)
 		bitoip.UDPTx(bitoip.CarrierEvent, event, &v.Address)
@@ -126,7 +129,7 @@ func SuperviseChannels(t time.Time, timeout time.Duration) int {
 	removed := 0
 	for _, channel := range channels {
 		for key, sub := range channel.Subscribers {
-			if t.Sub(sub.LastTx) > timeout {
+			if t.Sub(sub.LastListen) > timeout {
 				delete(channel.Subscribers, key)
 				removed += 1
 				for add, sub := range channel.Addresses {
@@ -136,7 +139,7 @@ func SuperviseChannels(t time.Time, timeout time.Duration) int {
 				}
 				for call, sub := range channel.Callsigns {
 					if sub.Key == key {
-						delete(channel.Addresses, call)
+						delete(channel.Callsigns, call)
 					}
 				}
 			}
@@ -145,4 +148,3 @@ func SuperviseChannels(t time.Time, timeout time.Duration) int {
 
 	return removed
 }
-
