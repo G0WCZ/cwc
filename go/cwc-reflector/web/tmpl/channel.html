@@ -1,9 +1,9 @@
 {{block "title" .}}{{.HostAndPort}} Channel {{$.Channel.ChannelId}}{{end}}
 
 {{block "content" .}}
-    <h1>Channel {{$.Channel.ChannelId}}</h1>
         <div class="container-fluid">
-            <h2>Listening</h2>
+            <div class="col-sm-8 offset-sm-2">
+                <h2>Channel {{$.Channel.ChannelId}}</h2>
             <table class="table table-striped table-hover">
                 <thead class="thead-dark">
                 <th>Callsign</th>
@@ -15,14 +15,15 @@
             {{range $call, $c := $.Channel.Callsigns}}
                 <tr>
                     <td>{{$call}}</a></td>
-                    <td>{{timefmt $c.LastListen "15:04 Mon _2 Jan 2019"}}</td>
-                    <td>{{timefmt $c.LastTx "15:04 Mon _2 Jan 2019"}}</td>
+                    <td>{{timefmt $c.LastListen "15:04 Mon _2 Jan 2006"}}</td>
+                    <td>{{timefmt $c.LastTx "15:04 Mon _2 Jan 2006"}}</td>
                 </tr>
             {{else}}
                 <tr><td colspan="3">No subscribers!</td></tr>
             {{end}}
                 </tbody>
             </table>
+            </div>
         </div>
 {{end}}
 
