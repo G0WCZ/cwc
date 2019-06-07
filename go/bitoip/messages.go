@@ -19,36 +19,38 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package bitoip
 
 import (
-	"encoding/binary"
 	"bytes"
+	"encoding/binary"
 	"log"
 	"reflect"
+
 	"github.com/golang/glog"
-	)
+)
 
 // conservative UDP payload in bytes
 const MaxMessageSizeInBytes = 200
 const CallsignSize = 16
+
 var byteOrder = binary.BigEndian
 
 type (
-	MessageVerb = byte
-	ChannelIdType = uint16
+	MessageVerb    = byte
+	ChannelIdType  = uint16
 	CarrierKeyType = uint16
-	Callsign = [CallsignSize]byte
-	Payload = interface {}
+	Callsign       = [CallsignSize]byte
+	Payload        = interface{}
 )
 
 const (
 	EnumerateChannels MessageVerb = 0x90
-	ListChannels MessageVerb = 0x91
-	TimeSync MessageVerb = 0x92
-	TimeSyncResponse MessageVerb = 0x93
-	ListenRequest MessageVerb = 0x94
-	ListenConfirm MessageVerb = 0x95
-	Unlisten MessageVerb = 0x96
-	KeyValue MessageVerb = 0x81
-	CarrierEvent MessageVerb = 0x82
+	ListChannels      MessageVerb = 0x91
+	TimeSync          MessageVerb = 0x92
+	TimeSyncResponse  MessageVerb = 0x93
+	ListenRequest     MessageVerb = 0x94
+	ListenConfirm     MessageVerb = 0x95
+	Unlisten          MessageVerb = 0x96
+	KeyValue          MessageVerb = 0x81
+	CarrierEvent      MessageVerb = 0x82
 )
 
 // List of Channels
@@ -64,38 +66,38 @@ type TimeSyncPayload struct {
 }
 
 type TimeSyncResponsePayload struct {
-	GivenTime int64
+	GivenTime    int64
 	ServerRxTime int64
 	ServerTxTime int64
 }
 
 type ListenRequestPayload struct {
-	Channel ChannelIdType
+	Channel  ChannelIdType
 	Callsign [16]byte
 }
 
 type ListenConfirmPayload struct {
-	Channel ChannelIdType
+	Channel    ChannelIdType
 	CarrierKey CarrierKeyType
 }
 
 type UnlistenPayload struct {
-	Channel ChannelIdType
+	Channel    ChannelIdType
 	CarrierKey CarrierKeyType
 }
 
 type KeyValuePayload struct {
-	Channel ChannelIdType
+	Channel    ChannelIdType
 	CarrierKey CarrierKeyType
-	Key [8]byte
-	Value [16]byte
+	Key        [8]byte
+	Value      [16]byte
 }
 
 type BitEvent uint8
 
 const (
-	BitOn BitEvent = 0x01
-	BitOff BitEvent = 0x00
+	BitOn     BitEvent = 0x01
+	BitOff    BitEvent = 0x00
 	LastEvent BitEvent = 0x80 // high bit set to indicate last one
 )
 
@@ -106,29 +108,28 @@ const MaxNsPerCarrierEvent = 2 ^ 32
 // Offset allows for about 4 seconds of offset
 type CarrierBitEvent struct {
 	TimeOffset uint32
-	BitEvent BitEvent
+	BitEvent   BitEvent
 }
 
 type CarrierEventPayload struct {
-	Channel ChannelIdType
-	CarrierKey CarrierKeyType
+	Channel        ChannelIdType
+	CarrierKey     CarrierKeyType
 	StartTimeStamp int64
-	BitEvents [MaxBitEvents]CarrierBitEvent
-	SendTime int64
+	BitEvents      [MaxBitEvents]CarrierBitEvent
+	SendTime       int64
 }
 
-var messagePayload = map[MessageVerb]reflect.Type {
+var messagePayload = map[MessageVerb]reflect.Type{
 	EnumerateChannels: nil,
-	ListChannels: reflect.TypeOf(ListChannelsPayload{}),
-	TimeSync: reflect.TypeOf(TimeSyncPayload{}),
-	TimeSyncResponse: reflect.TypeOf(TimeSyncResponsePayload{}),
-	ListenRequest: reflect.TypeOf(ListenRequestPayload{}),
-	ListenConfirm: reflect.TypeOf(ListenConfirmPayload{}),
-	Unlisten: reflect.TypeOf(UnlistenPayload{}),
-	KeyValue: reflect.TypeOf(KeyValuePayload{}),
-	CarrierEvent: reflect.TypeOf(CarrierEventPayload{}),
+	ListChannels:      reflect.TypeOf(ListChannelsPayload{}),
+	TimeSync:          reflect.TypeOf(TimeSyncPayload{}),
+	TimeSyncResponse:  reflect.TypeOf(TimeSyncResponsePayload{}),
+	ListenRequest:     reflect.TypeOf(ListenRequestPayload{}),
+	ListenConfirm:     reflect.TypeOf(ListenConfirmPayload{}),
+	Unlisten:          reflect.TypeOf(UnlistenPayload{}),
+	KeyValue:          reflect.TypeOf(KeyValuePayload{}),
+	CarrierEvent:      reflect.TypeOf(CarrierEventPayload{}),
 }
-
 
 func EncodePayload(verb MessageVerb, payload Payload) []byte {
 	buf := new(bytes.Buffer)
@@ -148,7 +149,7 @@ func DecodePacket(lineBuffer []byte) (MessageVerb, interface{}) {
 
 	switch verb {
 	case EnumerateChannels:
-		break;
+		break
 	case ListChannels:
 		payloadObj = new(ListChannelsPayload)
 	case TimeSync:
@@ -171,11 +172,10 @@ func DecodePacket(lineBuffer []byte) (MessageVerb, interface{}) {
 
 	if payloadObj != nil {
 		err := binary.Read(buffer, byteOrder, payloadObj)
-		if (err != nil) {
+		if err != nil {
 			glog.Fatalf("Error reading message for %d, %v", verb, err)
 			return verb, nil
 		}
 	}
 	return verb, payloadObj
 }
-

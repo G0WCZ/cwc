@@ -18,27 +18,31 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package cwc
 
 import (
-	"../bitoip"
 	"fmt"
+	"math/rand"
+
+	"../bitoip"
 	"github.com/BurntSushi/toml"
 	"github.com/golang/glog"
-	"math/rand"
 )
 
 type Config struct {
-	NetworkMode string
-	ReflectorAddress string
-	LocalPort int
-	HardwareType string // GPIO or Serial or None
-	SerialDevice string // unix device or COM port
-	KeyType string // straight or paddle or bug -- only straight curently supported
-	SidetoneEnable bool
+	NetworkMode       string
+	ReflectorAddress  string
+	LocalPort         int
+	HardwareType      string // GPIO or Serial or None
+	SerialDevice      string // unix device or COM port
+	KeyType           string // straight or paddle or bug -- only straight curently supported
+	SidetoneEnable    bool
 	SidetoneFrequency int
-	RemoteEcho bool
-	Channel bitoip.ChannelIdType
-	Callsign string
-	GPIOPins GPIOPins
-	SerialPins SerialPins
+	RemoteEcho        bool
+	Channel           bitoip.ChannelIdType
+	Callsign          string
+	GPIOPins          GPIOPins
+	SerialPins        SerialPins
+	KeyerSpeed        int
+	KeyerWeight       int
+	KeyerMode         string
 }
 
 const HWKeyTip = 17
@@ -47,43 +51,43 @@ const HWLEDStatus = 22
 const HWLEDSignal = 23
 
 type GPIOPins struct {
-	KeyLeft int
-	KeyRight int
-	PWMA int
-	PWMB int
-	KeyOut int
+	KeyLeft   int
+	KeyRight  int
+	PWMA      int
+	PWMB      int
+	KeyOut    int
 	StatusLED int
 	SignalLED int
 }
 
 type SerialPins struct {
-	KeyIn string
+	KeyIn  string
 	KeyOut string
 }
 
 var defaultConfig = Config{
 	NetworkMode:       "Reflector",
 	ReflectorAddress:  "cwc0.nodestone.io:7388",
-	LocalPort:			5990,
+	LocalPort:         5990,
 	HardwareType:      "GPIO", // GPIO or Serial or None
 	SerialDevice:      "/dev/unknown",
-	KeyType:		   "straight",
+	KeyType:           "straight",
 	SidetoneEnable:    true,
 	SidetoneFrequency: 500,
-	RemoteEcho:              false,
+	RemoteEcho:        false,
 	Channel:           0,
-	Callsign:		   fmt.Sprintf("CWC%d", rand.Int31()),
+	Callsign:          fmt.Sprintf("CWC%d", rand.Int31()),
 
 	GPIOPins: GPIOPins{
 		StatusLED: HWLEDStatus,
 		SignalLED: HWLEDSignal,
-		KeyLeft: HWKeyTip,
-		KeyRight: HWKeyRing,
-		PWMA: 13,
-		PWMB: 12,
+		KeyLeft:   HWKeyTip,
+		KeyRight:  HWKeyRing,
+		PWMA:      13,
+		PWMB:      12,
 	},
 	SerialPins: SerialPins{
-		KeyIn: "CTS",
+		KeyIn:  "CTS",
 		KeyOut: "RTS",
 	},
 }
@@ -95,5 +99,5 @@ func ReadConfig(filename string) *Config {
 		glog.Warningf("Config file not found %s", filename)
 	}
 
-	return &cfg;
+	return &cfg
 }

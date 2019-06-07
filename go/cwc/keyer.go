@@ -33,24 +33,25 @@ const OnDutyCycle = uint32(1)
 const PWMCycleLength = uint32(32)
 
 type PiGPIO struct {
-	config *Config
-	output rpio.Pin
-	input  rpio.Pin
-	pwm    bool
-	pwmOut rpio.Pin
-	status rpio.Pin
+	config   *Config
+	output   rpio.Pin
+	dahInput rpio.Pin
+	ditInput rpio.Pin
+	pwm      bool
+	pwmOut   rpio.Pin
+	status   rpio.Pin
 }
 
-func NewPiGPIO(config *Config) *PiGPIO {
-	pigpio := PiGPIO{
+func NewKeyer(config *Config) *Keyer {
+	keyer := Keyer{
 		config: config,
 		pwm:    false,
 	}
-	return &pigpio
+	return &keyer
 }
 
 // Set up inputs and outputs
-func (g *PiGPIO) Open() error {
+func (g *Keyer) Open() error {
 	err := rpio.Open()
 	if err != nil {
 		return err
@@ -84,9 +85,12 @@ func (g *PiGPIO) Open() error {
 	g.output.Low()
 
 	// Input pin
-	g.input = rpio.Pin(inPin)
-	g.input.Input()
-	g.input.PullUp()
+	g.dahInput = rpio.Pin(inPin)
+	g.dahInput.Input()
+	g.dahInput.PullUp()
+	g.ditInput = rpio.Pin(inPin)
+	g.ditInput.Input()
+	g.ditInput.PullUp()
 
 	// Status LED
 	g.status = rpio.Pin(statusPin)
@@ -97,22 +101,34 @@ func (g *PiGPIO) Open() error {
 }
 
 // ready Morse In hardware
-func (g *PiGPIO) Bit() bool {
+func (g *Keyer) Bit() bool {
 	if g.input.Read() == rpio.High {
 		return false
 	} else {
 		return true
 	}
 }
-func (g *PiGPIO) Dot() bool {
-	return false
+
+// ready Morse In hardware
+func (g *Keyer) Dot() bool {
+	if g.ditInput.Read() == rpio.High {
+		return false
+	} else {
+		return true
+	}
 }
-func (g *PiGPIO) Dash() bool {
-	return false
+
+// ready Morse In hardware
+func (g *Keyer) Dash() bool {
+	if g.dahInput.Read() == rpio.High {
+		return false
+	} else {
+		return true
+	}
 }
 
 // Set Morse Out hardware
-func (g *PiGPIO) SetBit(bit0 bool) {
+func (g *Keyer) SetBit(bit0 bool) {
 	if bit0 {
 		g.output.High()
 		g.SetToneOut(true)
@@ -123,7 +139,7 @@ func (g *PiGPIO) SetBit(bit0 bool) {
 }
 
 // Set PWM on/off
-func (g *PiGPIO) SetToneOut(v bool) {
+func (g *Keyer) SetToneOut(v bool) {
 	if g.pwm {
 		var dutyLen uint32
 
@@ -138,11 +154,11 @@ func (g *PiGPIO) SetToneOut(v bool) {
 }
 
 // Close the interface
-func (g *PiGPIO) Close() {
+func (g *Keyer) Close() {
 	g.status.Low()
 }
 
-func (g *PiGPIO) SetStatusLED(s bool) {
+func (g *Keyer) SetStatusLED(s bool) {
 	if s {
 		g.status.High()
 	} else {

@@ -23,19 +23,19 @@ package cwc
 
 type NullIO struct {
 	config *Config
-	state State
+	state  State
 }
 
 type State struct {
-	Bitin bool
-	Bitout bool
+	Bitin   bool
+	Bitout  bool
 	Toneout bool
 }
 
 func NewNullIO(config *Config) *NullIO {
 	return &NullIO{
 		config: config,
-		state: State{false, false, false},
+		state:  State{false, false, false},
 	}
 }
 
@@ -58,17 +58,21 @@ func (n *NullIO) State() State {
 func (n *NullIO) Bit() bool {
 	return n.state.Bitin
 }
+func (g *PiGPIO) Dot() bool {
+	return false
+}
+func (g *PiGPIO) Dash() bool {
+	return false
+}
 
 func (n *NullIO) SetBit(b bool) {
 	n.state.Bitout = b
 }
 
-func (n * NullIO) SetToneOut(b bool) {
+func (n *NullIO) SetToneOut(b bool) {
 	n.state.Toneout = b
 }
 
-func (n * NullIO) SetStatusLED(s bool) {}
+func (n *NullIO) SetStatusLED(s bool) {}
 
-func (* NullIO) Close() {}
-
-
+func (*NullIO) Close() {}
