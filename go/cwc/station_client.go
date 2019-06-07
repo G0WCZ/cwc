@@ -58,9 +58,9 @@ func StationClient(ctx context.Context, config *Config, morseIO IO) {
 	// Run the morse receiver in a thread -- this will send and receive via
 	// the hardware
 	if config.KeyType == "keyer" {
-		go RunMorseRx(ctx, morseIO, toSend, config.RemoteEcho, config.Channel, true)
+		go RunMorseRx(ctx, morseIO, toSend, config.RemoteEcho, config.Channel, config.KeyerMode, config.KeyerSpeed, config.KeyerWeight, true)
 	} else {
-		go RunMorseRx(ctx, morseIO, toSend, config.RemoteEcho, config.Channel, false)
+		go RunMorseRx(ctx, morseIO, toSend, config.RemoteEcho, config.Channel, 99, 0, 0, false)
 	}
 
 	localRxAddress, err := net.ResolveUDPAddr("udp", "0.0.0.0:0")

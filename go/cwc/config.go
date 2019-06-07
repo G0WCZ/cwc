@@ -42,7 +42,7 @@ type Config struct {
 	SerialPins        SerialPins
 	KeyerSpeed        int
 	KeyerWeight       int
-	KeyerMode         string
+	KeyerMode         int
 }
 
 const HWKeyTip = 17

@@ -154,7 +154,7 @@ func SetKeyerSpacing(s bool) {
 // to sample the morse input and runs it.
 
 func RunMorseRx(ctx context.Context, morseIO IO, toSend chan bitoip.CarrierEventPayload, echo bool,
-	channel bitoip.ChannelIdType, keyer bool) {
+	channel bitoip.ChannelIdType, mode int, speed int, weight int, keyer bool) {
 	localEcho = echo
 	channelId = channel
 	LastBit = false // make sure turned off to begin -- the default state
@@ -163,8 +163,13 @@ func RunMorseRx(ctx context.Context, morseIO IO, toSend chan bitoip.CarrierEvent
 	}
 	ticker = time.NewTicker(TickTime)
 
-	dot_delay = 400 / 20
-	dash_delay = (dot_delay * 3 * cw_keyer_weight) / 50
+	if mode != 99 {
+		SetKeyMode(mode)
+	}
+	if speed != 0 {
+		dot_delay = 1200 / speed
+		dash_delay = (dot_delay * 3 * weight) / 50
+	}
 
 	Startup(morseIO)
 
