@@ -2,4 +2,5 @@
 env GOOS=linux GOARCH=amd64 go build
 ssh cwc@cwc0.nodestone.io "sudo systemctl stop cwc-reflector"
 scp cwc-reflector cwc@cwc0.nodestone.io:cwc-reflector
+scp -r web cwc@cwc0.nodestone.io:.
 ssh cwc@cwc0.nodestone.io "sudo systemctl start cwc-reflector"
