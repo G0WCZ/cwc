@@ -80,7 +80,7 @@ func GetChannel(channel_id bitoip.ChannelIdType) *Channel {
 }
 
 // Subscribe to this channel
-// if already susscribed, then update details and LastTx
+// if already subscribed, then update details and LastTx
 func (c *Channel) Subscribe(address net.UDPAddr, callsign string) bitoip.CarrierKeyType {
 	glog.Infof("subscribe from: %v", address)
 	glog.Infof("channels: %v", channels)
@@ -113,9 +113,13 @@ func (c *Channel) Unsubscribe(address net.UDPAddr) {
 
 // Broadcast this carrier event to all on this channel
 // and always return to sender (who can ignore if they wish, or can use as net sidetone
-func (c *Channel) Broadcast(event bitoip.CarrierEventPayload) {
+func (c *Channel) Broadcast(event bitoip.CarrierEventPayload, txAddr string) {
 	txr := c.Subscribers[event.CarrierKey]
 	txr.LastTx = time.Now()
+	c.Subscribers[event.CarrierKey] = txr
+	c.Callsigns[txr.Callsign] = txr
+	c.Addresses[txAddr] = txr
+
 	for _, v := range c.Subscribers {
 		glog.V(2).Infof("sending to subs %v: %v", v.Address, event)
 		bitoip.UDPTx(bitoip.CarrierEvent, event, &v.Address)
