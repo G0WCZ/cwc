@@ -29,10 +29,10 @@ import (
  */
 
 // PWM settings
-const OnDutyCycle = uint32(1)
-const PWMCycleLength = uint32(32)
+// const OnDutyCycle = uint32(1)
+// const PWMCycleLength = uint32(32)
 
-type PiGPIO struct {
+type Keyer struct {
 	config   *Config
 	output   rpio.Pin
 	dahInput rpio.Pin
@@ -75,7 +75,8 @@ func (g *Keyer) Open() error {
 	outLED := g.config.GPIOPins.SignalLED
 
 	// receiving morse from a GPIO
-	inPin := g.config.GPIOPins.KeyLeft
+	dahPin := g.config.GPIOPins.KeyLeft
+	ditPin := g.config.GPIOPins.KeyRight
 
 	statusPin := g.config.GPIOPins.StatusLED
 
@@ -85,10 +86,10 @@ func (g *Keyer) Open() error {
 	g.output.Low()
 
 	// Input pin
-	g.dahInput = rpio.Pin(inPin)
+	g.dahInput = rpio.Pin(dahPin)
 	g.dahInput.Input()
 	g.dahInput.PullUp()
-	g.ditInput = rpio.Pin(inPin)
+	g.ditInput = rpio.Pin(ditPin)
 	g.ditInput.Input()
 	g.ditInput.PullUp()
 
@@ -100,13 +101,8 @@ func (g *Keyer) Open() error {
 	return nil
 }
 
-// ready Morse In hardware
 func (g *Keyer) Bit() bool {
-	if g.input.Read() == rpio.High {
-		return false
-	} else {
-		return true
-	}
+	return false
 }
 
 // ready Morse In hardware

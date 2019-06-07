@@ -58,10 +58,10 @@ func (n *NullIO) State() State {
 func (n *NullIO) Bit() bool {
 	return n.state.Bitin
 }
-func (g *PiGPIO) Dot() bool {
+func (n *NullIO) Dot() bool {
 	return false
 }
-func (g *PiGPIO) Dash() bool {
+func (n *NullIO) Dash() bool {
 	return false
 }
 

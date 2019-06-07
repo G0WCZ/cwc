@@ -18,13 +18,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package cwc
 
 import (
-	"../bitoip"
 	"context"
 	"fmt"
-	"github.com/golang/glog"
 	"net"
 	"strings"
 	"time"
+
+	"../bitoip"
+	"github.com/golang/glog"
 )
 
 const LocalMulticast = "224.0.0.73:%d"
@@ -33,7 +34,7 @@ const LocalMulticast = "224.0.0.73:%d"
 // Can be in local mode, in which case all is local muticast on the local network
 // Else the client of a reflector
 func StationClient(ctx context.Context, config *Config, morseIO IO) {
-	var addr string;
+	var addr string
 	if config.NetworkMode == "local" {
 		addr = fmt.Sprintf(LocalMulticast, config.LocalPort)
 		glog.Infof("Starting in local mode with local multicast address %s", addr)
@@ -56,10 +57,11 @@ func StationClient(ctx context.Context, config *Config, morseIO IO) {
 
 	// Run the morse receiver in a thread -- this will send and receive via
 	// the hardware
-	if config.KeyType == "keyer"
+	if config.KeyType == "keyer" {
 		go RunMorseRx(ctx, morseIO, toSend, config.RemoteEcho, config.Channel, true)
-	else
-		go RunMorseRx(ctx, morseIO, toSend, config.RemoteEcho, config.Channel)
+	} else {
+		go RunMorseRx(ctx, morseIO, toSend, config.RemoteEcho, config.Channel, false)
+	}
 
 	localRxAddress, err := net.ResolveUDPAddr("udp", "0.0.0.0:0")
 
@@ -87,7 +89,7 @@ func StationClient(ctx context.Context, config *Config, morseIO IO) {
 	bitoip.UDPTx(bitoip.ListenRequest, bitoip.ListenRequestPayload{
 		config.Channel,
 		csBase,
-		},
+	},
 		resolvedAddress,
 	)
 
@@ -101,10 +103,8 @@ func StationClient(ctx context.Context, config *Config, morseIO IO) {
 	roundTrips := make([]int64, timeOffsetBucketSize, timeOffsetBucketSize)
 	roundTripSum := int64(0)
 
-
 	commonTimeOffset := int64(0)
 	commonRoundTrip := int64(0)
-
 
 	// set up basis of keepAlive
 	lastUDPSend := time.Now()
@@ -119,7 +119,6 @@ func StationClient(ctx context.Context, config *Config, morseIO IO) {
 			time.Now().UnixNano(),
 		}, resolvedAddress)
 	}
-
 
 	timeSyncCount := 0
 
@@ -171,7 +170,7 @@ func StationClient(ctx context.Context, config *Config, morseIO IO) {
 				timeOffsetSum = int64(0)
 				roundTripSum = int64(0)
 
-				for i :=0 ; i < timeOffsetBucketSize; i++ {
+				for i := 0; i < timeOffsetBucketSize; i++ {
 					timeOffsetSum += timeOffsets[i]
 					roundTripSum += roundTrips[i]
 				}
@@ -180,17 +179,15 @@ func StationClient(ctx context.Context, config *Config, morseIO IO) {
 				commonRoundTrip = (roundTripSum / timeOffsetBucketSize)
 				SetRoundTrip(commonRoundTrip)
 
-
 				glog.V(2).Infof("timesync: offset %d µs roundtrip %d µs",
-					commonTimeOffset / 1000,
-					commonRoundTrip / 1000)
+					commonTimeOffset/1000,
+					commonRoundTrip/1000)
 			}
 
 		case kat := <-keepAliveTick:
 
-
 			// check and send a keepalive if nothing else has happened
-			if kat.Sub(lastUDPSend) > time.Duration(20 * time.Second) {
+			if kat.Sub(lastUDPSend) > time.Duration(20*time.Second) {
 				// turn off Status LED - to be turned back on by response above
 				morseIO.SetStatusLED(false)
 
@@ -203,21 +200,21 @@ func StationClient(ctx context.Context, config *Config, morseIO IO) {
 				bitoip.UDPTx(bitoip.ListenRequest, p, resolvedAddress)
 			}
 
-			// do time sync
-			case tst := <-timeSyncTick:
-				timeSyncCount += 1
-				if timeSyncCount == 5 {
-					// slow down after initial syncs
-					timeSyncTick = time.Tick(140 * time.Second)
-				}
+		// do time sync
+		case tst := <-timeSyncTick:
+			timeSyncCount += 1
+			if timeSyncCount == 5 {
+				// slow down after initial syncs
+				timeSyncTick = time.Tick(140 * time.Second)
+			}
 
-				// turn off Status LED - to be turned back on by response above
-				morseIO.SetStatusLED(false)
+			// turn off Status LED - to be turned back on by response above
+			morseIO.SetStatusLED(false)
 
-				glog.V(2).Info("sending timesync")
-				bitoip.UDPTx(bitoip.TimeSync, bitoip.TimeSyncPayload{
+			glog.V(2).Info("sending timesync")
+			bitoip.UDPTx(bitoip.TimeSync, bitoip.TimeSyncPayload{
 				tst.UnixNano(),
-				}, resolvedAddress)
+			}, resolvedAddress)
 		}
 	}
 }

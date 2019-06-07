@@ -18,11 +18,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package cwc
 
 import (
-	"github.com/golang/glog"
 	"context"
 	"sort"
 	"sync"
 	"time"
+
+	"github.com/golang/glog"
 )
 import "../bitoip"
 
@@ -44,35 +45,36 @@ const BreakinTime = time.Duration(100 * Ms)
 const MaxEvents = 100
 
 const (
-	CHECK 		int = 0
-	PREDOT 		int = 1
-	PREDASH 	int = 2
-	SENDDOT 	int = 3
-	SENDDASH 	int = 4
-	DOTDELAY 	int = 5
-	DASHDELAY 	int = 6
-	DOTHELD 	int = 7
-	DASHHELD 	int = 8
+	CHECK       int = 0
+	PREDOT      int = 1
+	PREDASH     int = 2
+	SENDDOT     int = 3
+	SENDDASH    int = 4
+	DOTDELAY    int = 5
+	DASHDELAY   int = 6
+	DOTHELD     int = 7
+	DASHHELD    int = 8
 	LETTERSPACE int = 9
-	EXITLOOP 	int = 10
+	EXITLOOP    int = 10
 )
 
 var TickTime = DefaultTickTime
 var SendWait = MaxSendTimespan
 
 var key_state = CHECK
-var dot_memory = 0
-var dash_memory = 0
+var dot_memory bool = false
+var dash_memory bool = false
 var kdelay = 0
 var dot_delay = 0
 var dash_delay = 0
-
+var cw_keyer_weight = 55
+var keyer_out = 0
 
 var LastBit bool = false
 
 type Event struct {
 	startTime time.Time
-	bitEvent bitoip.BitEvent
+	bitEvent  bitoip.BitEvent
 }
 
 var events = make([]Event, 0, MaxEvents)
@@ -80,7 +82,6 @@ var RxMutex = sync.Mutex{}
 
 var ticker *time.Ticker
 var done = make(chan bool)
-
 
 func SetTickTime(tt time.Duration) {
 	TickTime = tt
@@ -98,7 +99,7 @@ func SetChannelId(cId bitoip.ChannelIdType) {
 	channelId = cId
 }
 
-func ChannelId () bitoip.ChannelIdType {
+func ChannelId() bitoip.ChannelIdType {
 	return channelId
 }
 
@@ -126,41 +127,57 @@ func SetRoundTrip(t int64) {
 	roundTrip = t
 }
 
+var keyMode int = 1 // 0 - Iambic A, 1 - Iambic B
+
+func SetKeyMode(m int) {
+	keyMode = m
+}
+
+var keyerSpacing bool = true
+
+func SetKeyerSpacing(s bool) {
+	keyerSpacing = s
+}
+
 // RunMorseRx sets the morse hardware (key) receiver going.  This sets up a timer
 // to sample the morse input and runs it.
-
 
 func RunMorseRx(ctx context.Context, morseIO IO, toSend chan bitoip.CarrierEventPayload, echo bool,
 	channel bitoip.ChannelIdType, keyer bool) {
 	localEcho = echo
 	channelId = channel
 	LastBit = false // make sure turned off to begin -- the default state
-	if (keyer)
+	if keyer {
 		TickTime = KeyerTickTime
+	}
 	ticker = time.NewTicker(TickTime)
+
+	dot_delay = 400 / 20
+	dash_delay = (dot_delay * 3 * cw_keyer_weight) / 50
 
 	Startup(morseIO)
 
 	for {
 		select {
-		case <- done:
+		case <-done:
 			ticker.Stop()
 			return
 
 		case t := <-ticker.C:
-			if (keyer) 
+			if keyer {
 				SampleKeyer(t, toSend, morseIO)
-			else
+			} else {
 				Sample(t, toSend, morseIO)
+			}
 		}
 	}
 }
 
 // Overload to ensure backwards compatibility
-func RunMorseRx(ctx context.Context, morseIO IO, toSend chan bitoip.CarrierEventPayload, echo bool,
-	channel bitoip.ChannelIdType) {
-	RunMorseRx(ctx, morseIO, toSend, echo, channel, false)	
-}
+// func RunMorseRx(ctx context.Context, morseIO IO, toSend chan bitoip.CarrierEventPayload, echo bool,
+// 	channel bitoip.ChannelIdType) {
+// 	RunMorseRx(ctx, morseIO, toSend, echo, channel, false)
+// }
 
 func Stop(morseIO IO) {
 	done <- true
@@ -197,11 +214,11 @@ func Sample(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO) {
 
 		// Append the event to the list of on/off events to be sent
 		RxMutex.Lock()
-		events = append(events, Event{t, bitoip.BitEvent(bit) })
+		events = append(events, Event{t, bitoip.BitEvent(bit)})
 		RxMutex.Unlock()
 
 		// If we have too many events, then send a packet now
-		if  (len(events) >= MaxEvents - 1) && (events[len(events)-1].bitEvent & bitoip.BitOn == 0) {
+		if (len(events) >= MaxEvents-1) && (events[len(events)-1].bitEvent&bitoip.BitOn == 0) {
 			events = Flush(events, toSend)
 			return
 		}
@@ -209,145 +226,202 @@ func Sample(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO) {
 
 	// Check to see if we've got an event buffer that needs sending because it has been
 	// hanging around too long.
-	if len(events)> 0 &&
-		(events[len(events)-1].bitEvent & bitoip.BitOn == 0) &&
+	if len(events) > 0 &&
+		(events[len(events)-1].bitEvent&bitoip.BitOn == 0) &&
 		((t.Sub(events[0].startTime) >= MaxSendTimespan) ||
-		(t.Sub(events[len(events) - 1].startTime) >= BreakinTime)) {
+			(t.Sub(events[len(events)-1].startTime) >= BreakinTime)) {
 		events = Flush(events, toSend)
 	}
 }
 
 func clear_memory() {
-	dot_memory = 0
-	dash_memory = 0
+	dot_memory = false
+	dash_memory = false
 }
 
-func SetKeyerOut(int state) {
-	if(keyer_out != state) {
+func SetKeyerOut(state int, t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO) {
+	glog.V(2).Infof("SetKeyerOut")
+	if keyer_out != state {
 		keyer_out = state
-		morseIO.SetToneOut(bit);
+		if state == 0 {
+			glog.V(2).Infof("SetKeyerOut: state: 0")
+			morseIO.SetToneOut(false)
+		} else {
+			glog.V(2).Infof("SetKeyerOut: state: 1")
+			morseIO.SetToneOut(true)
+		}
 		RxMutex.Lock()
-		events = append(events, Event{t, bitoip.BitEvent(state) })
+		events = append(events, Event{t, bitoip.BitEvent(state)})
 		RxMutex.Unlock()
 		// If we have too many events, then send a packet now
-		if  (len(events) >= MaxEvents - 1) && (events[len(events)-1].bitEvent & bitoip.BitOn == 0) {
+		if (len(events) >= MaxEvents-1) && (events[len(events)-1].bitEvent&bitoip.BitOn == 0) {
 			events = Flush(events, toSend)
 			return
 		}
-	}	
+	}
 }
 
 func SampleKeyer(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO) {
 	TransmitToHardware(t, morseIO)
 
-	if (key_state != EXITLOOP) {
-		switch (key_state) {
-		case CHECK:
-			if (morseIO.Dot()) {
-				key_state = PREDOT
-			} else if (morseIO.Dash()) {
+	// if key_state != EXITLOOP {
+	switch key_state {
+	case CHECK:
+		if morseIO.Dot() {
+			key_state = PREDOT
+		} else if morseIO.Dash() {
+			key_state = PREDASH
+		}
+	case PREDOT:
+		glog.V(2).Infof("PREDOT")
+		clear_memory()
+		key_state = SENDDOT
+	case PREDASH:
+		glog.V(2).Infof("PREDASH")
+		clear_memory()
+		key_state = SENDDASH
+	case SENDDOT:
+		glog.V(2).Infof("SENDDOT")
+		SetKeyerOut(1, t, toSend, morseIO)
+		if kdelay == dot_delay {
+			kdelay = 0
+			SetKeyerOut(0, t, toSend, morseIO)
+			key_state = DOTDELAY
+		} else {
+			kdelay++
+		}
+		if keyMode == 0 {
+			if (!morseIO.Dot()) && (!morseIO.Dash()) {
+				dash_memory = false
+			} else {
+				if morseIO.Dash() {
+					dash_memory = true
+				}
+			}
+		}
+	case SENDDASH:
+		glog.V(2).Infof("SENDDASH")
+		SetKeyerOut(1, t, toSend, morseIO)
+		if kdelay == dash_delay {
+			kdelay = 0
+			SetKeyerOut(0, t, toSend, morseIO)
+			key_state = DASHDELAY
+		} else {
+			kdelay++
+		}
+		if keyMode == 0 {
+			if (!morseIO.Dot()) && (!morseIO.Dash()) {
+				dot_memory = false
+			} else {
+				if morseIO.Dot() {
+					dot_memory = true
+				}
+			}
+		}
+	case DOTDELAY:
+		if kdelay == dot_delay {
+			kdelay = 0
+			if dash_memory {
 				key_state = PREDASH
 			} else {
-				key_state = EXITLOOP
+				key_state = DOTHELD
 			}
-		case PREDOT:
-			clear_memory()
-			key_state = SENDDOT
-		case PREDASH:
-			clear_memory()
-			key_state = SENDDASH
-		case SENDDOT:
-			SetKeyerOut(1)
-			if (kdelay == dot_delay) {
-				kdelay = 0
-				SetKeyerOut(0)
-				key_state = DOTDELAY
-			} else kdelay++
-			if (cw_keyer_mode == "A")
-				if ((!morseIO.Dot())&&(!morseIO.Dash()))
-					dash_memory = 0
-				else if (morseIO.Dash())
-					dash_memory = 1
-		case SENDDASH:
-			SetKeyerOut(1)
-			if (kdelay == dash_delay) {
-				kdelay = 0
-				SetKeyerOut(0)
-				key_state = DASHDELAY
-			} else kdelay++
-			if (cw_keyer_mode == "A")
-			if ((!morseIO.Dot())&&(!morseIO.Dash()))
-				dot_memory = 0
-			else if (morseIO.Dot())
-				dot_memory = 1
-		case DOTDELAY:
-			if (kdelay == dot_delay) {
-				kdelay = 0
-				if (dash_memory)
-					key_state = PREDASH
-				else 
-					key_state = DOTHELD
-			} else kdelay++
-			if (morseIO.Dash())
-				dash_memory = 1
-		case DASHDELAY:
-			if (kdelay == dot_delay) {
-				kdelay = 0
-				if (dot_memory)
-					key_state = PREDOT
-				else 
-					key_state = DASHHELD
-			} else kdelay++
-			if (morseIO.Dot())
-				dash_memory = 1
-		case DOTHELD:
-			if (morseIO.Dot())
+		} else {
+			kdelay++
+		}
+		if morseIO.Dash() {
+			dash_memory = true
+		}
+	case DASHDELAY:
+		if kdelay == dot_delay {
+			kdelay = 0
+			if dot_memory {
 				key_state = PREDOT
-			else if (morseIO.Dash())
+			} else {
+				key_state = DASHHELD
+			}
+		} else {
+			kdelay++
+		}
+		if morseIO.Dot() {
+			dot_memory = true
+		}
+	case DOTHELD:
+		glog.V(2).Infof("DOTHELD")
+		if morseIO.Dot() {
+			key_state = PREDOT
+			glog.V(2).Infof("1")
+		} else {
+			if morseIO.Dash() {
 				key_state = PREDASH
-			else if (cw_keyer_spacing) {
-				clear_memory()
-				key_state = LETTERSPACE
-			} else
-				key_state = EXITLOOP
-		case DASHHELD:
-			if (morseIO.Dash())
-				key_state = PREDASH
-			else if (morseIO.Dot())
-				key_state = PREDOT
-			else if (cw_keyer_spacing) {
-				clear_memory()
-				key_state = LETTERSPACE
-			} else
-				key_state = EXITLOOP
-		case LETTERSPACE:
-			if (kdelay == 2 * dot_delay) {
-				kdelay = 0
-				if (dot_memory)
-					key_state = PREDOT
-				else if (dash_memory)
-					key_state = PREDASH
-				else
+				glog.V(2).Infof("2")
+			} else {
+				if keyerSpacing {
+					clear_memory()
+					key_state = LETTERSPACE
+					glog.V(2).Infof("3")
+				} else {
 					key_state = EXITLOOP
-			} else kdelay++
-			if (morseIO.Dot()) dot_memory = 1
-			if (morseIO.Dash()) dash_memory = 1
-		case EXITLOOP:
-			key_state = CHECK
-		default:
-			key_state = EXITLOOP
+					glog.V(2).Infof("4")
+				}
+			}
+		}
+	case DASHHELD:
+		glog.V(2).Infof("DASHHELD")
+		if morseIO.Dash() {
+			key_state = PREDASH
+		} else {
+			if morseIO.Dot() {
+				key_state = PREDOT
+			} else {
+				if keyerSpacing {
+					clear_memory()
+					key_state = LETTERSPACE
+				} else {
+					key_state = EXITLOOP
+				}
+			}
+		}
+	case LETTERSPACE:
+		glog.V(2).Infof("LETTERSPACE")
+		if kdelay == 2*dot_delay {
+			kdelay = 0
+			if dot_memory {
+				key_state = PREDOT
+			} else {
+				if dash_memory {
+					key_state = PREDASH
+				} else {
+					key_state = EXITLOOP
+				}
+			}
+		} else {
+			kdelay++
+		}
+		if morseIO.Dot() {
+			dot_memory = true
+		}
+		if morseIO.Dash() {
+			dash_memory = true
+		}
+	case EXITLOOP:
+		glog.V(2).Infof("EXITLOOP")
+		key_state = CHECK
+	default:
+		glog.V(2).Infof("default case")
+		key_state = EXITLOOP
 	}
+	// }
 	// Check to see if we've got an event buffer that needs sending because it has been
 	// hanging around too long.
-	if len(events)> 0 &&
-		(events[len(events)-1].bitEvent & bitoip.BitOn == 0) &&
+	if len(events) > 0 &&
+		(events[len(events)-1].bitEvent&bitoip.BitOn == 0) &&
 		((t.Sub(events[0].startTime) >= MaxSendTimespan) ||
-		(t.Sub(events[len(events) - 1].startTime) >= BreakinTime)) {
+			(t.Sub(events[len(events)-1].startTime) >= BreakinTime)) {
 		events = Flush(events, toSend)
 	}
 
 }
-
 
 // Flush events and place in the toSend channel to wake up the UDP sender to
 // transmit the packet.
@@ -408,7 +482,7 @@ func QueueForTransmit(carrierEvents *bitoip.CarrierEventPayload) {
 		newEvents := make([]Event, 0)
 
 		// remove the calculated server time offset
-		start := time.Unix(0, carrierEvents.StartTimeStamp - timeOffset + roundTrip + int64(MaxSendTimespan))
+		start := time.Unix(0, carrierEvents.StartTimeStamp-timeOffset+roundTrip+int64(MaxSendTimespan))
 
 		for _, ce := range carrierEvents.BitEvents {
 			newEvents = append(newEvents, Event{

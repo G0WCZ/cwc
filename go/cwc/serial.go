@@ -18,9 +18,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package cwc
 
 import (
-	"go.bug.st/serial.v1"
-	"github.com/golang/glog"
 	"strings"
+
+	"github.com/golang/glog"
+	"go.bug.st/serial.v1"
 )
 
 /*
@@ -31,7 +32,7 @@ import (
 
 type SerialIO struct {
 	config *Config
-	port serial.Port
+	port   serial.Port
 	useRTS bool
 	useCTS bool
 }
@@ -40,7 +41,7 @@ type SerialIO struct {
 func NewSerialIO(config *Config) *SerialIO {
 	serialIO := SerialIO{
 		config: config,
-		port: nil,
+		port:   nil,
 		useRTS: true,
 		useCTS: true,
 	}
@@ -75,11 +76,17 @@ func (s *SerialIO) Bit() bool {
 		glog.Fatalf("Port bit read failed %v", err)
 		return false
 	}
-	if (s.useCTS) {
+	if s.useCTS {
 		return bits.CTS
 	} else {
 		return bits.DSR
 	}
+}
+func (s *SerialIO) Dot() bool {
+	return false
+}
+func (s *SerialIO) Dash() bool {
+	return false
 }
 
 // Send a morse output bit
@@ -103,5 +110,3 @@ func (s *SerialIO) SetStatusLED(_ bool) {}
 func (s *SerialIO) Close() {
 	s.port.Close()
 }
-
-

@@ -104,6 +104,7 @@ func (g *PiGPIO) Bit() bool {
 		return true
 	}
 }
+
 func (g *PiGPIO) Dot() bool {
 	return false
 }
