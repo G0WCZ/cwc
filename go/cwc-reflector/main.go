@@ -46,24 +46,22 @@ func ReflectorServer(ctx context.Context, address string) {
 		os.Exit(1)
 	}
 
-
 	glog.Infof("Starting reflector on %s", address)
 
 	messages := make(chan bitoip.RxMSG)
 
 	go bitoip.UDPRx(ctx, serverAddress, messages)
 
-	go APIServer(ctx, &channels)
+	go APIServer(ctx, &channels, address)
 
 	go Supervisor(ctx)
 
 	for {
 		select {
-		case <- ctx.Done():
+		case <-ctx.Done():
 			return
-		case m := <- messages:
+		case m := <-messages:
 			Handler(serverAddress, m)
 		}
 	}
 }
-
