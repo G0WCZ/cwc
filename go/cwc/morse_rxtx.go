@@ -2,6 +2,7 @@
 Copyright (C) 2019 Graeme Sutherland, Nodestone Limited
 
 
+------------------------------------------------------------------------
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -14,6 +15,16 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
+------------------------------------------------------------------------
+
+07 July 2019, Andrew Amos M0VVA, modified original c code to fit go syntax
+              and leveraged CWC protocol for sending rather than GPIO pins
+
+Adapted from https://github.com/n1gp/iambic-keyer/blob/master/iambic.c
+
+Copywrite (C) Phil Harman VK6PH May 2014
+---------------------------------------------------------------------------------
+
 */
 package cwc
 
@@ -240,14 +251,11 @@ func clear_memory() {
 }
 
 func SetKeyerOut(state int, t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO) {
-	glog.V(2).Infof("SetKeyerOut")
 	if keyer_out != state {
 		keyer_out = state
 		if state == 0 {
-			glog.V(2).Infof("SetKeyerOut: state: 0")
 			morseIO.SetToneOut(false)
 		} else {
-			glog.V(2).Infof("SetKeyerOut: state: 1")
 			morseIO.SetToneOut(true)
 		}
 		RxMutex.Lock()
@@ -266,12 +274,15 @@ func SampleKeyer(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO
 
 	// if key_state != EXITLOOP {
 	switch key_state {
+	// check for key press
 	case CHECK:
 		if morseIO.Dot() {
 			key_state = PREDOT
 		} else if morseIO.Dash() {
 			key_state = PREDASH
 		}
+
+	// need to clear any pending dots or dashes
 	case PREDOT:
 		glog.V(2).Infof("PREDOT")
 		clear_memory()
@@ -280,16 +291,21 @@ func SampleKeyer(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO
 		glog.V(2).Infof("PREDASH")
 		clear_memory()
 		key_state = SENDDASH
+
+	// dot paddle  pressed so set keyer_out high for time dependant on speed
+	// also check if dash paddle is pressed during this time
 	case SENDDOT:
 		glog.V(2).Infof("SENDDOT")
 		SetKeyerOut(1, t, toSend, morseIO)
 		if kdelay == dot_delay {
 			kdelay = 0
 			SetKeyerOut(0, t, toSend, morseIO)
-			key_state = DOTDELAY
+			key_state = DOTDELAY // add inter-character spacing of one dot length
 		} else {
 			kdelay++
 		}
+
+		// if Mode A and both paddels are relesed then clear dash memory
 		if keyMode == 0 {
 			if (!morseIO.Dot()) && (!morseIO.Dash()) {
 				dash_memory = false
@@ -299,16 +315,21 @@ func SampleKeyer(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO
 				}
 			}
 		}
+
+	// dash paddle pressed so set keyer_out high for time dependant on 3 x dot delay and weight
+	// also check if dot paddle is pressed during this time
 	case SENDDASH:
 		glog.V(2).Infof("SENDDASH")
 		SetKeyerOut(1, t, toSend, morseIO)
 		if kdelay == dash_delay {
 			kdelay = 0
 			SetKeyerOut(0, t, toSend, morseIO)
-			key_state = DASHDELAY
+			key_state = DASHDELAY // add inter-character spacing of one dash length
 		} else {
 			kdelay++
 		}
+
+		// if Mode A and both padles are relesed then clear dot memory
 		if keyMode == 0 {
 			if (!morseIO.Dot()) && (!morseIO.Dash()) {
 				dot_memory = false
@@ -318,63 +339,71 @@ func SampleKeyer(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO
 				}
 			}
 		}
+
+		// add dot delay at end of the dot and check for dash memory, then check if paddle still held
 	case DOTDELAY:
 		if kdelay == dot_delay {
 			kdelay = 0
-			if dash_memory {
+			if dash_memory { // dash has been set during the dot so service
 				key_state = PREDASH
 			} else {
-				key_state = DOTHELD
+				key_state = DOTHELD // dot is still active so service
 			}
 		} else {
 			kdelay++
 		}
+
+		// set dash memory
 		if morseIO.Dash() {
 			dash_memory = true
 		}
+
+	// add dot delay at end of the dash and check for dot memory, then check if paddle still held
 	case DASHDELAY:
 		if kdelay == dot_delay {
 			kdelay = 0
-			if dot_memory {
+			if dot_memory { // dot has been set during the dash so service
 				key_state = PREDOT
 			} else {
-				key_state = DASHHELD
+				key_state = DASHHELD // dash is still active so service
 			}
 		} else {
 			kdelay++
 		}
+
+		// set dot memory
 		if morseIO.Dot() {
 			dot_memory = true
 		}
+
+	// check if dot paddle is still held, if so repeat the dot. Else check if Letter space is required
 	case DOTHELD:
 		glog.V(2).Infof("DOTHELD")
-		if morseIO.Dot() {
+		if morseIO.Dot() { // dot has been set during the dash so service
 			key_state = PREDOT
-			glog.V(2).Infof("1")
 		} else {
-			if morseIO.Dash() {
+			if morseIO.Dash() { // has dash paddle been pressed
 				key_state = PREDASH
-				glog.V(2).Infof("2")
 			} else {
-				if keyerSpacing {
+				if keyerSpacing { // Letter space enabled so clear any pending dots or dashes
 					clear_memory()
 					key_state = LETTERSPACE
-					glog.V(2).Infof("3")
 				} else {
 					key_state = EXITLOOP
-					glog.V(2).Infof("4")
 				}
 			}
 		}
+
+	// check if dash paddle is still held, if so repeat the dash. Else check if Letter space is required
 	case DASHHELD:
 		glog.V(2).Infof("DASHHELD")
-		if morseIO.Dash() {
+		if morseIO.Dash() { // dash has been set during the dot so service
 			key_state = PREDASH
 		} else {
-			if morseIO.Dot() {
+			if morseIO.Dot() { // has dot paddle been pressed
 				key_state = PREDOT
 			} else {
-				if keyerSpacing {
+				if keyerSpacing { // Letter space enabled so clear any pending dots or dashes
 					clear_memory()
 					key_state = LETTERSPACE
 				} else {
@@ -382,31 +411,38 @@ func SampleKeyer(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO
 				}
 			}
 		}
+
+	// Add letter space (3 x dot delay) to end of character and check if a paddle is pressed during this time.
+	// Actually add 2 x dot_delay since we already have a dot delay at the end of the character.
 	case LETTERSPACE:
 		glog.V(2).Infof("LETTERSPACE")
 		if kdelay == 2*dot_delay {
 			kdelay = 0
-			if dot_memory {
+			if dot_memory { // check if a dot or dash paddle was pressed during the delay
 				key_state = PREDOT
 			} else {
 				if dash_memory {
 					key_state = PREDASH
 				} else {
-					key_state = EXITLOOP
+					key_state = EXITLOOP // no memories set so restart
 				}
 			}
 		} else {
 			kdelay++
 		}
+
+		// save any key presses during the letter space delay
 		if morseIO.Dot() {
 			dot_memory = true
 		}
 		if morseIO.Dash() {
 			dash_memory = true
 		}
+
 	case EXITLOOP:
 		glog.V(2).Infof("EXITLOOP")
 		key_state = CHECK
+
 	default:
 		glog.V(2).Infof("default case")
 		key_state = EXITLOOP
