@@ -27,6 +27,8 @@ package cwc
 type IO interface {
 	Open() error
 	Bit() bool
+	Dot() bool
+	Dash() bool
 	SetBit(bool)
 	SetToneOut(bool)
 	SetStatusLED(bool)
