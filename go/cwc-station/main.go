@@ -18,11 +18,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package main
 
 import (
-	"../bitoip"
-	"../cwc"
 	"context"
 	"flag"
 	"fmt"
+
+	"../bitoip"
+	"../cwc"
 	"github.com/golang/glog"
 )
 
@@ -36,7 +37,7 @@ func main() {
 	var echo = flag.Bool("echo", false, "-echo turns on remote echo of all sent morse")
 	var channel = flag.Int("ch", -1, "-ch <n> to connect to the channel n")
 	var callsign = flag.String("de", "", "-de <callsign>")
-	var noIO = flag.Bool("noio",false, "-noio uses fake morse IO connections")
+	var noIO = flag.Bool("noio", false, "-noio uses fake morse IO connections")
 
 	// parse Command line
 	flag.Parse()
@@ -89,8 +90,10 @@ func main() {
 		morseIO = cwc.NewSerialIO(config)
 	} else if config.HardwareType == "None" {
 		morseIO = cwc.NewNullIO(config)
+	} else if config.KeyType == "keyer" {
+		morseIO = cwc.NewKeyer(config)
 	} else {
-		morseIO =  cwc.NewPiGPIO(config)
+		morseIO = cwc.NewPiGPIO(config)
 	}
 
 	cwc.StationClient(ctx, config, morseIO)
