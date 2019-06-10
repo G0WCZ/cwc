@@ -18,11 +18,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package main
 
 import (
-	"../bitoip"
-	"github.com/golang/glog"
 	"net"
 	"strings"
 	"time"
+
+	"../bitoip"
+	"github.com/golang/glog"
 )
 
 // Handle an incoming message to the reflector

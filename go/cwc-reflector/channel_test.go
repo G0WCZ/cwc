@@ -18,19 +18,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package main
 
 import (
-	"../bitoip"
 	"context"
-	"github.com/golang/glog"
-	"gotest.tools/assert"
+	"fmt"
 	"net"
 	"sort"
 	"testing"
 	"time"
+
+	"../bitoip"
+	"github.com/golang/glog"
+	"gotest.tools/assert"
 )
 
 func TestNewChannel(t *testing.T) {
 	channel := NewChannel(33)
-	assert.DeepEqual(t,channel.ChannelId, uint16(33))
+	assert.DeepEqual(t, channel.ChannelId, uint16(33))
 	assert.Equal(t, len(channel.Subscribers), 0)
 	assert.Equal(t, len(channel.Addresses), 0)
 	assert.Equal(t, channel.LastKey, uint16(99))
@@ -45,7 +47,7 @@ func TestGetChannel(t *testing.T) {
 func TestSubscribeWhenNotSubscribed(t *testing.T) {
 	channel1 := GetChannel(21)
 	addr, _ := net.ResolveUDPAddr("udp", "localhost:2020")
-	channel1.Subscribe(*addr,"G0WCZ")
+	channel1.Subscribe(*addr, "G0WCZ")
 	assert.Equal(t, len(channel1.Addresses), 1)
 	assert.Equal(t, len(channel1.Subscribers), 1)
 }
@@ -96,10 +98,10 @@ func TestEmptyChannelIds(t *testing.T) {
 	assert.Equal(t, len(ChannelIds()), 0)
 }
 
-func carrierEventPayload() bitoip.CarrierEventPayload {
+func carrierEventPayload(key bitoip.CarrierKeyType) bitoip.CarrierEventPayload {
 	return bitoip.CarrierEventPayload{
 		1,
-		99,
+		key,
 		time.Now().UnixNano(),
 		[bitoip.MaxBitEvents]bitoip.CarrierBitEvent{
 			bitoip.CarrierBitEvent{0, bitoip.BitOn},
@@ -112,7 +114,7 @@ func carrierEventPayload() bitoip.CarrierEventPayload {
 func TestBroadcastEmpty(t *testing.T) {
 	channels = make(map[uint16]*Channel)
 	c1 := GetChannel(1)
-	ce := carrierEventPayload()
+	ce := carrierEventPayload(100)
 
 	c1.Broadcast(ce)
 }
@@ -120,12 +122,11 @@ func TestBroadcastEmpty(t *testing.T) {
 func TestBroadcastToSubscriber(t *testing.T) {
 	channels = make(map[uint16]*Channel)
 	c1 := GetChannel(1)
-	ce := carrierEventPayload()
-	add := "localhost:2020"
+	add := "localhost:9453"
 	addr, _ := net.ResolveUDPAddr("udp", add)
 	glog.Infof("addr: %v", addr)
-	c1.Subscribe(*addr, "G0WCZ")
-
+	key := c1.Subscribe(*addr, "G0WCZ")
+	ce := carrierEventPayload(key)
 
 	pc, _ := net.ListenPacket("udp", add)
 	buffer := make([]byte, bitoip.MaxMessageSizeInBytes)
@@ -134,7 +135,7 @@ func TestBroadcastToSubscriber(t *testing.T) {
 	// get one message
 	go func() {
 		_, _, _ = pc.ReadFrom(buffer)
-		//fmt.Printf("raw Rx: %d %v", len(buffer), buffer)
+		fmt.Printf("raw Rx: %d %v", len(buffer), buffer)
 		doneChan <- buffer
 	}()
 
@@ -149,20 +150,20 @@ func TestBroadcastToSubscriber(t *testing.T) {
 	// broadcast
 	c1.Broadcast(ce)
 
-	buf :=  <- doneChan
+	buf := <-doneChan
 
 	verb, payload := bitoip.DecodePacket(buf)
 	assert.Equal(t, verb, bitoip.CarrierEvent)
 	assert.DeepEqual(t, payload, &ce)
 	rxce := payload.(*bitoip.CarrierEventPayload)
-	assert.Equal(t, rxce.CarrierKey, uint16(99))
+	assert.Equal(t, rxce.CarrierKey, key)
 }
 
 func TestSuperviseChannelsNoSubscribers(t *testing.T) {
 	channels = make(map[uint16]*Channel)
 	_ = GetChannel(1)
 	_ = GetChannel(2)
-	r := SuperviseChannels(time.Now(), time.Duration(10 * time.Minute))
+	r := SuperviseChannels(time.Now(), time.Duration(10*time.Minute))
 	assert.Equal(t, r, 0)
 }
 
@@ -173,7 +174,7 @@ func TestSuperviseChannelsNoneRemoved(t *testing.T) {
 	addr, _ := net.ResolveUDPAddr("udp", "localhost:19234")
 	c1.Subscribe(*addr, "A1AAA")
 	c2.Subscribe(*addr, "A1BBB")
-	r := SuperviseChannels(time.Now(), time.Duration(10 * time.Minute))
+	r := SuperviseChannels(time.Now(), time.Duration(10*time.Minute))
 	assert.Equal(t, r, 0)
 }
 
@@ -184,8 +185,8 @@ func TestSuperviseChannels2Removed(t *testing.T) {
 	addr, _ := net.ResolveUDPAddr("udp", "localhost:19234")
 	c1.Subscribe(*addr, "A1AAA")
 	c2.Subscribe(*addr, "A1BBB")
-	r := SuperviseChannels(time.Now().Add(time.Duration(20 * time.Minute)), time.Duration(10 * time.Minute))
+	r := SuperviseChannels(time.Now().Add(time.Duration(20*time.Minute)), time.Duration(10*time.Minute))
 	assert.Equal(t, r, 2)
-	r = SuperviseChannels(time.Now().Add(time.Duration(20 * time.Minute)), time.Duration(10 * time.Minute))
+	r = SuperviseChannels(time.Now().Add(time.Duration(20*time.Minute)), time.Duration(10*time.Minute))
 	assert.Equal(t, r, 0)
 }
