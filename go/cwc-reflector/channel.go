@@ -18,12 +18,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package main
 
 import (
-	"github.com/golang/glog"
 	"net"
-)
-import (
-	"../bitoip"
 	"time"
+
+	"../bitoip"
+	"github.com/golang/glog"
 )
 
 const LastReservedCarrierKey = 99
@@ -114,8 +113,17 @@ func (c *Channel) Unsubscribe(address net.UDPAddr) {
 // Broadcast this carrier event to all on this channel
 // and always return to sender (who can ignore if they wish, or can use as net sidetone
 func (c *Channel) Broadcast(event bitoip.CarrierEventPayload) {
-	txr := c.Subscribers[event.CarrierKey]
+	txr, ok := c.Subscribers[event.CarrierKey]
+	if !ok {
+		glog.V(2).Infof("broadcast from unsubcribed key %v", event.CarrierKey)
+		return
+	}
+
 	txr.LastTx = time.Now()
+	c.Subscribers[event.CarrierKey] = txr
+	c.Addresses[txr.Address.String()] = txr
+	c.Callsigns[txr.Callsign] = txr
+
 	for _, v := range c.Subscribers {
 		glog.V(2).Infof("sending to subs %v: %v", v.Address, event)
 		bitoip.UDPTx(bitoip.CarrierEvent, event, &v.Address)
