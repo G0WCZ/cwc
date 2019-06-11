@@ -1,9 +1,16 @@
 # CWC - The CW Commuter
 
 ## Status
-**15 May 2019:**
-Just relased the 2.0.1 protocol and reflector and client.  See https://github.com/G0WCZ/cwc/releases/tag/2.0.1
-for a Raspberry Pi binary.
+
+**10 June 2019:**
+Ongoing development of hardware and software in progress. There is now alpha support for a softeare implementation of an iambic keyer using
+two GPIO pins.
+
+Coming up next: 
+* web-based (and therefore phone-based) configuration for the cwc-station on raspberry pi
+* easy software updating
+* morse encode and decode
+* easy robot support
 
 ## The Idea
 
@@ -13,8 +20,8 @@ hotspot.  It has a channel selector.   Dial up a channel and tx/rx CW on that ch
 This is an internet transceiver for CW that you can take with you.  It aims to be more like a radio than a computer. 
 
 ## What is in the box
-A Raspberry Pi or arduino with WiFi.  A few components for audio out and key in.
-There will be a channel knob one day and a signal LED.
+A Raspberry Pi with WiFi.  A few components for audio out and key in.
+There may be a channel knob one day and a signal LED.
 
 ## Get Started
 It is a bit basic for now, but is simple enough and it works:
@@ -45,6 +52,7 @@ You can also use a USB serial port on desktops etc.  See the wiki for more detai
 
 
 ## Communications
+
 There's a protocol based on UDP packets that sends on and off events.
 So if you use the key, you are sending on and off events in UDP packets.
 
@@ -65,69 +73,12 @@ See bitoip.md for the on-the-wire protocol details.
 # Implementations
 
 * early release, still in development: Raspberry Pi GPIO / or Mac & Linux * maybe windows with serial port
-* planning for: Arduino/NodeMCU
 
 # Pi Zero default setup
 
-Here are the default: GPIO pinouts:
-```
-BCM17 - connector pin 11 - morse out
-BCM27 - connector pin 13 - morse in - use 10k pullup resistor to 3V3
-BCM13 - conncetor pin 33 - PWM audio morse out.  
-```
-See https://cdn-learn.adafruit.com/downloads/pdf/adding-basic-audio-ouput-to-raspberry-pi-zero.pdf for details
-of audio output circuit.  Basically voltage divider and low-pass filter to make a head phone output.
-
-Full set of command-line flags:
-```
-Usage of ./cwc-station:
-  -alsologtostderr
-    	log to standard error as well as files
-  -ch int
-    	-ch <n> to connect to the channel n
-  -cq
-    	--cq is CQ mode, no server, local broadcast
-  -de string
-    	-de <callsign>
-  -echo
-    	-echo turns on remote echo of all sent morse
-  -keyin string
-    	-keyin=17 sets BCM gpio pin as morse input (default "17")
-  -keyout string
-    	-keyout=27 sets BCM gpio pin as morse out (default "27")
-  -log_backtrace_at value
-    	when logging hits line file:N, emit a stack trace
-  -log_dir string
-    	If non-empty, write log files in this directory
-  -logtostderr
-    	log to standard error instead of files
-  -noio
-    	-noio uses fake morse IO connections
-  -pcmout string
-    	-pcmout=13 sets BCM gpio pin as pwm sound out (default "13")
-  -port int
-    	--port=<local-udp-port> (default 5990)
-  -ref string
-    	--ref=host:port (default "cwc0.nodestone.io:7388")
-  -serial string
-    	-serial=<serial-device-name>
-  -sidetone string
-    	-sidetone 450 to send 450hz tone on keyout (default "0")
-  -stderrthreshold value
-    	logs at or above this threshold go to stderr
-  -test
-    	--test to put into local feedback test mode
-  -v value
-    	log level for V logs
-  -vmodule value
-    	comma-separated list of pattern=N settings for file-filtered logging
-```
+See the wiki for details of the basic hardware and configuration.
 
 # Who did this
 Concept by Grae G0WCZ, Andy M0VVA and The Online Radio Club MX0ONL
 
-Go implementation (for RPi and others) by Grae G0WCZ
-
-
-
-
+Go implementation (for RPi and others) by Grae G0WCZ and Andy M0VVA

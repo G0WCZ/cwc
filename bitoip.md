@@ -1,6 +1,8 @@
 # bitoip
 bitoip is the on-the-wire protocol for sending on/off events around.   We use it for the CW Commuter.
 
+Note: this is not fully implemented by the cwc-reflector and cwc-client yet.
+
 ## What
 
 bit-over-ip: Low level byte-oriented protocol for sending timed on-off state over IP.
