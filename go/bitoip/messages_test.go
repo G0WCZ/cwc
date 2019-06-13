@@ -18,9 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package bitoip
 
 import (
+	"gotest.tools/assert"
 	"testing"
-		"gotest.tools/assert"
-	)
+)
 
 func TestTimeSyncMessageEncode(t *testing.T) {
 	verb := TimeSync
@@ -38,7 +38,8 @@ func TestEnumerateChannels(t *testing.T) {
 	assert.DeepEqual(t, myBytes, []uint8{EnumerateChannels})
 	newVerb, _ := DecodePacket(myBytes)
 
-	assert.Equal(t, newVerb, EnumerateChannels)}
+	assert.Equal(t, newVerb, EnumerateChannels)
+}
 
 func TestListChannels(t *testing.T) {
 	verb := ListChannels
@@ -67,24 +68,24 @@ func TestTimeSyncResponse(t *testing.T) {
 		0, 0, 0, 0, 0, 0, 0, 2,
 		0, 0, 0, 0, 0, 0, 0, 3})
 
-
 	newVerb, newInt := DecodePacket(myBytes)
 
 	tsrp := newInt.(*TimeSyncResponsePayload)
 	assert.Equal(t, tsrp.GivenTime, int64(0x01))
-	assert.Equal(t, newVerb, TimeSyncResponse)}
+	assert.Equal(t, newVerb, TimeSyncResponse)
+}
 
-func TestListenRequestPayload (t *testing.T) {
+func TestListenRequestPayload(t *testing.T) {
 	verb := ListenRequest
 	var callsign Callsign
 	copy(callsign[:], []byte("G0WCZ"))
 
-	payload := ListenRequestPayload{ 99, callsign}
+	payload := ListenRequestPayload{99, callsign}
 
 	myBytes := EncodePayload(verb, payload)
 
 	assert.DeepEqual(t, myBytes[0:8], []uint8{ListenRequest, 0, 99,
-										0x47, 0x30, 0x57, 0x43, 0x5a})
+		0x47, 0x30, 0x57, 0x43, 0x5a})
 
 	newVerb, newInt := DecodePacket(myBytes)
 
@@ -93,10 +94,10 @@ func TestListenRequestPayload (t *testing.T) {
 	assert.Equal(t, newVerb, ListenRequest)
 }
 
-func TestListenConfirmPayload (t *testing.T) {
+func TestListenConfirmPayload(t *testing.T) {
 	verb := ListenConfirm
 
-	payload := ListenConfirmPayload{ 99, 0xeeee}
+	payload := ListenConfirmPayload{99, 0xeeee}
 
 	myBytes := EncodePayload(verb, payload)
 
@@ -106,12 +107,13 @@ func TestListenConfirmPayload (t *testing.T) {
 
 	lcp := newInt.(*ListenConfirmPayload)
 	assert.Equal(t, lcp.CarrierKey, uint16(0xeeee))
-	assert.Equal(t, newVerb, ListenConfirm)}
+	assert.Equal(t, newVerb, ListenConfirm)
+}
 
-func TestUnlistenPayload (t *testing.T) {
+func TestUnlistenPayload(t *testing.T) {
 	verb := Unlisten
 
-	payload := UnlistenPayload{ 99, 0xeeee}
+	payload := UnlistenPayload{99, 0xeeee}
 
 	myBytes := EncodePayload(verb, payload)
 
@@ -124,7 +126,7 @@ func TestUnlistenPayload (t *testing.T) {
 	assert.Equal(t, newVerb, Unlisten)
 }
 
-func TestKeyValuePayload (t *testing.T) {
+func TestKeyValuePayload(t *testing.T) {
 	verb := KeyValue
 
 	var key [8]byte
@@ -134,7 +136,7 @@ func TestKeyValuePayload (t *testing.T) {
 	copy(value[:], []byte("somevalue"))
 
 	payload := KeyValuePayload{
-		99, 0xeeee, key, value }
+		99, 0xeeee, key, value}
 
 	myBytes := EncodePayload(verb, payload)
 
@@ -148,10 +150,10 @@ func TestKeyValuePayload (t *testing.T) {
 
 	kvp := newInt.(*KeyValuePayload)
 	assert.Equal(t, kvp.Channel, uint16(99))
-	assert.Equal(t, newVerb, KeyValue)}
+	assert.Equal(t, newVerb, KeyValue)
+}
 
-
-func TestCarrierEventPayload (t *testing.T) {
+func TestCarrierEventPayload(t *testing.T) {
 	verb := CarrierEvent
 
 	onEvent := CarrierBitEvent{0, BitOn}
@@ -162,7 +164,7 @@ func TestCarrierEventPayload (t *testing.T) {
 		99, 0xeeee,
 		0,
 		[MaxBitEvents]CarrierBitEvent{onEvent, offEvent, lastEvent},
-		 0}
+		0}
 
 	myBytes := EncodePayload(verb, payload)
 

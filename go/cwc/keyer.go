@@ -1,4 +1,5 @@
 /*
+Copyright (C) 2019 Andrew Amos
 Copyright (C) 2019 Graeme Sutherland, Nodestone Limited
 
 
