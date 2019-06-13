@@ -70,6 +70,10 @@ In reflector mode, the station connects to a central reflector that reflects tra
 
 See bitoip.md for the on-the-wire protocol details.
 
+# Terms of Use
+See TERMS_OF_USE.md for details about how you callsign, activity and transmissions are used
+by the cwc components.
+
 # Implementations
 
 * early release, still in development: Raspberry Pi GPIO / or Mac & Linux * maybe windows with serial port
