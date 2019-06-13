@@ -29,10 +29,10 @@ const maxBufferSize = 508
 var conn *net.UDPConn
 
 type RxMSG struct {
-	Verb MessageVerb
-	Payload Payload
+	Verb       MessageVerb
+	Payload    Payload
 	SrcAddress net.UDPAddr
-	RxTime int64
+	RxTime     int64
 }
 
 func UDPConnection() *net.UDPConn {

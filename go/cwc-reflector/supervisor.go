@@ -30,7 +30,7 @@ func Supervisor(ctx context.Context) {
 
 	for {
 		select {
-		case t := <- tick:
+		case t := <-tick:
 			SuperviseReflector(t)
 		case <-ctx.Done():
 			return
