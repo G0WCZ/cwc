@@ -154,7 +154,7 @@ func SetKeyerSpacing(s bool) {
 // to sample the morse input and runs it.
 
 func RunMorseRx(ctx context.Context, morseIO IO, toSend chan bitoip.CarrierEventPayload, echo bool,
-	channel bitoip.ChannelIdType, mode int, speed int, weight int, keyer bool) {
+	channel bitoip.ChannelIdType, mode int, speed int, weight int, keyer bool, sidetone bool) {
 	localEcho = echo
 	channelId = channel
 	LastBit = false // make sure turned off to begin -- the default state
@@ -183,7 +183,7 @@ func RunMorseRx(ctx context.Context, morseIO IO, toSend chan bitoip.CarrierEvent
 			if keyer {
 				SampleKeyer(t, toSend, morseIO)
 			} else {
-				Sample(t, toSend, morseIO)
+				Sample(t, toSend, morseIO, sidetone)
 			}
 		}
 	}
@@ -212,7 +212,7 @@ func Startup(morseIO IO) {
 // This is called (currently) every 5ms to look for a change in input pin.
 //
 // TODO should have some sort of back-off if not used recently for power saving
-func Sample(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO) {
+func Sample(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO, sidetone bool) {
 
 	TransmitToHardware(t, morseIO)
 
@@ -220,7 +220,10 @@ func Sample(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO) {
 	if rxBit != LastBit {
 		// change so record it
 		LastBit = rxBit
-		morseIO.SetToneOut(rxBit)
+
+		if sidetone {
+			morseIO.SetToneOut(rxBit)
+		}
 
 		var bit uint8 = 0
 
@@ -481,10 +484,11 @@ func Flush(events []Event, toSend chan bitoip.CarrierEventPayload) []Event {
 // make a packet ready to send.
 func BuildPayload(events []Event) bitoip.CarrierEventPayload {
 	baseTime := events[0].startTime.UnixNano()
+	packetStartTime := baseTime + timeOffset + roundTrip/2 + MaxSendTimespan.Nanoseconds()
 	cep := bitoip.CarrierEventPayload{
 		channelId,
 		carrierKey,
-		baseTime + timeOffset,
+		packetStartTime,
 		[bitoip.MaxBitEvents]bitoip.CarrierBitEvent{},
 		time.Now().UnixNano(),
 	}
@@ -523,7 +527,14 @@ func QueueForTransmit(carrierEvents *bitoip.CarrierEventPayload) {
 		newEvents := make([]Event, 0)
 
 		// remove the calculated server time offset
-		start := time.Unix(0, carrierEvents.StartTimeStamp-timeOffset+roundTrip+int64(MaxSendTimespan))
+		start := time.Unix(0, carrierEvents.StartTimeStamp-timeOffset+(roundTrip/2))
+		diff := start.UnixNano() - time.Now().UnixNano()
+		if diff < 0 {
+			// if we have negative time, increase offset a little to 'allow'
+			start.Add(time.Duration(diff))
+			timeOffset += diff
+			glog.V(2).Infof("Negative time offset %v to current time", diff/1000)
+		}
 
 		for _, ce := range carrierEvents.BitEvents {
 			newEvents = append(newEvents, Event{
