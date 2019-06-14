@@ -34,7 +34,7 @@ func TestBuildPayload(t *testing.T) {
 		},
 	)
 	cep := BuildPayload(events)
-	assert.Equal(t, cep.StartTimeStamp, now.UnixNano())
+	assert.Equal(t, cep.StartTimeStamp, now.UnixNano()+MaxSendTimespan.Nanoseconds())
 	assert.Equal(t, cep.BitEvents[0].BitEvent, bitoip.BitEvent(bitoip.BitOn|bitoip.LastEvent))
 	assert.Equal(t, cep.BitEvents[0].TimeOffset, uint32(0))
 }
@@ -61,6 +61,6 @@ func TestFlushMultipleEvents(t *testing.T) {
 	cbe := <-c
 	assert.Equal(t, cbe.Channel, uint16(0))
 	assert.Equal(t, cbe.CarrierKey, uint16(0))
-	assert.Equal(t, cbe.StartTimeStamp, t1.UnixNano())
+	assert.Equal(t, cbe.StartTimeStamp, t1.UnixNano()+MaxSendTimespan.Nanoseconds())
 	assert.Equal(t, len(cbe.BitEvents), 35)
 }
