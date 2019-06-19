@@ -29,30 +29,38 @@ import (
 var serverAddress *net.UDPAddr
 
 func main() {
-	address := flag.String("address", "localhost:7388", "-address=host:port")
+	address := flag.String("address", "", "-address=host:port")
+	configFile := flag.String("config", "config/cwc-reflector.txt", "-config <filename>")
 
 	flag.Parse()
 
-	ReflectorServer(context.TODO(), *address)
+	// read Config file and defaults
+	config := ReadConfig(*configFile)
+
+	if len(*address) > 0 {
+		config.CWCAddress = *address
+	}
+
+	ReflectorServer(context.TODO(), config)
 }
 
-func ReflectorServer(ctx context.Context, address string) {
+func ReflectorServer(ctx context.Context, config *ReflectorConfig) {
 
 	glog.Info(DisplayVersion())
 
-	serverAddress, err := net.ResolveUDPAddr("udp", address)
+	serverAddress, err := net.ResolveUDPAddr("udp", config.CWCAddress)
 	if err != nil {
-		glog.Fatalf("Can't use address %s: %s", address, err)
+		glog.Fatalf("Can't use address %s: %s", config.CWCAddress, err)
 		os.Exit(1)
 	}
 
-	glog.Infof("Starting reflector on %s", address)
+	glog.Infof("Starting reflector on %s", config.CWCAddress)
 
 	messages := make(chan bitoip.RxMSG)
 
 	go bitoip.UDPRx(ctx, serverAddress, messages)
 
-	go APIServer(ctx, &channels, address)
+	go APIServer(ctx, &channels, config)
 
 	go Supervisor(ctx)
 
