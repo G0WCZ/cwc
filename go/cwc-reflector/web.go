@@ -28,8 +28,6 @@ import (
 	"time"
 )
 
-const APIPort = ":7380"
-
 func renderer() multitemplate.Renderer {
 	funcMap := template.FuncMap{
 		"timefmt": func(t time.Time, f string) string { return t.Format(f) },
@@ -40,7 +38,7 @@ func renderer() multitemplate.Renderer {
 	return r
 }
 
-func APIServer(ctx context.Context, channels *ChannelMap, address string) {
+func APIServer(ctx context.Context, channels *ChannelMap, config *ReflectorConfig) {
 	gin.SetMode(gin.ReleaseMode)
 
 	router := gin.Default()
@@ -56,7 +54,7 @@ func APIServer(ctx context.Context, channels *ChannelMap, address string) {
 			c.AbortWithStatus(http.StatusNotFound)
 		} else {
 			c.HTML(200, "channel", gin.H{
-				"HostAndPort": address,
+				"HostAndPort": config.WebAddress,
 				"Channel":     *GetChannel(bitoip.ChannelIdType(id)),
 			})
 		}
@@ -64,10 +62,10 @@ func APIServer(ctx context.Context, channels *ChannelMap, address string) {
 
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(200, "index", gin.H{
-			"HostAndPort": address,
+			"HostAndPort": config.WebAddress,
 			"Channels":    channels,
 		})
 	})
 
-	router.Run(APIPort)
+	router.Run(config.WebAddress)
 }
