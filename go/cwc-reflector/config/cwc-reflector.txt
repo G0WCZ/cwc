@@ -1,0 +1,4 @@
+# Standard Configuration
+#
+CWCAddress = "0.0.0.0:7388"
+WebAddress = "0.0.0.0:7380"
