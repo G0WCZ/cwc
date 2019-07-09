@@ -26,6 +26,7 @@ import (
 )
 
 const LastReservedCarrierKey = 99
+const StationGoneTimeout = time.Duration(5 * time.Minute)
 
 type Subscriber struct {
 	Key        bitoip.CarrierKeyType
@@ -46,6 +47,37 @@ type Channel struct {
 type ChannelMap map[uint16]*Channel
 
 var channels = make(ChannelMap)
+
+const MaxSeenOn = 5
+
+type Station struct {
+	Callsign          string
+	SeenOnChannels    []bitoip.ChannelIdType
+	LastActive        time.Time
+	LastActiveChannel bitoip.ChannelIdType
+	LastListen        time.Time
+}
+
+func (s *Station) AddSeenOn(cId bitoip.ChannelIdType) {
+	seenOn := make([]bitoip.ChannelIdType, 0)
+
+	seenOn = append(seenOn, cId)
+
+	for i, v := range s.SeenOnChannels {
+		if s.SeenOnChannels[i] != cId {
+			seenOn = append(seenOn, v)
+		}
+		if len(seenOn) >= MaxSeenOn {
+			break
+		}
+	}
+
+	s.SeenOnChannels = seenOn
+}
+
+type StationMap map[string]*Station
+
+var stations = make(StationMap)
 
 // Create a new channel
 func NewChannel(channelId bitoip.ChannelIdType) Channel {
@@ -78,27 +110,51 @@ func GetChannel(channel_id bitoip.ChannelIdType) *Channel {
 	}
 }
 
+func GetStation(callsign string) *Station {
+	if station, ok := stations[callsign]; ok {
+		return station
+	} else {
+		s := Station{
+			Callsign:          callsign,
+			SeenOnChannels:    make([]bitoip.ChannelIdType, 5),
+			LastActive:        time.Time{},
+			LastListen:        time.Time{},
+			LastActiveChannel: 0,
+		}
+		stations[callsign] = &s
+		return &s
+	}
+}
+
 // Subscribe to this channel
 // if already susscribed, then update details and LastTx
 func (c *Channel) Subscribe(address net.UDPAddr, callsign string) bitoip.CarrierKeyType {
-	glog.Infof("subscribe from: %v", address)
-	glog.Infof("channels: %v", channels)
-	if subscriber, ok := c.Addresses[address.String()]; ok {
+	glog.V(2).Infof("subscribe from: %v", address)
+
+	subscriber, ok := c.Callsigns[callsign]
+
+	if ok {
+		// already have this callsign, so reuse:
 		subscriber.LastListen = time.Now()
 		c.Addresses[address.String()] = subscriber
 		c.Subscribers[subscriber.Key] = subscriber
 		c.Callsigns[callsign] = subscriber
-		glog.V(2).Infof("subscribe existing key %d", subscriber.Key)
-		return subscriber.Key
+		glog.V(2).Infof("subscribe %s existing key %d", callsign, subscriber.Key)
+
 	} else {
 		c.LastKey += 1
-		subscriber := Subscriber{c.LastKey, address, *new(time.Time), time.Now(), callsign}
+		subscriber = Subscriber{c.LastKey, address, *new(time.Time), time.Now(), callsign}
 		c.Subscribers[c.LastKey] = subscriber
 		c.Addresses[address.String()] = subscriber
 		c.Callsigns[callsign] = subscriber
-		glog.V(1).Infof("suscribe new key %d", subscriber.Key)
-		return subscriber.Key
+		glog.V(2).Infof("subscribe %s new key %d", callsign, subscriber.Key)
 	}
+	s := GetStation(callsign)
+	s.LastListen = time.Now()
+	stations[callsign] = s
+	glog.V(2).Infof("subscriber is: %v key %v", subscriber, subscriber.Key)
+
+	return subscriber.Key
 }
 
 // Unsubscribe from channel
@@ -113,9 +169,11 @@ func (c *Channel) Unsubscribe(address net.UDPAddr) {
 // Broadcast this carrier event to all on this channel
 // and always return to sender (who can ignore if they wish, or can use as net sidetone
 func (c *Channel) Broadcast(event bitoip.CarrierEventPayload) {
+	glog.V(2).Infof("broadcast event %v", event)
+	glog.V(2).Infof("subscribers len %d", len(c.Subscribers))
 	txr, ok := c.Subscribers[event.CarrierKey]
 	if !ok {
-		glog.V(2).Infof("broadcast from unsubcribed key %v", event.CarrierKey)
+		glog.Infof("broadcast from unsubscribed key %v", event.CarrierKey)
 		return
 	}
 
@@ -124,9 +182,18 @@ func (c *Channel) Broadcast(event bitoip.CarrierEventPayload) {
 	c.Addresses[txr.Address.String()] = txr
 	c.Callsigns[txr.Callsign] = txr
 
+	s := GetStation(txr.Callsign)
+	s.LastActiveChannel = c.ChannelId
+	s.LastActive = txr.LastTx
+	s.LastListen = txr.LastTx
+	s.AddSeenOn(c.ChannelId)
+	stations[txr.Callsign] = s
+
 	for _, v := range c.Subscribers {
-		glog.V(2).Infof("sending to subs %v: %v", v.Address, event)
-		bitoip.UDPTx(bitoip.CarrierEvent, event, &v.Address)
+		if txr.LastTx.Sub(v.LastListen) < StationGoneTimeout {
+			glog.V(2).Infof("sending to subs %v: %v", v.Address, event)
+			bitoip.UDPTx(bitoip.CarrierEvent, event, &v.Address)
+		}
 	}
 
 }

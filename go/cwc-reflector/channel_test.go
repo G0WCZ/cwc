@@ -19,7 +19,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"sort"
 	"testing"
@@ -104,8 +103,8 @@ func carrierEventPayload(key bitoip.CarrierKeyType) bitoip.CarrierEventPayload {
 		key,
 		time.Now().UnixNano(),
 		[bitoip.MaxBitEvents]bitoip.CarrierBitEvent{
-			bitoip.CarrierBitEvent{0, bitoip.BitOn},
-			bitoip.CarrierBitEvent{100, bitoip.BitOff | bitoip.LastEvent},
+			{0, bitoip.BitOn},
+			{100, bitoip.BitOff | bitoip.LastEvent},
 		},
 		int64(0),
 	}
@@ -120,7 +119,6 @@ func TestBroadcastEmpty(t *testing.T) {
 }
 
 func TestBroadcastToSubscriber(t *testing.T) {
-	channels = make(map[uint16]*Channel)
 	c1 := GetChannel(1)
 	add := "localhost:9453"
 	addr, _ := net.ResolveUDPAddr("udp", add)
@@ -135,7 +133,7 @@ func TestBroadcastToSubscriber(t *testing.T) {
 	// get one message
 	go func() {
 		_, _, _ = pc.ReadFrom(buffer)
-		fmt.Printf("raw Rx: %d %v", len(buffer), buffer)
+		glog.Infof("Raw Rx: %d %v", len(buffer), buffer)
 		doneChan <- buffer
 	}()
 

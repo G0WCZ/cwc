@@ -26,8 +26,6 @@ import (
 	"os"
 )
 
-var serverAddress *net.UDPAddr
-
 func main() {
 	address := flag.String("address", "", "-address=host:port")
 	configFile := flag.String("config", "config/cwc-reflector.txt", "-config <filename>")
@@ -59,6 +57,8 @@ func ReflectorServer(ctx context.Context, config *ReflectorConfig) {
 	messages := make(chan bitoip.RxMSG)
 
 	go bitoip.UDPRx(ctx, serverAddress, messages)
+
+	go UpdateChannelActivity(ctx)
 
 	go APIServer(ctx, &channels, config)
 
