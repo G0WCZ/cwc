@@ -64,6 +64,7 @@ func APIServer(ctx context.Context, channels *ChannelMap, config *ReflectorConfi
 		c.HTML(200, "index", gin.H{
 			"HostAndPort": config.WebAddress,
 			"Channels":    channels,
+			"Activity":    channelActivity,
 		})
 	})
 
