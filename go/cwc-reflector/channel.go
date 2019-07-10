@@ -170,11 +170,18 @@ func (c *Channel) Unsubscribe(address net.UDPAddr) {
 // and always return to sender (who can ignore if they wish, or can use as net sidetone
 func (c *Channel) Broadcast(event bitoip.CarrierEventPayload) {
 	glog.V(2).Infof("broadcast event %v", event)
-	glog.V(2).Infof("subscribers len %d", len(c.Subscribers))
 	txr, ok := c.Subscribers[event.CarrierKey]
+
 	if !ok {
-		glog.Infof("broadcast from unsubscribed key %v", event.CarrierKey)
+		glog.Infof("broadcast from unsubscribed key %v dropped", event.CarrierKey)
 		return
+	}
+
+	for _, v := range c.Subscribers {
+		if txr.LastTx.Sub(v.LastListen) < StationGoneTimeout {
+			glog.V(2).Infof("sending to subs %v: %v", v.Address, event)
+			bitoip.UDPTx(bitoip.CarrierEvent, event, &v.Address)
+		}
 	}
 
 	txr.LastTx = time.Now()
@@ -188,14 +195,6 @@ func (c *Channel) Broadcast(event bitoip.CarrierEventPayload) {
 	s.LastListen = txr.LastTx
 	s.AddSeenOn(c.ChannelId)
 	stations[txr.Callsign] = s
-
-	for _, v := range c.Subscribers {
-		if txr.LastTx.Sub(v.LastListen) < StationGoneTimeout {
-			glog.V(2).Infof("sending to subs %v: %v", v.Address, event)
-			bitoip.UDPTx(bitoip.CarrierEvent, event, &v.Address)
-		}
-	}
-
 }
 
 // Check through for subscribers that we haven't seem for a while

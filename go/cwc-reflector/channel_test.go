@@ -188,3 +188,25 @@ func TestSuperviseChannels2Removed(t *testing.T) {
 	r = SuperviseChannels(time.Now().Add(time.Duration(20*time.Minute)), time.Duration(10*time.Minute))
 	assert.Equal(t, r, 0)
 }
+
+func TestStation_AddSeenOn(t *testing.T) {
+	s := Station{
+		"A1AAA",
+		nil,
+		time.Now(),
+		1,
+		time.Now(),
+	}
+	s.AddSeenOn(bitoip.ChannelIdType(1))
+	assert.Equal(t, uint16(1), s.SeenOnChannels[0])
+	s.AddSeenOn(bitoip.ChannelIdType(1))
+	assert.Equal(t, 1, len(s.SeenOnChannels))
+	s.AddSeenOn(bitoip.ChannelIdType(2))
+	s.AddSeenOn(bitoip.ChannelIdType(3))
+	s.AddSeenOn(bitoip.ChannelIdType(4))
+	s.AddSeenOn(bitoip.ChannelIdType(5))
+	assert.DeepEqual(t,
+		s.SeenOnChannels,
+		[]bitoip.ChannelIdType{5, 4, 3, 2, 1},
+	)
+}
