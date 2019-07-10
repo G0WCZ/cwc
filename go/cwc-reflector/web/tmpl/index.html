@@ -1,7 +1,7 @@
-{{block "title" .}}{{.HostAndPort}}{{end}}
+{{block "title" .}}{{.ServerName}}{{end}}
 
 {{block "content" .}}
-    <h1>CWC Reflector: {{.HostAndPort}}</h1>
+    <h1>{{.ServerName}}</h1>
         <div class="container-fluid">
             <h2>Channels</h2>
             <table class="table table-striped table-hover">

@@ -54,17 +54,17 @@ func APIServer(ctx context.Context, channels *ChannelMap, config *ReflectorConfi
 			c.AbortWithStatus(http.StatusNotFound)
 		} else {
 			c.HTML(200, "channel", gin.H{
-				"HostAndPort": config.WebAddress,
-				"Channel":     *GetChannel(bitoip.ChannelIdType(id)),
+				"ServerName": config.ReflectorName,
+				"Channel":    *GetChannel(bitoip.ChannelIdType(id)),
 			})
 		}
 	})
 
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(200, "index", gin.H{
-			"HostAndPort": config.WebAddress,
-			"Channels":    channels,
-			"Activity":    channelActivity,
+			"ServerName": config.ReflectorName,
+			"Channels":   channels,
+			"Activity":   channelActivity,
 		})
 	})
 
