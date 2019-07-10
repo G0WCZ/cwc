@@ -152,6 +152,32 @@ event_type is:
 flags: bitwise flags
 Not currently used
 
+### Version Info
+
+VI (VersionInfo) == 0x97:
+type VersionInfoPayload struct {
+	MyProtocolVersion Version
+	MyCodeVersion Version
+	LatestStableStation Version
+}
+Three 4-byte sets of version information covering:
+* the protocol verison in use (major, minor, patch, release_type)
+* the application in use (major, minor, patch, release_type)
+* the latest known application in use (major, minor, patch, release_type)
+
+0x97, protocol_major, protocol minor, protocol_patch, protocol_rel_type,
+      current_major, current_minor, current_patch, current_rel_type,
+      latest_major, latest_minor, latest_patch, latest_rel_type
+
+Release types are:
+	POC: 0
+	Alpha: 1
+	Beta:  2
+	RC:    3
+	Final: 4
+
+An unknown version is represented by 0, 0, 0, 0.
+
 ## Stream Semantics -> sample interaction
 ```
 # basic setup of chnnel

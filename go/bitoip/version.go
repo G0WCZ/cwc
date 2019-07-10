@@ -17,23 +17,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 package bitoip
 
-import "fmt"
-
 /*
  * Protocol Version using semantic versioning
  * See: https://semver.org/
  */
-const MajorVersion = uint8(2)
-const MinorVersion = uint8(0)
-const PatchVersion = uint8(1)
-
-var protocolVersionBytes = []byte{MajorVersion, MinorVersion, PatchVersion}
-var protocolVersionString = fmt.Sprintf("%d.%d.%d", MajorVersion, MinorVersion, PatchVersion)
+var protocolVersion = Version{uint8(2), uint8(1), uint8(0), Alpha}
 
 func ProtocolVersionBytes() []byte {
-	return protocolVersionBytes
+	return protocolVersion.Bytes()
 }
 
 func ProtocolVersionString() string {
-	return protocolVersionString
+	return protocolVersion.String()
 }
