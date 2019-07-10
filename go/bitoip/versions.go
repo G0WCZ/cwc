@@ -15,22 +15,41 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-package main
+package bitoip
 
 import "fmt"
-import "../bitoip"
 
-/*
- * Protocol Version using semantic versioning
- * See: https://semver.org/
+/**
+ * General types and constants for versions
  */
 
-var stationVersion = bitoip.Version{uint8(3), uint8(2), uint8(0), bitoip.Alpha}
+type RelType uint8
 
-func StationVersion() string {
-	return stationVersion.String()
+const POC RelType = RelType(0)
+const Alpha RelType = RelType(1)
+const Beta RelType = RelType(2)
+const RC RelType = RelType(3)
+const Final RelType = RelType(4)
+
+var RelTypeMap = map[RelType]string{
+	POC:   "-pre-alpha",
+	Alpha: "-alpha",
+	Beta:  "-beta",
+	RC:    "-rc",
+	Final: "",
 }
 
-func DisplayVersion() string {
-	return fmt.Sprintf("CWC Station %s / Protocol %s", StationVersion(), bitoip.ProtocolVersionString())
+type Version struct {
+	Major   uint8
+	Minor   uint8
+	Patch   uint8
+	Release RelType
+}
+
+func (v *Version) Bytes() []byte {
+	return []byte{v.Major, v.Minor, v.Patch, uint8(v.Release)}
+}
+
+func (v *Version) String() string {
+	return fmt.Sprintf("%d.%d.%d%s", v.Major, v.Minor, v.Patch, RelTypeMap[v.Release])
 }
