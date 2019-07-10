@@ -182,3 +182,21 @@ func TestCarrierEventPayload(t *testing.T) {
 	assert.Equal(t, cep.Channel, uint16(99))
 	assert.Equal(t, newVerb, CarrierEvent)
 }
+
+func TestVersionInfoPayload(t *testing.T) {
+	payload := VersionInfoPayload{
+		Version{1, 2, 3, 4},
+		Version{2, 3, 4, 0},
+		Version{1, 2, 4, 2},
+	}
+
+	bytes := EncodePayload(VersionInfo, payload)
+
+	newVerb, newVers := DecodePacket(bytes)
+
+	vi := newVers.(*VersionInfoPayload)
+	assert.DeepEqual(t, vi.MyProtocolVersion, Version{1, 2, 3, 4})
+	assert.DeepEqual(t, vi.MyCodeVersion, Version{2, 3, 4, 0})
+	assert.DeepEqual(t, vi.LatestStableStation, Version{1, 2, 4, 2})
+	assert.Equal(t, newVerb, VersionInfo)
+}
