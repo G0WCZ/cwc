@@ -18,10 +18,10 @@ type ChannelActivityInfo struct {
 	LastOnline  time.Duration
 }
 
-var channelActivity []ChannelActivityInfo
+var ChannelActivity = make([]ChannelActivityInfo, 0)
 
 func AssembleChannelActivity() {
-	var activities []ChannelActivityInfo
+	var activities []ChannelActivityInfo = make([]ChannelActivityInfo, 0)
 	now := time.Now()
 
 	for cId, c := range channels {
@@ -58,7 +58,7 @@ func AssembleChannelActivity() {
 
 	}
 
-	channelActivity = activities
+	ChannelActivity = activities
 }
 
 func UpdateChannelActivity(ctx context.Context) {
