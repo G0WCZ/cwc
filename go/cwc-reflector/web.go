@@ -48,6 +48,9 @@ func APIServer(ctx context.Context, channels *ChannelMap, config *ReflectorConfi
 	router.GET("/api/channels", func(c *gin.Context) {
 		c.JSON(http.StatusOK, *channels)
 	})
+	router.GET("/api/activity", func(c *gin.Context) {
+		c.JSON(http.StatusOK, ChannelActivity)
+	})
 	router.GET("/channels/:cid", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("cid"))
 		if err != nil {
@@ -64,7 +67,7 @@ func APIServer(ctx context.Context, channels *ChannelMap, config *ReflectorConfi
 		c.HTML(200, "index", gin.H{
 			"ServerName": config.ReflectorName,
 			"Channels":   channels,
-			"Activity":   channelActivity,
+			"Activity":   ChannelActivity,
 		})
 	})
 
