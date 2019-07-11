@@ -1,26 +1,44 @@
-{{block "title" .}}{{.HostAndPort}}{{end}}
+{{block "title" .}}{{.ServerName}}{{end}}
 
 {{block "content" .}}
-    <h1>CWC Reflector: {{.HostAndPort}}</h1>
         <div class="container-fluid">
+            <div class="col-sm-8 offset-sm-2">
+            <h1>{{.ServerName}}</h1>
             <h2>Channels</h2>
             <table class="table table-striped table-hover">
                 <thead class="thead-dark">
-                <th>Channel</th>
-                <th>Subscribers</th>
+                <tr>
+                    <th>Channel</th>
+                    <th>Online</th>
+                    <th>Last transmit</th>
+                </tr>
                 </thead>
                 <tbody>
 
-            {{range $n, $c := $.Channels}}
+            {{range $n, $c := $.Activity}}
                 <tr onclick="window.location='/channels/{{$n}}'">
                     <td>{{$n}}</td>
-                    <td>{{len $c.Subscribers}}</td>
+                    <td>
+                        {{range $n, $callsign := $c.OnlineCalls}}
+                            {{$callsign}}
+                        {{else}}
+                            -
+                        {{end}}
+                    </td>
+                    <td>
+                        {{range $n, $callsign := $c.ActiveCalls}}
+                            {{$callsign}}
+                        {{else}}
+                            -
+                        {{end}}
+                    </td>
                 </tr>
             {{else}}
-                <tr><td colspan="2">No channels with listeners!</td></tr>
+                <tr><td colspan="3">No channels with listeners!</td></tr>
             {{end}}
                 </tbody>
             </table>
+            </div>
         </div>
 {{end}}
 

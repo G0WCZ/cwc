@@ -6,13 +6,15 @@ import (
 )
 
 type ReflectorConfig struct {
-	CWCAddress string
-	WebAddress string
+	CWCAddress    string
+	WebAddress    string
+	ReflectorName string
 }
 
 var defaultConfig = ReflectorConfig{
-	CWCAddress: "0.0.0.0:7388",
-	WebAddress: "0.0.0.0:7380",
+	CWCAddress:    "0.0.0.0:7388",
+	WebAddress:    "0.0.0.0:7380",
+	ReflectorName: "CWC Reflector",
 }
 
 func ReadConfig(filename string) *ReflectorConfig {
