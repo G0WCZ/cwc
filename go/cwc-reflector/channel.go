@@ -204,11 +204,10 @@ func (c *Channel) GetListenSortedSubscribers() []Subscriber {
 	for cs, _ := range c.Callsigns {
 		subs = append(subs, c.Callsigns[cs])
 	}
-	glog.Infof("subs %v", subs)
+
 	sort.Slice(subs, func(i int, j int) bool {
 		return subs[i].LastListen.After(subs[j].LastListen)
 	})
-	glog.Infof("subs %v", subs)
 
 	return subs
 }
