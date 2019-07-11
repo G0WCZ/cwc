@@ -16,12 +16,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-package cwc
+package io
 
-type MorseIn interface {
+type MorseOut interface {
 	Open() error
-	Bit() bool
-	Dot() bool
-	Dash() bool
+	SetBit(bool)
+	SetToneOut(bool)
+	SetStatusLED(bool)
 	Close()
 }
