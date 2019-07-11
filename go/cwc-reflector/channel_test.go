@@ -19,7 +19,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"sort"
 	"testing"
@@ -104,8 +103,8 @@ func carrierEventPayload(key bitoip.CarrierKeyType) bitoip.CarrierEventPayload {
 		key,
 		time.Now().UnixNano(),
 		[bitoip.MaxBitEvents]bitoip.CarrierBitEvent{
-			bitoip.CarrierBitEvent{0, bitoip.BitOn},
-			bitoip.CarrierBitEvent{100, bitoip.BitOff | bitoip.LastEvent},
+			{0, bitoip.BitOn},
+			{100, bitoip.BitOff | bitoip.LastEvent},
 		},
 		int64(0),
 	}
@@ -120,7 +119,6 @@ func TestBroadcastEmpty(t *testing.T) {
 }
 
 func TestBroadcastToSubscriber(t *testing.T) {
-	channels = make(map[uint16]*Channel)
 	c1 := GetChannel(1)
 	add := "localhost:9453"
 	addr, _ := net.ResolveUDPAddr("udp", add)
@@ -135,7 +133,7 @@ func TestBroadcastToSubscriber(t *testing.T) {
 	// get one message
 	go func() {
 		_, _, _ = pc.ReadFrom(buffer)
-		fmt.Printf("raw Rx: %d %v", len(buffer), buffer)
+		glog.Infof("Raw Rx: %d %v", len(buffer), buffer)
 		doneChan <- buffer
 	}()
 
@@ -189,4 +187,26 @@ func TestSuperviseChannels2Removed(t *testing.T) {
 	assert.Equal(t, r, 2)
 	r = SuperviseChannels(time.Now().Add(time.Duration(20*time.Minute)), time.Duration(10*time.Minute))
 	assert.Equal(t, r, 0)
+}
+
+func TestStation_AddSeenOn(t *testing.T) {
+	s := Station{
+		"A1AAA",
+		nil,
+		time.Now(),
+		1,
+		time.Now(),
+	}
+	s.AddSeenOn(bitoip.ChannelIdType(1))
+	assert.Equal(t, uint16(1), s.SeenOnChannels[0])
+	s.AddSeenOn(bitoip.ChannelIdType(1))
+	assert.Equal(t, 1, len(s.SeenOnChannels))
+	s.AddSeenOn(bitoip.ChannelIdType(2))
+	s.AddSeenOn(bitoip.ChannelIdType(3))
+	s.AddSeenOn(bitoip.ChannelIdType(4))
+	s.AddSeenOn(bitoip.ChannelIdType(5))
+	assert.DeepEqual(t,
+		s.SeenOnChannels,
+		[]bitoip.ChannelIdType{5, 4, 3, 2, 1},
+	)
 }

@@ -23,10 +23,10 @@ import (
 	"time"
 )
 
-const StationTimeout = 5 * time.Minute
+const StationTimeout = time.Duration(7 * 24 * time.Hour)
 
 func Supervisor(ctx context.Context) {
-	tick := time.Tick(60 * time.Second)
+	tick := time.Tick(60 * time.Minute)
 
 	for {
 		select {

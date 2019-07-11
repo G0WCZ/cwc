@@ -24,12 +24,13 @@ import "../bitoip"
  * Protocol Version using semantic versioning
  * See: https://semver.org/
  */
-var reflectorVersion = "3.0.0"
+
+var reflectorVersion = bitoip.Version{uint8(3), uint8(2), uint8(1), bitoip.Alpha}
 
 func ReflectorVersion() string {
-	return reflectorVersion
+	return reflectorVersion.String()
 }
 
 func DisplayVersion() string {
-	return fmt.Sprintf("CWC Reflector %s / Protocol %s", reflectorVersion, bitoip.ProtocolVersionString())
+	return fmt.Sprintf("CWC Reflector %s / Protocol %s", ReflectorVersion(), bitoip.ProtocolVersionString())
 }

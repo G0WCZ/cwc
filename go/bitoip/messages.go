@@ -51,6 +51,7 @@ const (
 	Unlisten          MessageVerb = 0x96
 	KeyValue          MessageVerb = 0x81
 	CarrierEvent      MessageVerb = 0x82
+	VersionInfo       MessageVerb = 0x97
 )
 
 // List of Channels
@@ -119,6 +120,12 @@ type CarrierEventPayload struct {
 	SendTime       int64
 }
 
+type VersionInfoPayload struct {
+	MyProtocolVersion   Version
+	MyCodeVersion       Version
+	LatestStableStation Version
+}
+
 var messagePayload = map[MessageVerb]reflect.Type{
 	EnumerateChannels: nil,
 	ListChannels:      reflect.TypeOf(ListChannelsPayload{}),
@@ -129,6 +136,7 @@ var messagePayload = map[MessageVerb]reflect.Type{
 	Unlisten:          reflect.TypeOf(UnlistenPayload{}),
 	KeyValue:          reflect.TypeOf(KeyValuePayload{}),
 	CarrierEvent:      reflect.TypeOf(CarrierEventPayload{}),
+	VersionInfo:       reflect.TypeOf(VersionInfoPayload{}),
 }
 
 func EncodePayload(verb MessageVerb, payload Payload) []byte {
@@ -166,6 +174,8 @@ func DecodePacket(lineBuffer []byte) (MessageVerb, interface{}) {
 		payloadObj = new(KeyValuePayload)
 	case CarrierEvent:
 		payloadObj = new(CarrierEventPayload)
+	case VersionInfo:
+		payloadObj = new(VersionInfoPayload)
 
 	}
 	buffer := bytes.NewReader(lineBuffer[1:])
