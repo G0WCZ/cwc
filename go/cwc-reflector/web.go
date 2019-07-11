@@ -95,12 +95,15 @@ func APIServer(ctx context.Context, channels *ChannelMap, config *ReflectorConfi
 	})
 	router.GET("/channels/:cid", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("cid"))
+		channel := *GetChannel(bitoip.ChannelIdType(id))
+
 		if err != nil {
 			c.AbortWithStatus(http.StatusNotFound)
 		} else {
 			c.HTML(200, "channel", gin.H{
-				"ServerName": config.ReflectorName,
-				"Channel":    *GetChannel(bitoip.ChannelIdType(id)),
+				"ServerName":              config.ReflectorName,
+				"Channel":                 channel,
+				"ListenSortedSubscribers": channel.GetListenSortedSubscribers(),
 			})
 		}
 	})
