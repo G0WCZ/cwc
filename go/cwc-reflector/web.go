@@ -20,17 +20,59 @@ package main
 import (
 	"../bitoip"
 	"context"
+	"fmt"
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
 	"html/template"
+	"math"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
+func duration(t time.Time) string {
+	if t.Equal(time.Time{}) {
+		return "-"
+	}
+
+	duration := time.Now().Sub(t)
+
+	days := int64(duration.Hours() / 24)
+	hours := int64(math.Mod(duration.Hours(), 24))
+	minutes := int64(math.Mod(duration.Minutes(), 60))
+	seconds := int64(math.Mod(duration.Seconds(), 60))
+
+	chunks := []struct {
+		singularName string
+		amount       int64
+	}{
+		{"d", days},
+		{"h", hours},
+		{"m", minutes},
+		{"s", seconds},
+	}
+
+	parts := []string{}
+
+	for _, chunk := range chunks {
+		switch chunk.amount {
+		case 0:
+			continue
+		case 1:
+			parts = append(parts, fmt.Sprintf("%d%s", chunk.amount, chunk.singularName))
+		default:
+			parts = append(parts, fmt.Sprintf("%d%s", chunk.amount, chunk.singularName))
+		}
+	}
+
+	return strings.Join(parts, "")
+}
+
 func renderer() multitemplate.Renderer {
 	funcMap := template.FuncMap{
-		"timefmt": func(t time.Time, f string) string { return t.Format(f) },
+		"timefmt":  func(t time.Time, f string) string { return t.Format(f) },
+		"duration": duration,
 	}
 	r := multitemplate.NewRenderer()
 	r.AddFromFilesFuncs("index", funcMap, "web/tmpl/base.html", "web/tmpl/index.html")
@@ -48,6 +90,9 @@ func APIServer(ctx context.Context, channels *ChannelMap, config *ReflectorConfi
 	router.GET("/api/channels", func(c *gin.Context) {
 		c.JSON(http.StatusOK, *channels)
 	})
+	router.GET("/api/activity", func(c *gin.Context) {
+		c.JSON(http.StatusOK, ChannelActivity)
+	})
 	router.GET("/channels/:cid", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("cid"))
 		if err != nil {
@@ -64,7 +109,7 @@ func APIServer(ctx context.Context, channels *ChannelMap, config *ReflectorConfi
 		c.HTML(200, "index", gin.H{
 			"ServerName": config.ReflectorName,
 			"Channels":   channels,
-			"Activity":   channelActivity,
+			"Activity":   ChannelActivity,
 		})
 	})
 
