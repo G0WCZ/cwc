@@ -12,12 +12,12 @@
                 </thead>
                 <tbody>
 
-            {{range $call, $c := $.Channel.Callsigns}}
-                <tr>
-                    <td>{{$call}}</a></td>
-                    <td>{{duration $c.LastListen}}</td>
-                    <td>{{duration $c.LastTx}}</td>
-                </tr>
+                {{range $c := $.ListenSortedSubscribers}}
+                    <tr>
+                        <td>{{$c.Callsign}}</td>
+                        <td>{{duration $c.LastListen}}</td>
+                        <td>{{duration $c.LastTx}}</td>
+                    </tr>
             {{else}}
                 <tr><td colspan="3">No subscribers!</td></tr>
             {{end}}

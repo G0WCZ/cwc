@@ -19,6 +19,7 @@ package main
 
 import (
 	"net"
+	"sort"
 	"time"
 
 	"../bitoip"
@@ -195,6 +196,21 @@ func (c *Channel) Broadcast(event bitoip.CarrierEventPayload) {
 	s.LastListen = txr.LastTx
 	s.AddSeenOn(c.ChannelId)
 	stations[txr.Callsign] = s
+}
+
+func (c *Channel) GetListenSortedSubscribers() []Subscriber {
+	var subs = make([]Subscriber, 0)
+
+	for cs, _ := range c.Callsigns {
+		subs = append(subs, c.Callsigns[cs])
+	}
+	glog.Infof("subs %v", subs)
+	sort.Slice(subs, func(i int, j int) bool {
+		return subs[i].LastListen.After(subs[j].LastListen)
+	})
+	glog.Infof("subs %v", subs)
+
+	return subs
 }
 
 // Check through for subscribers that we haven't seem for a while
