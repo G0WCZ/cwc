@@ -15,7 +15,13 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-package cwc
 
-// Console morse text decoder
-// Uses the generic decoder to output to the console
+package io
+
+type MorseIn interface {
+	Open() error
+	Bit() bool
+	Dot() bool
+	Dash() bool
+	Close()
+}

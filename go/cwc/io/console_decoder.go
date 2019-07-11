@@ -15,13 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+package io
 
-package cwc
-
-type MorseOut interface {
-	Open() error
-	SetBit(bool)
-	SetToneOut(bool)
-	SetStatusLED(bool)
-	Close()
-}
+// Console morse text decoder
+// Uses the generic decoder to output to the console

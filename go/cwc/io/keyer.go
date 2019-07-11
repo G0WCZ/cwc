@@ -1,4 +1,5 @@
 /*
+Copyright (C) 2019 Andrew Amos
 Copyright (C) 2019 Graeme Sutherland, Nodestone Limited
 
 
@@ -15,7 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-package cwc
+package io
 
 import (
 	"github.com/golang/glog"
@@ -29,28 +30,29 @@ import (
  */
 
 // PWM settings
-const OnDutyCycle = uint32(1)
-const PWMCycleLength = uint32(32)
+// const OnDutyCycle = uint32(1)
+// const PWMCycleLength = uint32(32)
 
-type PiGPIO struct {
-	config *Config
-	output rpio.Pin
-	input  rpio.Pin
-	pwm    bool
-	pwmOut rpio.Pin
-	status rpio.Pin
+type Keyer struct {
+	config   *Config
+	output   rpio.Pin
+	dahInput rpio.Pin
+	ditInput rpio.Pin
+	pwm      bool
+	pwmOut   rpio.Pin
+	status   rpio.Pin
 }
 
-func NewPiGPIO(config *Config) *PiGPIO {
-	pigpio := PiGPIO{
+func NewKeyer(config *Config) *Keyer {
+	keyer := Keyer{
 		config: config,
 		pwm:    false,
 	}
-	return &pigpio
+	return &keyer
 }
 
 // Set up inputs and outputs
-func (g *PiGPIO) Open() error {
+func (g *Keyer) Open() error {
 	err := rpio.Open()
 	if err != nil {
 		return err
@@ -74,7 +76,8 @@ func (g *PiGPIO) Open() error {
 	outLED := g.config.GPIOPins.SignalLED
 
 	// receiving morse from a GPIO
-	inPin := g.config.GPIOPins.KeyLeft
+	dahPin := g.config.GPIOPins.KeyLeft
+	ditPin := g.config.GPIOPins.KeyRight
 
 	statusPin := g.config.GPIOPins.StatusLED
 
@@ -84,9 +87,12 @@ func (g *PiGPIO) Open() error {
 	g.output.Low()
 
 	// Input pin
-	g.input = rpio.Pin(inPin)
-	g.input.Input()
-	g.input.PullUp()
+	g.dahInput = rpio.Pin(dahPin)
+	g.dahInput.Input()
+	g.dahInput.PullUp()
+	g.ditInput = rpio.Pin(ditPin)
+	g.ditInput.Input()
+	g.ditInput.PullUp()
 
 	// Status LED
 	g.status = rpio.Pin(statusPin)
@@ -96,24 +102,30 @@ func (g *PiGPIO) Open() error {
 	return nil
 }
 
+func (g *Keyer) Bit() bool {
+	return false
+}
+
 // ready Morse In hardware
-func (g *PiGPIO) Bit() bool {
-	if g.input.Read() == rpio.High {
+func (g *Keyer) Dot() bool {
+	if g.ditInput.Read() == rpio.High {
 		return false
 	} else {
 		return true
 	}
 }
 
-func (g *PiGPIO) Dot() bool {
-	return false
-}
-func (g *PiGPIO) Dash() bool {
-	return false
+// ready Morse In hardware
+func (g *Keyer) Dash() bool {
+	if g.dahInput.Read() == rpio.High {
+		return false
+	} else {
+		return true
+	}
 }
 
 // Set Morse Out hardware
-func (g *PiGPIO) SetBit(bit0 bool) {
+func (g *Keyer) SetBit(bit0 bool) {
 	if bit0 {
 		g.output.High()
 		g.SetToneOut(true)
@@ -124,7 +136,7 @@ func (g *PiGPIO) SetBit(bit0 bool) {
 }
 
 // Set PWM on/off
-func (g *PiGPIO) SetToneOut(v bool) {
+func (g *Keyer) SetToneOut(v bool) {
 	if g.pwm {
 		var dutyLen uint32
 
@@ -139,11 +151,11 @@ func (g *PiGPIO) SetToneOut(v bool) {
 }
 
 // Close the interface
-func (g *PiGPIO) Close() {
+func (g *Keyer) Close() {
 	g.status.Low()
 }
 
-func (g *PiGPIO) SetStatusLED(s bool) {
+func (g *Keyer) SetStatusLED(s bool) {
 	if s {
 		g.status.High()
 	} else {
