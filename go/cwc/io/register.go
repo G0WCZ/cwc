@@ -18,13 +18,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package io
 
-import ".."
-
-type MorseIn interface {
-	Open(config *cwc.Config) error
-	ConfigChanged() error
-	Bit() bool
-	Dot() bool
-	Dash() bool
-	Close()
+type InputInfo struct {
+	Name string
 }
+
+type OutputInfo struct {
+	Name string
+}
+
+type GeneralInfo struct {
+	Name string
+}
+
+var Inputs = make(map[string]InputInfo)
+var Outputs = make(map[string]OutputInfo)
+var GeneralIOs = make(map[string]GeneralInfo)

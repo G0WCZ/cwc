@@ -15,7 +15,19 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 package io
 
-// Console morse text decoder
-// Uses the generic decoder to output to the console
+import ".."
+
+//
+// General hardware support .. for things like LEDs and knobs and stuff
+// for now prety basic to support status LED
+//
+
+type GeneralIO interface {
+	Open(config *cwc.Config) error
+	ConfigChanged() error
+	SetStatus(string, string)
+	GetStatus(string) string
+}
