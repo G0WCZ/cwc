@@ -16,8 +16,8 @@
                 <tbody>
 
             {{range $n, $c := $.Activity}}
-                <tr onclick="window.location='/channels/{{$n}}'">
-                    <td>{{$n}}</td>
+                <tr onclick="window.location='/channels/{{$c.ChannelId}}'">
+                    <td>{{$c.ChannelId}}</td>
                     <td>
                         {{range $n, $callsign := $c.OnlineCalls}}
                             {{$callsign}}
