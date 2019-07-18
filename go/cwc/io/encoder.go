@@ -15,22 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-package main
+package io
 
-import "fmt"
-import "../bitoip"
-
-/*
- * Protocol Version using semantic versioning
- * See: https://semver.org/
- */
-
-var stationVersion = bitoip.Version{uint8(4), uint8(0), uint8(0), bitoip.Alpha}
-
-func StationVersion() string {
-	return stationVersion.String()
-}
-
-func DisplayVersion() string {
-	return fmt.Sprintf("CWC Station %s / Protocol %s", StationVersion(), bitoip.ProtocolVersionString())
-}
+// Morse text encoder
+//

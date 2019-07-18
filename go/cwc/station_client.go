@@ -33,7 +33,7 @@ const LocalMulticast = "224.0.0.73:%d"
 // General  station client
 // Can be in local mode, in which case all is local muticast on the local network
 // Else the client of a reflector
-func StationClient(ctx context.Context, config *Config, morseIO IO) {
+func StationClient(ctx context.Context, config *Config) {
 	var addr string
 	if config.NetworkMode == "local" {
 		addr = fmt.Sprintf(LocalMulticast, config.LocalPort)

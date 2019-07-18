@@ -23,6 +23,8 @@ import (
 	"github.com/stianeikeland/go-rpio"
 )
 
+// This needs to be wrapped into GPIO In layer.
+
 /*
  * PI GPIO Hardware
  * This does the physical connection to Raspberry PI GPIO pins for

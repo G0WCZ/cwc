@@ -30,19 +30,18 @@ type Config struct {
 	NetworkMode       string
 	ReflectorAddress  string
 	LocalPort         int
-	HardwareType      string // GPIO or Serial or None
-	SerialDevice      string // unix device or COM port
-	KeyType           string // straight or paddle or bug -- only straight curently supported
+	MorseInHardware   []string
+	MorseOutHardware  []string
+	GeneralHardware   []string
+	KeyType           string // straight or paddle or bug -- only straight currently supported
 	SidetoneEnable    bool
 	SidetoneFrequency int
 	RemoteEcho        bool
 	Channel           bitoip.ChannelIdType
 	Callsign          string
 	GPIOPins          GPIOPins
-	SerialPins        SerialPins
-	KeyerSpeed        int
-	KeyerWeight       int
-	KeyerMode         int
+	Serial            Serial
+	Keyer             Keyer
 }
 
 const HWKeyTip = 17
@@ -60,17 +59,25 @@ type GPIOPins struct {
 	SignalLED int
 }
 
-type SerialPins struct {
-	KeyIn  string
-	KeyOut string
+type Serial struct {
+	Device   string
+	KeyLeft  string
+	KeyRight string
+	KeyOut   string
+}
+
+type Keyer struct {
+	KeyerSpeed  int
+	KeyerWeight int
+	KeyerMode   int
 }
 
 var defaultConfig = Config{
 	NetworkMode:       "Reflector",
 	ReflectorAddress:  "cwc0.nodestone.io:7388",
 	LocalPort:         5990,
-	HardwareType:      "GPIO", // GPIO or Serial or None
-	SerialDevice:      "/dev/unknown",
+	MorseInHardware:   []string{"GPIOIn"}, // GPIO or Serial or None
+	MorseOutHardware:  []string{"GPIOOut"},
 	KeyType:           "straight",
 	SidetoneEnable:    true,
 	SidetoneFrequency: 500,
@@ -86,9 +93,17 @@ var defaultConfig = Config{
 		PWMA:      13,
 		PWMB:      12,
 	},
-	SerialPins: SerialPins{
-		KeyIn:  "CTS",
-		KeyOut: "RTS",
+	Serial: Serial{
+		Device:   "/dev/ttysomething",
+		KeyLeft:  "CTS",
+		KeyRight: "",
+		KeyOut:   "RTS",
+	},
+
+	Keyer: Keyer{
+		KeyerSpeed:  20,
+		KeyerWeight: 55,
+		KeyerMode:   1,
 	},
 }
 
