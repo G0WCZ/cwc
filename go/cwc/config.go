@@ -33,7 +33,6 @@ type Config struct {
 	MorseInHardware   []string
 	MorseOutHardware  []string
 	GeneralHardware   []string
-	KeyType           string // straight or paddle or bug -- only straight currently supported
 	SidetoneEnable    bool
 	SidetoneFrequency int
 	RemoteEcho        bool
@@ -67,18 +66,18 @@ type Serial struct {
 }
 
 type Keyer struct {
-	KeyerSpeed  int
-	KeyerWeight int
-	KeyerMode   int
+	Type   string
+	Speed  int
+	Weight int
+	Mode   int
 }
 
 var defaultConfig = Config{
 	NetworkMode:       "Reflector",
 	ReflectorAddress:  "cwc0.nodestone.io:7388",
 	LocalPort:         5990,
-	MorseInHardware:   []string{"GPIOIn"}, // GPIO or Serial or None
-	MorseOutHardware:  []string{"GPIOOut"},
-	KeyType:           "straight",
+	MorseInHardware:   []string{"keyer:pigpio"}, // GPIO or Serial or None
+	MorseOutHardware:  []string{"pigpio"},
 	SidetoneEnable:    true,
 	SidetoneFrequency: 500,
 	RemoteEcho:        false,
@@ -101,9 +100,10 @@ var defaultConfig = Config{
 	},
 
 	Keyer: Keyer{
-		KeyerSpeed:  20,
-		KeyerWeight: 55,
-		KeyerMode:   1,
+		Type:   "keyer",
+		Speed:  20,
+		Weight: 55,
+		Mode:   1,
 	},
 }
 
