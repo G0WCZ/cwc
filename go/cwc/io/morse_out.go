@@ -18,6 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package io
 
+import ".."
+
 type MorseOut interface {
 	Open(config *cwc.Config) error
 	ConfigChanged() error

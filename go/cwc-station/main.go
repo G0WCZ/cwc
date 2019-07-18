@@ -55,8 +55,9 @@ func main() {
 	}
 
 	if len(*serialDevice) > 0 {
-		config.SerialDevice = *serialDevice
-		config.HardwareType = "Serial"
+		config.Serial.Device = *serialDevice
+		config.MorseInHardware = []string{"SerialIn"}
+		config.MorseOutHardware = []string{"SerialOut"}
 	}
 
 	if *echo {
@@ -72,7 +73,8 @@ func main() {
 	}
 
 	if *noIO {
-		config.HardwareType = "None"
+		config.MorseInHardware = []string{"nullio"}
+		config.MorseOutHardware = []string{"nullio"}
 	}
 
 	// context
@@ -83,18 +85,19 @@ func main() {
 
 	glog.Info(DisplayVersion())
 
+	// moves into station client or below
 	// Morse Hardware
-	var morseIO cwc.IO
+	//var morseIO cwc.IO
+	//
+	//if config.HardwareType == "Serial" {
+	//	morseIO = cwc.NewSerialIO(config)
+	//} else if config.HardwareType == "None" {
+	//	morseIO = cwc.NewNullIO(config)
+	//} else if config.KeyType == "keyer" {
+	//	morseIO = cwc.NewKeyer(config)
+	//} else {
+	//	morseIO = cwc.NewPiGPIO(config)
+	//}
 
-	if config.HardwareType == "Serial" {
-		morseIO = cwc.NewSerialIO(config)
-	} else if config.HardwareType == "None" {
-		morseIO = cwc.NewNullIO(config)
-	} else if config.KeyType == "keyer" {
-		morseIO = cwc.NewKeyer(config)
-	} else {
-		morseIO = cwc.NewPiGPIO(config)
-	}
-
-	cwc.StationClient(ctx, config, morseIO)
+	cwc.StationClient(ctx, config)
 }
