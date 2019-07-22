@@ -18,4 +18,4 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package io
 
 // Morse text encoder
-// some kind os stream input into morse output
+// Given input as an io.Reader, turn into a Morse stream

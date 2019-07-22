@@ -18,4 +18,4 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package io
 
 // Morse text decoder
-// Uses the generic decoder to output to the a stream
+// Uses the generic decoder to output from a morse stream to an io.Writer
