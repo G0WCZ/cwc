@@ -15,7 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-package io
+package lang
 
-// Morse text encoder
-// Given input as an io.Reader, turn into a Morse stream
+// Morse text decoder
+// Uses the generic decoder to output from a morse stream to an io.Writer
