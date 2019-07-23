@@ -41,6 +41,8 @@ type Config struct {
 	GPIOPins          GPIOPins
 	Serial            Serial
 	Keyer             Keyer
+	Encoder           Encoder
+	Decoder           Decoder
 }
 
 const HWKeyTip = 17
@@ -70,6 +72,14 @@ type Keyer struct {
 	Speed  int
 	Weight int
 	Mode   int
+}
+
+type Encoder struct {
+	Speed int //wpm
+}
+
+type Decoder struct {
+	StartingSpeed int //wpm
 }
 
 var defaultConfig = Config{
@@ -104,6 +114,12 @@ var defaultConfig = Config{
 		Speed:  20,
 		Weight: 55,
 		Mode:   1,
+	},
+	Encoder: Encoder{
+		Speed: 12,
+	},
+	Decoder: Decoder{
+		StartingSpeed: 12,
 	},
 }
 
