@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"github.com/G0WCZ/cwc/bitoip"
 	"github.com/G0WCZ/cwc/config"
-	"github.com/G0WCZ/cwc/core/hw"
 	"net"
 	"strings"
 	"time"
@@ -132,7 +131,7 @@ func StationClient(ctx context.Context, config *config.Config) {
 	for {
 		select {
 		case <-ctx.Done():
-			morseIO.SetStatusLED(false)
+			// TODO morseIO.SetStatusLED(false)
 			return
 
 		case cep := <-toSend:
@@ -143,7 +142,7 @@ func StationClient(ctx context.Context, config *config.Config) {
 		case tm := <-toMorse:
 
 			// we have data, so turn signal LED on
-			morseIO.SetStatusLED(true)
+			// TODO morseIO.SetStatusLED(true)
 
 			switch tm.Verb {
 			case bitoip.CarrierEvent:
@@ -193,7 +192,7 @@ func StationClient(ctx context.Context, config *config.Config) {
 			// check and send a keepalive if nothing else has happened
 			if kat.Sub(lastUDPSend) > time.Duration(20*time.Second) {
 				// turn off Status LED - to be turned back on by response above
-				morseIO.SetStatusLED(false)
+				// TODO morseIO.SetStatusLED(false)
 
 				lastUDPSend = kat
 				p := bitoip.ListenRequestPayload{
@@ -213,7 +212,7 @@ func StationClient(ctx context.Context, config *config.Config) {
 			}
 
 			// turn off Status LED - to be turned back on by response above
-			morseIO.SetStatusLED(false)
+			// TODO morseIO.SetStatusLED(false)
 
 			glog.V(2).Info("sending timesync")
 			bitoip.UDPTx(bitoip.TimeSync, bitoip.TimeSyncPayload{
