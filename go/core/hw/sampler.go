@@ -15,29 +15,22 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-package cwc
+package hw
 
-import "context"
+import (
+	"github.com/G0WCZ/cwc/config"
+)
+import (
+	"context"
+)
 
-import "../bitoip"
+//
+// A sampler turns bit sampling into an event stream.
+// It takes bit data and produces a channel event stream.  It samples from a morse_in
+// Examples:  a straight key, a keyer
 
-// This is the morse sender
-// This sends output bits/streams
-
-func MorseTx(ctx context.Context, morseToSend chan bitoip.CarrierEventPayload, config *Config) {
-
-}
-
-// Resolve config into actual outputs that are enabled
-// For example, might be a decoder and a serial bit output
-func ConfigureMorseOutputs(config *Config) {
-
-}
-
-func OpenOutputs() {
-
-}
-
-func CloseOutputs() {
-
+type Sampler interface {
+	Open(config *config.Config, ctx context.Context, morseEvents chan MorseEvents, morseIn MorseIn) error
+	ConfigChanged() error
+	Close()
 }

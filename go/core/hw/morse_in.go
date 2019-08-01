@@ -15,24 +15,21 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-package main
+
+package hw
 
 import (
-	"fmt"
-	"github.com/G0WCZ/cwc/bitoip"
+	"github.com/G0WCZ/cwc/config"
 )
 
-/*
- * Protocol Version using semantic versioning
- * See: https://semver.org/
- */
+// Provides a hardware interface receiving morse
+// either as a chan of events returned, or as bits to be polled
 
-var stationVersion = bitoip.Version{uint8(4), uint8(0), uint8(0), bitoip.Alpha}
-
-func StationVersion() string {
-	return stationVersion.String()
-}
-
-func DisplayVersion() string {
-	return fmt.Sprintf("CWC Station %s / Protocol %s", StationVersion(), bitoip.ProtocolVersionString())
+type MorseIn interface {
+	Open(config *config.Config) error
+	ConfigChanged() error
+	Bit() bool
+	Dit() bool
+	Dah() bool
+	Close()
 }
