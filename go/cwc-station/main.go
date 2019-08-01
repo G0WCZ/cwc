@@ -21,9 +21,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/G0WCZ/cwc/bitoip"
+	"github.com/G0WCZ/cwc/config"
+	"github.com/G0WCZ/cwc/core"
 
-	"../bitoip"
-	"../cwc"
 	"github.com/golang/glog"
 )
 
@@ -43,7 +44,7 @@ func main() {
 	flag.Parse()
 
 	// read Config file and defaults
-	config := cwc.ReadConfig(*configFile)
+	config := config.ReadConfig(*configFile)
 
 	// Network mode
 	if *cqMode {
@@ -99,5 +100,5 @@ func main() {
 	//	morseIO = cwc.NewPiGPIO(config)
 	//}
 
-	cwc.StationClient(ctx, config)
+	core.StationClient(ctx, config)
 }

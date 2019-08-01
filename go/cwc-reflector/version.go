@@ -17,8 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 package main
 
-import "fmt"
-import "../bitoip"
+import (
+	"fmt"
+	"github.com/G0WCZ/cwc/bitoip"
+)
 
 /*
  * Protocol Version using semantic versioning

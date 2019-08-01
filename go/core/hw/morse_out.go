@@ -16,20 +16,17 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-package io
+package hw
 
-type InputInfo struct {
-	Name string
+import (
+	"github.com/G0WCZ/cwc/config"
+)
+
+type MorseOut interface {
+	Open(config *config.Config) error
+	ConfigChanged() error
+	SetBit(bool)
+	SetToneOut(bool)
+	SetStatusLED(bool)
+	Close()
 }
-
-type OutputInfo struct {
-	Name string
-}
-
-type GeneralInfo struct {
-	Name string
-}
-
-var Inputs = make(map[string]InputInfo)
-var Outputs = make(map[string]OutputInfo)
-var GeneralIOs = make(map[string]GeneralInfo)

@@ -15,10 +15,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-package cwc
+package core
 
 import (
-	"../bitoip"
+	"github.com/G0WCZ/cwc/bitoip"
 	"gotest.tools/assert"
 	"testing"
 	"time"

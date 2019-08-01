@@ -15,16 +15,31 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+package core
 
-package io
+import (
+	"context"
+	"github.com/G0WCZ/cwc/bitoip"
+	"github.com/G0WCZ/cwc/config"
+)
 
-import ".."
+// This is the morse sender
+// This sends output bits/streams
 
-type MorseIn interface {
-	Open(config *cwc.Config) error
-	ConfigChanged() error
-	Bit() bool
-	Dot() bool
-	Dash() bool
-	Close()
+func MorseTx(ctx context.Context, morseToSend chan bitoip.CarrierEventPayload, config *config.Config) {
+
+}
+
+// Resolve config into actual outputs that are enabled
+// For example, might be a decoder and a serial bit output
+func ConfigureMorseOutputs(config *config.Config) {
+
+}
+
+func OpenOutputs() {
+
+}
+
+func CloseOutputs() {
+
 }

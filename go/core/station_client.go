@@ -15,16 +15,18 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-package cwc
+package core
 
 import (
 	"context"
 	"fmt"
+	"github.com/G0WCZ/cwc/bitoip"
+	"github.com/G0WCZ/cwc/config"
+	"github.com/G0WCZ/cwc/core/hw"
 	"net"
 	"strings"
 	"time"
 
-	"../bitoip"
 	"github.com/golang/glog"
 )
 
@@ -33,7 +35,7 @@ const LocalMulticast = "224.0.0.73:%d"
 // General  station client
 // Can be in local mode, in which case all is local muticast on the local network
 // Else the client of a reflector
-func StationClient(ctx context.Context, config *Config) {
+func StationClient(ctx context.Context, config *config.Config) {
 	var addr string
 	if config.NetworkMode == "local" {
 		addr = fmt.Sprintf(LocalMulticast, config.LocalPort)
@@ -57,12 +59,12 @@ func StationClient(ctx context.Context, config *Config) {
 
 	// Run the morse receiver in a thread -- this will send and receive via
 	// the hardware
-	if config.KeyType == "keyer" {
-		go RunMorseRx(ctx, morseIO, toSend, config.RemoteEcho, config.Channel, config.KeyerMode,
-			config.KeyerSpeed, config.KeyerWeight, true, config.SidetoneEnable)
+	if false { //config.Keyer == "keyer" {
+		//go RunMorseRx(ctx, &hw.morseIn, toSend, config.RemoteEcho, config.Channel, config.KeyerMode,
+		//	config.Keyer.Speed, config.Keyer.Weight, true, config.SidetoneEnable)
 	} else {
-		go RunMorseRx(ctx, morseIO, toSend, config.RemoteEcho, config.Channel, 99, 0, 0,
-			false, config.SidetoneEnable)
+		//go RunMorseRx(ctx, &hw.MorseIn, toSend, config.RemoteEcho, config.Channel, 99, 0, 0,
+		//	false, config.SidetoneEnable)
 	}
 
 	localRxAddress, err := net.ResolveUDPAddr("udp", "0.0.0.0:0")

@@ -26,17 +26,17 @@ Copywrite (C) Phil Harman VK6PH May 2014
 ---------------------------------------------------------------------------------
 
 */
-package cwc
+package core
 
 import (
 	"context"
+	"github.com/G0WCZ/cwc/bitoip"
 	"sort"
 	"sync"
 	"time"
 
 	"github.com/golang/glog"
 )
-import "../bitoip"
 
 /**
  * Morse hardware receiver and sender

@@ -15,19 +15,17 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+package lang
 
-package io
+// Morse text decoder
+// Uses the generic decoder to output from a morse stream to an io.Writer
+import (
+	"context"
+	"github.com/G0WCZ/cwc/config"
+	"github.com/G0WCZ/cwc/core/hw"
+	"io"
+)
 
-import ".."
+func RunDecoder(ctx context.Context, config *config.Config, textOut io.Writer, morseEvents chan hw.MorseEvents) {
 
-//
-// General hardware support .. for things like LEDs and knobs and stuff
-// for now prety basic to support status LED
-//
-
-type GeneralIO interface {
-	Open(config *cwc.Config) error
-	ConfigChanged() error
-	SetStatus(string, string)
-	GetStatus(string) string
 }

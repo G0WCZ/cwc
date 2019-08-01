@@ -16,15 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-package io
+package hw
 
-import ".."
-
-type MorseOut interface {
-	Open(config *cwc.Config) error
-	ConfigChanged() error
-	SetBit(bool)
-	SetToneOut(bool)
-	SetStatusLED(bool)
-	Close()
-}
+// Keyer layer

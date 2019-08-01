@@ -15,30 +15,21 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-package io
 
-/**
- * Specifies a device interface interface that can have
- * specific implementations for different I/O setups eg. gpio pins, serial port, audio out generator
- * Implementations exist for Raspberry Pi GPIO and Serial and No IO so far.  See their implementations
- * in this package.
- */
+package hw
 
-type IO interface {
-	Open() error
-	Bit() bool
-	Dot() bool
-	Dash() bool
-	SetBit(bool)
-	SetToneOut(bool)
-	SetStatusLED(bool)
-	Close()
+import (
+	"github.com/G0WCZ/cwc/config"
+)
+
+//
+// General hardware support .. for things like LEDs and knobs and stuff
+// for now prety basic to support status LED
+//
+
+type GeneralIO interface {
+	Open(config *config.Config) error
+	ConfigChanged() error
+	SetStatus(string, string)
+	GetStatus(string) string
 }
-
-type ConfigMap map[string]string
-
-// Config consts
-const Keyin = "keyin"
-const Keyout = "keyout"
-const Pcmout = "pcmout"
-const Sidetonefreq = "sidetonefreq"

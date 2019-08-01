@@ -17,9 +17,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 package lang
 
-import "context"
+import (
+	"context"
+	"github.com/G0WCZ/cwc/config"
+	"github.com/G0WCZ/cwc/core/hw"
+)
+import "io"
 
 // Morse text encoder
 // Given input as an io.Reader, turn into a Morse stream
 
-func StartEncoder(ctx context.Context, textIn Reader)
+func RunEncoder(ctx context.Context, config *config.Config, textIn io.Reader, morseEvents chan hw.MorseEvents) {
+
+}
