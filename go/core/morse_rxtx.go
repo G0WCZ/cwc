@@ -31,6 +31,7 @@ package core
 import (
 	"context"
 	"github.com/G0WCZ/cwc/bitoip"
+	"github.com/G0WCZ/cwc/core/hw"
 	"sort"
 	"sync"
 	"time"
@@ -153,7 +154,7 @@ func SetKeyerSpacing(s bool) {
 // RunMorseRx sets the morse hardware (key) receiver going.  This sets up a timer
 // to sample the morse input and runs it.
 
-func RunMorseRx(ctx context.Context, morseIO IO, toSend chan bitoip.CarrierEventPayload, echo bool,
+func RunMorseRx(ctx context.Context, morseIO hw.IO, toSend chan bitoip.CarrierEventPayload, echo bool,
 	channel bitoip.ChannelIdType, mode int, speed int, weight int, keyer bool, sidetone bool) {
 	localEcho = echo
 	channelId = channel
@@ -195,13 +196,13 @@ func RunMorseRx(ctx context.Context, morseIO IO, toSend chan bitoip.CarrierEvent
 // 	RunMorseRx(ctx, morseIO, toSend, echo, channel, false)
 // }
 
-func Stop(morseIO IO) {
+func Stop(morseIO hw.IO) {
 	done <- true
 	LastBit = false
 	morseIO.Close()
 }
 
-func Startup(morseIO IO) {
+func Startup(morseIO hw.IO) {
 	err := morseIO.Open()
 	if err != nil {
 		glog.Fatalf("Can't access Morse hardware: %s", err)
@@ -212,7 +213,7 @@ func Startup(morseIO IO) {
 // This is called (currently) every 5ms to look for a change in input pin.
 //
 // TODO should have some sort of back-off if not used recently for power saving
-func Sample(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO, sidetone bool) {
+func Sample(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO hw.IO, sidetone bool) {
 
 	TransmitToHardware(t, morseIO)
 
@@ -258,7 +259,7 @@ func clear_memory() {
 	dash_memory = false
 }
 
-func SetKeyerOut(state int, t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO) {
+func SetKeyerOut(state int, t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO hw.IO) {
 	if keyer_out != state {
 		keyer_out = state
 		if state == 0 {
@@ -277,7 +278,7 @@ func SetKeyerOut(state int, t time.Time, toSend chan bitoip.CarrierEventPayload,
 	}
 }
 
-func SampleKeyer(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO) {
+func SampleKeyer(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO hw.IO) {
 	TransmitToHardware(t, morseIO)
 
 	// if key_state != EXITLOOP {
@@ -561,7 +562,7 @@ func QueueForTransmit(carrierEvents *bitoip.CarrierEventPayload) {
 
 // When woken up  (same timer as checking for an incoming bit change)
 // check to see if an output state change is needed and do it.
-func TransmitToHardware(t time.Time, morseIO IO) {
+func TransmitToHardware(t time.Time, morseIO hw.IO) {
 	now := time.Now()
 
 	// Lock
