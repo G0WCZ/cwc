@@ -1,8 +1,10 @@
-build : test build-pi build-linux build-osx build-windows
+build: */*.go */*/*.go
 	go build ./...
 
 test:
 	go test ./...
+
+dist: dist-pi dist-linux dist-osx dist-windows
 
 dist-pi: dist/pi/reflector/cwc-reflector dist/pi/station/cwc-station
 

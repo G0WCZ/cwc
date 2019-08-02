@@ -23,6 +23,23 @@ import (
 	"time"
 )
 
+type LocalBitEvent uint8
+
+// Bit masks for LocalBitEvents
+// NOT the same as the bitoip.BitEvent constants!!
+const (
+	// Mostly for local paddle before keyer sampling
+	BitRightOn  LocalBitEvent = 0x20 // Right, Ring
+	BitRightOff LocalBitEvent = 0x10 // Right, Ring
+	BitLeftOn   LocalBitEvent = 0x08 // Left, Tip
+	BitLeftOff  LocalBitEvent = 0x04 // Left, Tip
+	// Normal keying
+	BitOn  LocalBitEvent = 0x02 // Straight On
+	BitOff LocalBitEvent = 0x01 // Straight Off
+	// Control
+	LastEvent LocalBitEvent = 0x80 // high bit set to indicate last one
+)
+
 // Absolute time morse event
 type TimedBitEvent struct {
 	startTime time.Time
