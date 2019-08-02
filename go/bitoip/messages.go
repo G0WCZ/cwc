@@ -97,8 +97,14 @@ type KeyValuePayload struct {
 type BitEvent uint8
 
 const (
-	BitOn     BitEvent = 0x01
-	BitOff    BitEvent = 0x00
+	// Mostly for local paddle before keyer sampling
+	BitRightOn  BitEvent = 0x10 // Right, Ring
+	BitRightOff BitEvent = 0x08 // Right, Ring
+	BitLeftOn   BitEvent = 0x04 // Left, Tip
+	BitLeftOff  BitEvent = 0x02 // Left, Tip
+	// Normal keying
+	BitOn     BitEvent = 0x01 // Straight On
+	BitOff    BitEvent = 0x00 // Straight Off
 	LastEvent BitEvent = 0x80 // high bit set to indicate last one
 )
 
