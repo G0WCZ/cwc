@@ -68,10 +68,11 @@ type Serial struct {
 }
 
 type Keyer struct {
-	Type   string
-	Speed  int
-	Weight int
-	Mode   int
+	Type    string
+	Speed   int
+	Weight  int
+	Mode    int
+	Reverse bool
 }
 
 type Encoder struct {
@@ -110,10 +111,11 @@ var defaultConfig = Config{
 	},
 
 	Keyer: Keyer{
-		Type:   "keyer",
-		Speed:  20,
-		Weight: 55,
-		Mode:   1,
+		Type:    "keyer",
+		Speed:   20,
+		Weight:  55,
+		Mode:    1,
+		Reverse: false,
 	},
 	Encoder: Encoder{
 		Speed: 12,

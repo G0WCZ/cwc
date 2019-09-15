@@ -18,18 +18,49 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package hw
 
-type InputInfo struct {
-	Name string
+import (
+	"github.com/G0WCZ/cwc/config"
+	"github.com/golang/glog"
+	"strings"
+)
+
+var Inputs = map[string]func(*config.Config, string) MorseIn{
+	"gpio": NewGPIOIn,
 }
 
-type OutputInfo struct {
-	Name string
+func SplitDescriptors(descriptors []string) [][]string {
+	var parsed [][]string
+
+	for _, s := range descriptors {
+		splits := strings.Split(s, ":")
+		if len(splits) == 2 {
+			parsed = append(parsed, []string{strings.TrimSpace(splits[1]), strings.TrimSpace(splits[0])})
+		} else {
+			parsed = append(parsed, []string{strings.TrimSpace(splits[0]), ""})
+		}
+	}
+
+	return parsed
 }
 
-type GeneralInfo struct {
-	Name string
+func ParseInputs(config *config.Config) []MorseIn {
+	var inputs []MorseIn
+
+	for _, i := range SplitDescriptors(config.MorseInHardware) {
+		morseIn, ok := Inputs[i[0]]
+		if ok {
+			inputs = append(inputs, morseIn(config, i[1]))
+		} else {
+			glog.Errorf("Unknown input %s", i[0])
+		}
+	}
+	return inputs
 }
 
-var Inputs = make(map[string]InputInfo)
-var Outputs = make(map[string]OutputInfo)
-var GeneralIOs = make(map[string]GeneralInfo)
+func ParseOutputs(outputs string) {
+
+}
+
+func ParseGeneralIOs(generals string) {
+
+}

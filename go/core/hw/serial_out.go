@@ -15,19 +15,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-
 package hw
 
-// Provides a hardware interface receiving morse
-// either as a chan of events returned, or as bits to be polled
-
-type (
-	MorseIn interface {
-		Open() error
-		ConfigChanged() error
-		Bit() bool
-		Dit() bool
-		Dah() bool
-		Close() error
-	}
+import (
+	"github.com/G0WCZ/cwc/config"
+	"github.com/stianeikeland/go-rpio"
 )
+
+type SerialOut struct {
+	Config *config.Config
+	output rpio.Pin
+}
