@@ -28,7 +28,7 @@ type GPIOOut struct {
 	adapterName string
 }
 
-func NewGPIOOut(config *config.Config, adapterName string) *GPIOOut {
+func NewGPIOOut(config *config.Config, adapterName string) MorseOut {
 	gpio_out := GPIOOut{
 		Config:      config,
 		adapterName: adapterName,
@@ -36,9 +36,8 @@ func NewGPIOOut(config *config.Config, adapterName string) *GPIOOut {
 	return &gpio_out
 }
 
-func (g *GPIOOut) Open(config *config.Config) error {
-	g.Config = config
-	return g.initPorts(config)
+func (g *GPIOOut) Open() error {
+	return g.initPorts(g.Config)
 }
 
 func (g *GPIOOut) ConfigChanged() error {
@@ -63,4 +62,12 @@ func (g *GPIOOut) SetBit(bit bool) {
 	} else {
 		g.output.Low()
 	}
+}
+
+func (g *GPIOOut) SetToneOut(bool) {
+	panic("implement me")
+}
+
+func (g *GPIOOut) SetStatusLED(bool) {
+	panic("implement me")
 }

@@ -18,18 +18,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package hw
 
-import (
-	"github.com/G0WCZ/cwc/config"
-)
-
 //
 // General hardware support .. for things like LEDs and knobs and stuff
 // for now prety basic to support status LED
 //
 
-type GeneralIO interface {
-	Open(config *config.Config) error
-	ConfigChanged() error
-	SetStatus(string, string)
-	GetStatus(string) string
-}
+type (
+	GeneralIO interface {
+		Open() error
+		ConfigChanged() error
+		SetStatus(string, string)
+		GetStatus(string) string
+		Close() error
+	}
+)

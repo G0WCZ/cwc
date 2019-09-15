@@ -45,3 +45,35 @@ func TestParseInputsWithAdaptor(t *testing.T) {
 	assert.Equal(t, "*hw.GPIOIn", it)
 	assert.Equal(t, "keyer", inputs[0].(*GPIOIn).adapterName)
 }
+
+func TestParseOutputs(t *testing.T) {
+	config := config.Config{}
+	config.MorseOutHardware = []string{"gpio"}
+	inputs := ParseOutputs(&config)
+	it := fmt.Sprintf("%T", inputs[0])
+	assert.Equal(t, "*hw.GPIOOut", it)
+}
+func TestParseOutputsWithAdaptor(t *testing.T) {
+	config := config.Config{}
+	config.MorseOutHardware = []string{"xxx:gpio"}
+	inputs := ParseOutputs(&config)
+	it := fmt.Sprintf("%T", inputs[0])
+	assert.Equal(t, "*hw.GPIOOut", it)
+	assert.Equal(t, "xxx", inputs[0].(*GPIOOut).adapterName)
+}
+
+func TestParseGenerals(t *testing.T) {
+	config := config.Config{}
+	config.GeneralHardware = []string{"gpio"}
+	inputs := ParseGeneralIOs(&config)
+	it := fmt.Sprintf("%T", inputs[0])
+	assert.Equal(t, "*hw.GPIOGeneral", it)
+}
+func TestParseGeneralsWithAdaptor(t *testing.T) {
+	config := config.Config{}
+	config.GeneralHardware = []string{"yyy:gpio"}
+	inputs := ParseGeneralIOs(&config)
+	it := fmt.Sprintf("%T", inputs[0])
+	assert.Equal(t, "*hw.GPIOGeneral", it)
+	assert.Equal(t, "yyy", inputs[0].(*GPIOGeneral).adapterName)
+}

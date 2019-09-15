@@ -15,16 +15,37 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-
 package hw
 
-type (
-	MorseOut interface {
-		Open() error
-		ConfigChanged() error
-		SetBit(bool)
-		SetToneOut(bool)
-		SetStatusLED(bool)
-		Close() error
-	}
+import (
+	"github.com/G0WCZ/cwc/config"
 )
+
+type GPIOGeneral struct {
+	Config      *config.Config
+	adapterName string
+}
+
+func (G *GPIOGeneral) Open() error {
+	panic("implement me")
+}
+
+func (G *GPIOGeneral) ConfigChanged() error {
+	panic("implement me")
+}
+
+func (G *GPIOGeneral) SetStatus(string, string) {
+	panic("implement me")
+}
+
+func (G *GPIOGeneral) GetStatus(string) string {
+	panic("implement me")
+}
+
+func (G *GPIOGeneral) Close() error {
+	panic("implement me")
+}
+
+func NewGPIOGeneral(config *config.Config, adapterName string) GeneralIO {
+	return &GPIOGeneral{Config: config, adapterName: adapterName}
+}
