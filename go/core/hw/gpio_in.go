@@ -22,15 +22,21 @@ import (
 	"github.com/stianeikeland/go-rpio"
 )
 
+const KEYER = "keyer"
+
 type GPIOIn struct {
 	Config      *config.Config
 	adapterName string
 	leftInput   rpio.Pin
 	rightInput  rpio.Pin
+	keyer       bool
 }
 
 func NewGPIOIn(config *config.Config, adapterName string) MorseIn {
-	return &GPIOIn{Config: config, adapterName: adapterName}
+	return &GPIOIn{
+		Config:      config,
+		adapterName: adapterName,
+		keyer:       adapterName == KEYER}
 }
 
 func (g *GPIOIn) Open() error {
@@ -76,4 +82,8 @@ func (g *GPIOIn) Dah() bool {
 	} else {
 		return true
 	}
+}
+
+func (g *GPIOIn) UseKeyer() bool {
+	return g.keyer
 }

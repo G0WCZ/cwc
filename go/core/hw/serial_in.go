@@ -26,4 +26,33 @@ type SerialIn struct {
 	Config     *config.Config
 	leftInput  rpio.Pin
 	rightInput rpio.Pin
+	keyer      bool
+}
+
+func (s SerialIn) Open() error {
+	panic("implement me")
+}
+
+func (s SerialIn) ConfigChanged() error {
+	panic("implement me")
+}
+
+func (s SerialIn) Bit() bool {
+	panic("implement me")
+}
+
+func (s SerialIn) Dit() bool {
+	panic("implement me")
+}
+
+func (s SerialIn) Dah() bool {
+	panic("implement me")
+}
+
+func (s SerialIn) Close() error {
+	panic("implement me")
+}
+
+func (s SerialIn) UseKeyer() bool {
+	return s.keyer
 }
