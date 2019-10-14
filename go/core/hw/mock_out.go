@@ -3,13 +3,19 @@ package hw
 import "github.com/G0WCZ/cwc/config"
 
 type MockOut struct {
-	Config          *config.Config
-	adapterName     string
-	currentBitValue bool
+	Config   *config.Config
+	bitValue bool
+}
+
+func NewMockOut(config *config.Config) MorseIn {
+	return &MockIn{
+		Config:   config,
+		bitValue: false,
+	}
 }
 
 func (m *MockOut) Open() error {
-	m.currentBitValue = false
+	m.bitValue = false
 }
 
 func (m *MockOut) SetBit(bool) {
@@ -29,5 +35,9 @@ func (m *MockOut) Close() error {
 }
 
 func (m *MockOut) Bit() bool {
-	return
+	return m.bitValue
+}
+
+func (m *MockOut) SetBitValue(bit bool) {
+	m.bitValue = bit
 }
