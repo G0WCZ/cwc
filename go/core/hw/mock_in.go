@@ -26,9 +26,12 @@ func (m *MockIn) Open() error {
 	m.bitValue = false
 	m.ditValue = false
 	m.dahValue = false
+
+	return nil
 }
 
 func (m *MockIn) ConfigChanged() error {
+	return nil
 }
 
 func (m *MockIn) Bit() bool {
@@ -44,6 +47,10 @@ func (m *MockIn) Dah() bool {
 }
 
 func (m *MockIn) Close() error {
+	m.ditValue = false
+	m.dahValue = false
+	m.bitValue = false
+	return nil
 }
 
 func (m *MockIn) UseKeyer() bool {

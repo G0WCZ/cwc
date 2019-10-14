@@ -22,9 +22,16 @@ import (
 	"github.com/stianeikeland/go-rpio"
 )
 
+const (
+	PWM_CYCLE     uint32 = 32
+	ON_DUTY_CYCLE uint32 = 1
+)
+
 type GPIOOut struct {
 	Config      *config.Config
 	output      rpio.Pin
+	pwmOut      rpio.Pin
+	statusLED   rpio.Pin
 	adapterName string
 }
 
@@ -49,25 +56,49 @@ func (g *GPIOOut) initPorts(config *config.Config) error {
 	g.output.Output()
 	g.output.Low()
 
+	// PWM setup
+	g.pwmOut = rpio.Pin(config.GPIOPins.PWMA)
+	g.pwmOut.Mode(rpio.Pwm)
+	g.pwmOut.Freq(config.SidetoneFrequency * int(PWM_CYCLE))
+	g.pwmOut.DutyCycle(0, PWM_CYCLE)
+
+	// Status LED setup
+	g.statusLED = rpio.Pin(config.GPIOPins.StatusLED)
+	g.statusLED.Output()
+	g.statusLED.Low()
+
 	return nil
 }
 
 func (g *GPIOOut) Close() error {
+	// Turn stuff off to be sure
+	g.SetBit(false)
+	g.SetStatusLED(false)
+	g.SetToneOut(false)
+
 	return nil
 }
 
 func (g *GPIOOut) SetBit(bit bool) {
 	if bit {
-		g.output.High()
-	} else {
 		g.output.Low()
+	} else {
+		g.output.High()
 	}
 }
 
-func (g *GPIOOut) SetToneOut(bool) {
-	panic("implement me")
+func (g *GPIOOut) SetToneOut(bit bool) {
+	if bit {
+		g.pwmOut.DutyCycle(ON_DUTY_CYCLE, PWM_CYCLE)
+	} else {
+		g.pwmOut.DutyCycle(0, PWM_CYCLE)
+	}
 }
 
-func (g *GPIOOut) SetStatusLED(bool) {
-	panic("implement me")
+func (g *GPIOOut) SetStatusLED(bit bool) {
+	if bit {
+		g.statusLED.Low()
+	} else {
+		g.statusLED.High()
+	}
 }
