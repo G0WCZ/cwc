@@ -1,37 +1,51 @@
 package hw
 
-import "github.com/G0WCZ/cwc/config"
+import (
+	"github.com/G0WCZ/cwc/config"
+)
 
 type MockOut struct {
-	Config   *config.Config
-	bitValue bool
+	Config      *config.Config
+	bitValue    bool
+	toneValue   bool
+	statusValue bool
 }
 
-func NewMockOut(config *config.Config) MorseIn {
-	return &MockIn{
-		Config:   config,
-		bitValue: false,
+func NewMockOut(config *config.Config) MorseOut {
+	return &MockOut{
+		Config:      config,
+		bitValue:    false,
+		toneValue:   false,
+		statusValue: false,
 	}
 }
 
 func (m *MockOut) Open() error {
 	m.bitValue = false
+	m.toneValue = false
+	m.statusValue = false
+
+	return nil
 }
 
-func (m *MockOut) SetBit(bool) {
-	panic("implement me")
+func (m *MockOut) SetBit(bit bool) {
+	m.bitValue = bit
 }
 
-func (m *MockOut) SetToneOut(bool) {
-	panic("implement me")
+func (m *MockOut) SetToneOut(bit bool) {
+	m.toneValue = bit
 }
 
-func (m *MockOut) SetStatusLED(bool) {
-	panic("implement me")
+func (m *MockOut) SetStatusLED(bit bool) {
+	m.statusValue = bit
 }
 
 func (m *MockOut) Close() error {
-	panic("implement me")
+	m.bitValue = false
+	m.toneValue = false
+	m.statusValue = false
+
+	return nil
 }
 
 func (m *MockOut) Bit() bool {
@@ -40,4 +54,16 @@ func (m *MockOut) Bit() bool {
 
 func (m *MockOut) SetBitValue(bit bool) {
 	m.bitValue = bit
+}
+
+func (m *MockOut) Tone() bool {
+	return m.toneValue
+}
+
+func (m *MockOut) Status() bool {
+	return m.statusValue
+}
+
+func (m *MockOut) ConfigChanged() error {
+	return nil
 }

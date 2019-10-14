@@ -66,6 +66,7 @@ func MorseRx(ctx context.Context, morseReceived chan bitoip.CarrierEventPayload,
 		select {
 		case <-done:
 			ticker.Stop()
+			CloseInputs()
 			return
 
 		case t := <-ticker.C:
