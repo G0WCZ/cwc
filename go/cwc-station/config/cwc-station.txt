@@ -34,4 +34,7 @@ Type = "straight"
 Speed = 20
 Weight = 55
 Mode = 1
+Reverse = false
+LetterSpace = true
+
 

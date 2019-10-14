@@ -26,6 +26,7 @@ import (
 
 var Inputs = map[string]func(*config.Config, string) MorseIn{
 	"gpio": NewGPIOIn,
+	"mock": NewMockIn,
 }
 
 var Outputs = map[string]func(*config.Config, string) MorseOut{

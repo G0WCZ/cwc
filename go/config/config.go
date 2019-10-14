@@ -43,6 +43,7 @@ type Config struct {
 	Keyer             Keyer
 	Encoder           Encoder
 	Decoder           Decoder
+	Advanced          Advanced
 }
 
 const HWKeyTip = 17
@@ -68,11 +69,12 @@ type Serial struct {
 }
 
 type Keyer struct {
-	Type    string
-	Speed   int
-	Weight  int
-	Mode    int
-	Reverse bool
+	Type        string
+	Speed       int
+	Weight      int
+	Mode        int
+	Reverse     bool
+	LetterSpace bool
 }
 
 type Encoder struct {
@@ -83,12 +85,21 @@ type Decoder struct {
 	StartingSpeed int //wpm
 }
 
+type Advanced struct {
+	InputTickMs       int64
+	OutputTickMs      int64
+	MaxSendTimespanMs int64
+	BreakinTimeMs     int64
+	MaxEvents         int
+}
+
 var defaultConfig = Config{
 	NetworkMode:       "Reflector",
 	ReflectorAddress:  "cwc0.nodestone.io:7388",
 	LocalPort:         5990,
-	MorseInHardware:   []string{"keyer:pigpio"}, // GPIO or Serial or None
-	MorseOutHardware:  []string{"pigpio"},
+	MorseInHardware:   []string{"gpio"}, // GPIO or Serial or None
+	MorseOutHardware:  []string{"gpio"},
+	GeneralHardware:   []string{"gpio"},
 	SidetoneEnable:    true,
 	SidetoneFrequency: 500,
 	RemoteEcho:        false,
@@ -111,17 +122,25 @@ var defaultConfig = Config{
 	},
 
 	Keyer: Keyer{
-		Type:    "keyer",
-		Speed:   20,
-		Weight:  55,
-		Mode:    1,
-		Reverse: false,
+		Type:        "keyer",
+		Speed:       20,
+		Weight:      55,
+		Mode:        1,
+		Reverse:     false,
+		LetterSpace: true,
 	},
 	Encoder: Encoder{
 		Speed: 12,
 	},
 	Decoder: Decoder{
 		StartingSpeed: 12,
+	},
+	Advanced: Advanced{
+		InputTickMs:       1,
+		OutputTickMs:      5,
+		MaxSendTimespanMs: 1000,
+		BreakinTimeMs:     100,
+		MaxEvents:         100,
 	},
 }
 
@@ -133,4 +152,8 @@ func ReadConfig(filename string) *Config {
 	}
 
 	return &cfg
+}
+
+func DefaultConfig() *Config {
+	return &defaultConfig
 }
