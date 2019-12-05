@@ -8,7 +8,7 @@ import (
 
 func makeMockOut() MorseOut {
 	c := config.DefaultConfig()
-	mo := NewMockOut(c)
+	mo := NewMockOut(c, "")
 	mo.Open()
 
 	return mo

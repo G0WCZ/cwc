@@ -19,10 +19,59 @@ package hw
 
 import (
 	"github.com/G0WCZ/cwc/config"
-	"github.com/stianeikeland/go-rpio"
+	"go.bug.st/serial.v1"
 )
 
 type SerialOut struct {
-	Config *config.Config
-	output rpio.Pin
+	Config         *config.Config
+	port           serial.Port
+	portDeviceName string
+	adapterName    string
+	useDTR         bool
+}
+
+func NewSerialOut(c *config.Config, adapterName string) MorseOut {
+	s_out := SerialOut{
+		Config:         c,
+		portDeviceName: c.Serial.Device,
+		adapterName:    adapterName,
+		port:           nil,
+		useDTR:         c.Serial.KeyOut == config.SerialPinDTR,
+	}
+	return &s_out
+}
+
+func (s *SerialOut) Open() error {
+	return s.ConfigChanged()
+}
+
+func (s *SerialOut) ConfigChanged() error {
+	if len(s.portDeviceName) > 0 {
+		ClosePort(s.portDeviceName)
+		s.port = GetPort(s.Config.Serial.Device)
+		s.portDeviceName = s.Config.Serial.Device
+	}
+	return nil
+}
+
+func (s *SerialOut) SetBit(bit bool) {
+	if s.port != nil {
+		if s.Config.Serial.KeyOut == config.SerialPinDTR {
+			_ = s.port.SetDTR(bit)
+		} else {
+			_ = s.port.SetRTS(bit)
+		}
+	}
+}
+
+func (s *SerialOut) SetToneOut(bool) {
+	// pass
+}
+
+func (s *SerialOut) SetStatusLED(bool) {
+	// pass
+}
+
+func (s *SerialOut) Close() error {
+	panic("implement me")
 }
