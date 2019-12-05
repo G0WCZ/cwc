@@ -61,12 +61,19 @@ type GPIOPins struct {
 	SignalLED int
 }
 
+var SerialPinRTS = "RTS"
+var SerialPinCTS = "CTS"
+var SerialPinDSR = "DSR"
+var SerialPinDTR = "DTR"
+
 type Serial struct {
 	Device   string
 	KeyLeft  string
 	KeyRight string
 	KeyOut   string
 }
+
+const ()
 
 type Keyer struct {
 	Type        string
@@ -116,9 +123,9 @@ var defaultConfig = Config{
 	},
 	Serial: Serial{
 		Device:   "/dev/ttysomething",
-		KeyLeft:  "CTS",
-		KeyRight: "",
-		KeyOut:   "RTS",
+		KeyLeft:  SerialPinCTS,
+		KeyRight: SerialPinDSR,
+		KeyOut:   SerialPinRTS,
 	},
 
 	Keyer: Keyer{

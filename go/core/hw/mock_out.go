@@ -9,14 +9,16 @@ type MockOut struct {
 	bitValue    bool
 	toneValue   bool
 	statusValue bool
+	adapterName string
 }
 
-func NewMockOut(config *config.Config) MorseOut {
+func NewMockOut(config *config.Config, adapterName string) MorseOut {
 	return &MockOut{
 		Config:      config,
 		bitValue:    false,
 		toneValue:   false,
 		statusValue: false,
+		adapterName: adapterName,
 	}
 }
 

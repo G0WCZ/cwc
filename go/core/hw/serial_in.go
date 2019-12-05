@@ -19,40 +19,57 @@ package hw
 
 import (
 	"github.com/G0WCZ/cwc/config"
-	"github.com/stianeikeland/go-rpio"
+	"go.bug.st/serial.v1"
 )
 
 type SerialIn struct {
-	Config     *config.Config
-	leftInput  rpio.Pin
-	rightInput rpio.Pin
-	keyer      bool
+	Config         *config.Config
+	adapterName    string
+	leftInput      string
+	rightInput     string
+	keyer          bool
+	port           serial.Port
+	portDeviceName string
 }
 
-func (s SerialIn) Open() error {
+func NewSerialIn(config *config.Config, adapterName string) MorseIn {
+	return &SerialIn{
+		Config:         config,
+		adapterName:    adapterName,
+		keyer:          adapterName == KEYER,
+		portDeviceName: config.Serial.Device,
+	}
+}
+
+func (s *SerialIn) Open() error {
+	return s.ConfigChanged()
+}
+
+func (s *SerialIn) ConfigChanged() error {
+	if len(s.portDeviceName) > 0 {
+		ClosePort(s.portDeviceName)
+		s.port = GetPort(s.Config.Serial.Device)
+		s.portDeviceName = s.Config.Serial.Device
+	}
+	return nil
+}
+
+func (s *SerialIn) Bit() bool {
 	panic("implement me")
 }
 
-func (s SerialIn) ConfigChanged() error {
+func (s *SerialIn) Dit() bool {
 	panic("implement me")
 }
 
-func (s SerialIn) Bit() bool {
+func (s *SerialIn) Dah() bool {
 	panic("implement me")
 }
 
-func (s SerialIn) Dit() bool {
+func (s *SerialIn) Close() error {
 	panic("implement me")
 }
 
-func (s SerialIn) Dah() bool {
-	panic("implement me")
-}
-
-func (s SerialIn) Close() error {
-	panic("implement me")
-}
-
-func (s SerialIn) UseKeyer() bool {
+func (s *SerialIn) UseKeyer() bool {
 	return s.keyer
 }
