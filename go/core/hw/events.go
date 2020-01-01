@@ -42,8 +42,8 @@ const (
 
 // Absolute time morse event
 type TimedBitEvent struct {
-	startTime time.Time
-	bitEvent  bitoip.BitEvent
+	StartTime time.Time
+	BitEvent  bitoip.BitEvent
 }
 
 // slice of events
