@@ -18,12 +18,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package core
 
 import (
+	"context"
+	"github.com/G0WCZ/cwc/bitoip"
 	"github.com/G0WCZ/cwc/config"
 	"testing"
 )
 
-func TestOpenInputs(t *testing.T) {
+func TestBasicStartStop(t *testing.T) {
 	c := config.DefaultConfig()
+	morseReceived := make(chan bitoip.CarrierEventPayload)
+	ctx := context.TODO()
+
+	go MorseRx(context.TODO(), morseReceived, c)
+	ctx.Done()
+
 }
 
 func TestCloseInputs(t *testing.T) {

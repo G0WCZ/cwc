@@ -65,6 +65,9 @@ func StationClient(ctx context.Context, config *config.Config) {
 		//go RunMorseRx(ctx, &hw.MorseIn, toSend, config.RemoteEcho, config.Channel, 99, 0, 0,
 		//	false, config.SidetoneEnable)
 	}
+	go MorseRx(ctx, toSend, config)
+
+	go MorseTx(ctx, config)
 
 	localRxAddress, err := net.ResolveUDPAddr("udp", "0.0.0.0:0")
 
@@ -147,7 +150,7 @@ func StationClient(ctx context.Context, config *config.Config) {
 			switch tm.Verb {
 			case bitoip.CarrierEvent:
 				glog.V(2).Infof("carrier events to morse: %v", tm)
-				QueueForTransmit(tm.Payload.(*bitoip.CarrierEventPayload))
+				QueueForOutput(tm.Payload.(*bitoip.CarrierEventPayload), config)
 
 			case bitoip.ListenConfirm:
 				glog.V(2).Infof("listen confirm: %v", tm)

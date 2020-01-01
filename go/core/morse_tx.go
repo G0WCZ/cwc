@@ -34,7 +34,7 @@ var ticker *time.Ticker
 var TxMutex = sync.Mutex{}
 
 // Morse Transmit Queue
-var TxQueue []Event
+var TxQueue []hw.TimedBitEvent
 
 // outputs
 var outputs []hw.MorseOut
@@ -44,9 +44,9 @@ var bitOut bool
 // This is the morse sender
 // This sends output bits/streams
 
-func MorseTx(ctx context.Context, morseToOutput chan bitoip.CarrierEventPayload, config *config.Config) {
+func MorseTx(ctx context.Context, config *config.Config) {
 	// empty send queue
-	TxQueue = []Event{}
+	TxQueue = []hw.TimedBitEvent{}
 
 	// setup outputs
 	OpenOutputs(config)
@@ -56,12 +56,12 @@ func MorseTx(ctx context.Context, morseToOutput chan bitoip.CarrierEventPayload,
 
 	for {
 		select {
-		case <-done:
+		case <-ctx.Done():
 			ticker.Stop()
 			return
 
 		case t := <-ticker.C:
-			TransmitToHardware(t, outputs)
+			TransmitToOutputs(t, outputs)
 		}
 	}
 }
@@ -91,11 +91,11 @@ func CloseOutputs() {
 
 // Queue this stuff for sending to hardware -- LED or relay or PWM
 // by adding to queue that will be sent out based on the tick timing
-func QueueForOutput(carrierEvents *bitoip.CarrierEventPayload) {
-	if (localEcho || (carrierEvents.CarrierKey != carrierKey)) &&
+func QueueForOutput(carrierEvents *bitoip.CarrierEventPayload, config *config.Config) {
+	if (config.RemoteEcho || (carrierEvents.CarrierKey != carrierKey)) &&
 		carrierEvents.Channel == channelId {
 		// compose into events
-		newEvents := make([]Event, 0)
+		newEvents := make([]hw.TimedBitEvent, 0)
 
 		// remove the calculated server time offset
 		start := time.Unix(0, carrierEvents.StartTimeStamp-timeOffset+(roundTrip/2))
@@ -108,7 +108,7 @@ func QueueForOutput(carrierEvents *bitoip.CarrierEventPayload) {
 		}
 
 		for _, ce := range carrierEvents.BitEvents {
-			newEvents = append(newEvents, Event{
+			newEvents = append(newEvents, hw.TimedBitEvent{
 				start.Add(time.Duration(ce.TimeOffset)),
 				ce.BitEvent,
 			})
@@ -121,7 +121,7 @@ func QueueForOutput(carrierEvents *bitoip.CarrierEventPayload) {
 		TxMutex.Lock()
 		TxQueue = append(TxQueue, newEvents...)
 		// then sort the output by time (this is probably super slow)
-		sort.Slice(TxQueue, func(i, j int) bool { return TxQueue[i].startTime.Before(TxQueue[j].startTime) })
+		sort.Slice(TxQueue, func(i, j int) bool { return TxQueue[i].StartTime.Before(TxQueue[j].StartTime) })
 		TxMutex.Unlock()
 	} else {
 		// don't re-sound our own stuff if echo isn't turned on
@@ -139,8 +139,8 @@ func TransmitToOutputs(t time.Time, outputs []hw.MorseOut) {
 	TxMutex.Lock()
 
 	// Change outputs if needed
-	if len(TxQueue) > 0 && TxQueue[0].startTime.Before(now) {
-		be := TxQueue[0].bitEvent
+	if len(TxQueue) > 0 && TxQueue[0].StartTime.Before(now) {
+		be := TxQueue[0].BitEvent
 
 		newBit := (be & bitoip.BitOn) != 0
 
