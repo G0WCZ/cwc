@@ -38,6 +38,7 @@ var Outputs = map[string]func(*config.Config, string) MorseOut{
 
 var Generals = map[string]func(*config.Config, string) GeneralIO{
 	"gpio": NewGPIOGeneral,
+	"mock": NewMockGeneral,
 }
 
 func SplitDescriptors(descriptors []string) [][]string {
