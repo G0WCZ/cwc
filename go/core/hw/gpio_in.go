@@ -48,6 +48,7 @@ func (g *GPIOIn) ConfigChanged() error {
 }
 
 func (g *GPIOIn) initPorts(config *config.Config) error {
+	_ = rpio.Open()
 	g.leftInput = rpio.Pin(config.GPIOPins.KeyLeft)
 	g.leftInput.Input()
 	g.leftInput.PullUp()

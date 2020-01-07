@@ -19,33 +19,95 @@ package hw
 
 import (
 	"github.com/G0WCZ/cwc/config"
+	"github.com/golang/glog"
+	"github.com/stianeikeland/go-rpio"
 )
+
+const OnPeriods = uint32(1)
+const CycleLength = uint32(32)
 
 type GPIOGeneral struct {
 	Config      *config.Config
 	adapterName string
+	usePwm      bool
+	pwmOutState string
+	pwmOut      rpio.Pin
+	useStatus   bool
+	status      rpio.Pin
 }
 
 func (G *GPIOGeneral) Open() error {
-	panic("implement me")
+	return G.ConfigChanged()
 }
 
 func (G *GPIOGeneral) ConfigChanged() error {
-	panic("implement me")
+	return G.initGPIO()
 }
 
-func (G *GPIOGeneral) SetStatus(string, string) {
-	panic("implement me")
+func (G *GPIOGeneral) initGPIO() error {
+	_ = rpio.Open()
+
+	sFreq := G.Config.SidetoneFrequency
+	glog.Infof("sidetone frequency set to %dHz", sFreq)
+
+	// PCM output
+	if sFreq > 0 {
+		pcmPinNo := G.Config.GPIOPins.PWMA
+
+		G.usePwm = true
+		G.pwmOut = rpio.Pin(pcmPinNo)
+		G.pwmOut.Mode(rpio.Pwm)
+		G.pwmOut.Freq(int(uint32(sFreq) * CycleLength))
+		G.pwmOut.DutyCycle(0, CycleLength)
+	}
+
+	statusLEDPin := G.Config.GPIOPins.StatusLED
+	if statusLEDPin > 0 {
+		G.useStatus = true
+		G.status = rpio.Pin(statusLEDPin)
+		G.status.Output()
+		G.status.Low()
+	} else {
+		G.useStatus = false
+	}
+
+	return nil
 }
 
-func (G *GPIOGeneral) GetStatus(string) string {
-	panic("implement me")
+func (G *GPIOGeneral) SetStatus(name string, value string) {
+	if name == Sidetone {
+		if G.usePwm {
+			if value == On {
+				G.pwmOut.DutyCycle(OnPeriods, CycleLength)
+			} else {
+				G.pwmOut.DutyCycle(0, CycleLength)
+			}
+		}
+	} else if name == StatusLED && G.useStatus {
+		if value == On {
+			G.status.High()
+		} else {
+			G.status.Low()
+		}
+	}
+}
+
+func (G *GPIOGeneral) GetStatus(name string) string {
+	if name == Sidetone {
+		return G.pwmOutState
+	} else if name == StatusLED {
+		return Off
+	} else {
+		return Off
+	}
 }
 
 func (G *GPIOGeneral) Close() error {
-	panic("implement me")
+	G.SetStatus(Sidetone, Off)
+	G.SetStatus(StatusLED, Off)
+	return nil
 }
 
 func NewGPIOGeneral(config *config.Config, adapterName string) GeneralIO {
-	return &GPIOGeneral{Config: config, adapterName: adapterName}
+	return &GPIOGeneral{Config: config, adapterName: adapterName, usePwm: false, pwmOutState: Off}
 }

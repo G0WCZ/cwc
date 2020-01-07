@@ -15,24 +15,43 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+package core
 
-package hw
-
-//
-// General hardware support .. for things like LEDs and knobs and stuff
-// for now prety basic to support status LED
-//
-const Sidetone = "sidetone"
-const StatusLED = "status_led"
-const On = "on"
-const Off = "off"
-
-type (
-	GeneralIO interface {
-		Open() error
-		ConfigChanged() error
-		SetStatus(string, string)
-		GetStatus(string) string
-		Close() error
-	}
+import (
+	"context"
+	"github.com/G0WCZ/cwc/config"
+	"github.com/G0WCZ/cwc/core/hw"
 )
+
+var generals []hw.GeneralIO
+
+func General(ctx context.Context, config *config.Config) {
+
+	OpenGenerals(config)
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
+func OpenGenerals(config *config.Config) {
+	generals = hw.ParseGeneralIOs(config)
+	for _, general := range generals {
+		general.Open()
+	}
+}
+
+func CloseGenerals(config *config.Config) {
+	for _, general := range generals {
+		general.Close()
+	}
+}
+
+func SetStatus(name string, value string) {
+	for _, general := range generals {
+		general.SetStatus(name, value)
+	}
+}

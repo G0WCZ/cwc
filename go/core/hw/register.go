@@ -25,13 +25,15 @@ import (
 )
 
 var Inputs = map[string]func(*config.Config, string) MorseIn{
-	"gpio": NewGPIOIn,
-	"mock": NewMockIn,
+	"gpio":   NewGPIOIn,
+	"mock":   NewMockIn,
+	"serial": NewSerialIn,
 }
 
 var Outputs = map[string]func(*config.Config, string) MorseOut{
-	"gpio": NewGPIOOut,
-	"mock": NewMockOut,
+	"gpio":   NewGPIOOut,
+	"mock":   NewMockOut,
+	"serial": NewSerialOut,
 }
 
 var Generals = map[string]func(*config.Config, string) GeneralIO{
