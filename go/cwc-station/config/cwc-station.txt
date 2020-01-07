@@ -3,8 +3,8 @@
 NetworkMode = "reflector"
 ReflectorAddress = "cwc0.nodestone.io:7388"
 LocalPort = 5990
-MorseInHardware = ["keyer:pigpio"]
-MorseOutHardware = ["pigpio"]
+MorseInHardware = ["gpio"]
+MorseOutHardware = ["gpio"]
 SidetoneEnable = true
 SidetoneFrequency = 500
 RemoteEcho = false
@@ -23,7 +23,7 @@ PWMB = 12
 
 # These are signal names
 # use for Serial hardware type
-[SerialPins]
+[Serial]
 Device = "/dev/some-tty"
 KeyLeft = "CTS"
 KeyRight = "DTR"
