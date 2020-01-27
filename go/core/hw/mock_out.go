@@ -10,15 +10,17 @@ type MockOut struct {
 	toneValue   bool
 	statusValue bool
 	adapterName string
+	name        string
 }
 
-func NewMockOut(config *config.Config, adapterName string) MorseOut {
+func NewMockOut(config *config.Config, name string, adapterName string) MorseOut {
 	return &MockOut{
 		Config:      config,
 		bitValue:    false,
 		toneValue:   false,
 		statusValue: false,
 		adapterName: adapterName,
+		name:        name,
 	}
 }
 
@@ -68,4 +70,8 @@ func (m *MockOut) Status() bool {
 
 func (m *MockOut) ConfigChanged() error {
 	return nil
+}
+
+func (m *MockOut) Name() string {
+	return m.name
 }

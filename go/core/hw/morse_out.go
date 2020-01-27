@@ -26,5 +26,6 @@ type (
 		SetToneOut(bool)
 		SetStatusLED(bool)
 		Close() error
+		Name() string
 	}
 )

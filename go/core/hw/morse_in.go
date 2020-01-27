@@ -30,5 +30,6 @@ type (
 		Dah() bool
 		Close() error
 		UseKeyer() bool
+		Name() string
 	}
 )

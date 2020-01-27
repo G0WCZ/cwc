@@ -34,6 +34,7 @@ type GPIOGeneral struct {
 	pwmOut      rpio.Pin
 	useStatus   bool
 	status      rpio.Pin
+	name        string
 }
 
 func (G *GPIOGeneral) Open() error {
@@ -107,7 +108,11 @@ func (G *GPIOGeneral) Close() error {
 	G.SetStatus(StatusLED, Off)
 	return nil
 }
+func (G *GPIOGeneral) Name() string {
+	return G.name
+}
 
-func NewGPIOGeneral(config *config.Config, adapterName string) GeneralIO {
-	return &GPIOGeneral{Config: config, adapterName: adapterName, usePwm: false, pwmOutState: Off}
+func NewGPIOGeneral(config *config.Config, name string, adapterName string) GeneralIO {
+	return &GPIOGeneral{Config: config, adapterName: adapterName,
+		usePwm: false, pwmOutState: Off, name: name}
 }

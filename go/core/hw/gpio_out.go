@@ -33,12 +33,14 @@ type GPIOOut struct {
 	pwmOut      rpio.Pin
 	statusLED   rpio.Pin
 	adapterName string
+	name        string
 }
 
-func NewGPIOOut(config *config.Config, adapterName string) MorseOut {
+func NewGPIOOut(config *config.Config, name string, adapterName string) MorseOut {
 	gpio_out := GPIOOut{
 		Config:      config,
 		adapterName: adapterName,
+		name:        name,
 	}
 	return &gpio_out
 }
@@ -77,6 +79,10 @@ func (g *GPIOOut) Close() error {
 	g.SetToneOut(false)
 
 	return nil
+}
+
+func (g *GPIOOut) Name() string {
+	return g.name
 }
 
 func (g *GPIOOut) SetBit(bit bool) {

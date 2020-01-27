@@ -34,5 +34,6 @@ type (
 		SetStatus(string, string)
 		GetStatus(string) string
 		Close() error
+		Name() string
 	}
 )
