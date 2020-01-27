@@ -77,6 +77,7 @@ func OpenOutputs(config *config.Config) {
 
 	outputs = hw.ParseOutputs(config)
 	for _, output := range outputs {
+
 		output.Open()
 	}
 }

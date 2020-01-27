@@ -24,19 +24,19 @@ import (
 	"strings"
 )
 
-var Inputs = map[string]func(*config.Config, string) MorseIn{
+var Inputs = map[string]func(*config.Config, string, string) MorseIn{
 	"gpio":   NewGPIOIn,
 	"mock":   NewMockIn,
 	"serial": NewSerialIn,
 }
 
-var Outputs = map[string]func(*config.Config, string) MorseOut{
+var Outputs = map[string]func(*config.Config, string, string) MorseOut{
 	"gpio":   NewGPIOOut,
 	"mock":   NewMockOut,
 	"serial": NewSerialOut,
 }
 
-var Generals = map[string]func(*config.Config, string) GeneralIO{
+var Generals = map[string]func(*config.Config, string, string) GeneralIO{
 	"gpio": NewGPIOGeneral,
 	"mock": NewMockGeneral,
 }
@@ -62,7 +62,7 @@ func ParseInputs(config *config.Config) []MorseIn {
 	for _, i := range SplitDescriptors(config.MorseInHardware) {
 		morseIn, ok := Inputs[i[0]]
 		if ok {
-			inputs = append(inputs, morseIn(config, i[1]))
+			inputs = append(inputs, morseIn(config, i[0], i[1]))
 		} else {
 			glog.Errorf("Unknown input %s", i[0])
 		}
@@ -76,7 +76,7 @@ func ParseOutputs(config *config.Config) []MorseOut {
 	for _, i := range SplitDescriptors(config.MorseOutHardware) {
 		morseOut, ok := Outputs[i[0]]
 		if ok {
-			outputs = append(outputs, morseOut(config, i[1]))
+			outputs = append(outputs, morseOut(config, i[0], i[1]))
 		} else {
 			glog.Errorf("Unknown output %s", i[0])
 		}
@@ -90,7 +90,7 @@ func ParseGeneralIOs(config *config.Config) []GeneralIO {
 	for _, i := range SplitDescriptors(config.GeneralHardware) {
 		general, ok := Generals[i[0]]
 		if ok {
-			generals = append(generals, general(config, i[1]))
+			generals = append(generals, general(config, i[0], i[1]))
 		} else {
 			glog.Errorf("Unknown general io %s", i[0])
 		}

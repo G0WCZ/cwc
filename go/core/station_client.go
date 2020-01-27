@@ -65,6 +65,9 @@ func StationClient(ctx context.Context, config *config.Config) {
 		//go RunMorseRx(ctx, &hw.MorseIn, toSend, config.RemoteEcho, config.Channel, 99, 0, 0,
 		//	false, config.SidetoneEnable)
 	}
+
+	go General(ctx, config)
+
 	go MorseRx(ctx, toSend, config)
 
 	go MorseTx(ctx, config)

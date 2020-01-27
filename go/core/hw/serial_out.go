@@ -28,15 +28,17 @@ type SerialOut struct {
 	portDeviceName string
 	adapterName    string
 	useDTR         bool
+	name           string
 }
 
-func NewSerialOut(c *config.Config, adapterName string) MorseOut {
+func NewSerialOut(c *config.Config, name string, adapterName string) MorseOut {
 	s_out := SerialOut{
 		Config:         c,
 		portDeviceName: c.Serial.Device,
 		adapterName:    adapterName,
 		port:           nil,
 		useDTR:         c.Serial.KeyOut == config.SerialPinDTR,
+		name:           name,
 	}
 	return &s_out
 }
@@ -74,4 +76,8 @@ func (s *SerialOut) SetStatusLED(bool) {
 
 func (s *SerialOut) Close() error {
 	panic("implement me")
+}
+
+func (s *SerialOut) Name() string {
+	return s.name
 }

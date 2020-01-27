@@ -37,7 +37,7 @@ func TestResetKeyers(t *testing.T) {
 
 func TestSampleDitAndDahPaddle(t *testing.T) {
 	c := config.DefaultConfig()
-	i := NewMockIn(c, KEYER)
+	i := NewMockIn(c, "mock", KEYER)
 	i.(*MockIn).SetDit(true)
 	i.(*MockIn).SetDah(false)
 

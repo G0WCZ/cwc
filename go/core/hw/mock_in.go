@@ -9,9 +9,10 @@ type MockIn struct {
 	bitValue    bool
 	ditValue    bool
 	dahValue    bool
+	name        string
 }
 
-func NewMockIn(config *config.Config, adapterName string) MorseIn {
+func NewMockIn(config *config.Config, name string, adapterName string) MorseIn {
 	return &MockIn{
 		Config:      config,
 		adapterName: adapterName,
@@ -19,6 +20,7 @@ func NewMockIn(config *config.Config, adapterName string) MorseIn {
 		bitValue:    false,
 		ditValue:    false,
 		dahValue:    false,
+		name:        name,
 	}
 }
 
@@ -67,4 +69,8 @@ func (m *MockIn) SetDit(bit bool) {
 
 func (m *MockIn) SetDah(bit bool) {
 	m.dahValue = bit
+}
+
+func (m *MockIn) Name() string {
+	return m.name
 }

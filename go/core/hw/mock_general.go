@@ -25,6 +25,7 @@ type MockGeneral struct {
 	Config      *config.Config
 	adapterName string
 	statusState map[string]string
+	name        string
 }
 
 func (G *MockGeneral) Open() error {
@@ -47,9 +48,14 @@ func (G *MockGeneral) Close() error {
 	return nil
 }
 
-func NewMockGeneral(config *config.Config, adapterName string) GeneralIO {
+func (G *MockGeneral) Name() string {
+	return G.Name()
+}
+
+func NewMockGeneral(config *config.Config, name string, adapterName string) GeneralIO {
 	return &MockGeneral{Config: config,
 		adapterName: adapterName,
 		statusState: make(map[string]string),
+		name:        name,
 	}
 }

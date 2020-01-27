@@ -30,14 +30,16 @@ type SerialIn struct {
 	keyer          bool
 	port           serial.Port
 	portDeviceName string
+	name           string
 }
 
-func NewSerialIn(config *config.Config, adapterName string) MorseIn {
+func NewSerialIn(config *config.Config, name string, adapterName string) MorseIn {
 	return &SerialIn{
 		Config:         config,
 		adapterName:    adapterName,
 		keyer:          adapterName == KEYER,
 		portDeviceName: config.Serial.Device,
+		name:           name,
 	}
 }
 
@@ -72,4 +74,8 @@ func (s *SerialIn) Close() error {
 
 func (s *SerialIn) UseKeyer() bool {
 	return s.keyer
+}
+
+func (s *SerialIn) Name() string {
+	return s.name
 }

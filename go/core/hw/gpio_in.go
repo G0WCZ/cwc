@@ -30,13 +30,16 @@ type GPIOIn struct {
 	leftInput   rpio.Pin
 	rightInput  rpio.Pin
 	keyer       bool
+	name        string
 }
 
-func NewGPIOIn(config *config.Config, adapterName string) MorseIn {
+func NewGPIOIn(config *config.Config, name string, adapterName string) MorseIn {
 	return &GPIOIn{
 		Config:      config,
 		adapterName: adapterName,
-		keyer:       adapterName == KEYER}
+		keyer:       adapterName == KEYER,
+		name:        name,
+	}
 }
 
 func (g *GPIOIn) Open() error {
@@ -66,6 +69,10 @@ func (g *GPIOIn) Close() error {
 
 func (g *GPIOIn) Bit() bool {
 	return g.Dit()
+}
+
+func (g *GPIOIn) Name() string {
+	return g.name
 }
 
 // NB Active low - has a pullup. Keydown pulls to ground

@@ -8,7 +8,7 @@ import (
 
 func makeMockIn(adapter string) MorseIn {
 	c := config.DefaultConfig()
-	mi := NewMockIn(c, adapter)
+	mi := NewMockIn(c, "mock", adapter)
 	mi.Open()
 
 	return mi

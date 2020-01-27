@@ -21,6 +21,7 @@ import (
 	"context"
 	"github.com/G0WCZ/cwc/config"
 	"github.com/G0WCZ/cwc/core/hw"
+	"github.com/golang/glog"
 )
 
 var generals []hw.GeneralIO
@@ -40,12 +41,14 @@ func General(ctx context.Context, config *config.Config) {
 func OpenGenerals(config *config.Config) {
 	generals = hw.ParseGeneralIOs(config)
 	for _, general := range generals {
+		glog.Infof("opening general %s", general.Name())
 		general.Open()
 	}
 }
 
 func CloseGenerals(config *config.Config) {
 	for _, general := range generals {
+		glog.Infof("closing general %s", general.Name())
 		general.Close()
 	}
 }
@@ -54,4 +57,12 @@ func SetStatus(name string, value string) {
 	for _, general := range generals {
 		general.SetStatus(name, value)
 	}
+}
+
+func GetStatus(name string) []string {
+	var vals []string
+	for _, general := range generals {
+		vals = append(vals, general.GetStatus(name))
+	}
+	return vals
 }
