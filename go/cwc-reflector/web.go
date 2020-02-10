@@ -75,8 +75,8 @@ func renderer() multitemplate.Renderer {
 		"duration": duration,
 	}
 	r := multitemplate.NewRenderer()
-	r.AddFromFilesFuncs("index", funcMap, "cwc-reflector/web/tmpl/base.html", "cwc-reflector/web/tmpl/index.html")
-	r.AddFromFilesFuncs("channel", funcMap, "cwc-reflector/web/tmpl/base.html", "cwc-reflector/web/tmpl/channel.html")
+	r.AddFromFilesFuncs("index", funcMap, "web/tmpl/base.html", "web/tmpl/index.html")
+	r.AddFromFilesFuncs("channel", funcMap, "web/tmpl/base.html", "web/tmpl/channel.html")
 	return r
 }
 
