@@ -86,19 +86,6 @@ func main() {
 
 	glog.Info(DisplayVersion())
 
-	// moves into station client or below
-	// Morse Hardware
-	//var morseIO cwc.IO
-	//
-	//if config.HardwareType == "Serial" {
-	//	morseIO = cwc.NewSerialIO(config)
-	//} else if config.HardwareType == "None" {
-	//	morseIO = cwc.NewNullIO(config)
-	//} else if config.KeyType == "keyer" {
-	//	morseIO = cwc.NewKeyer(config)
-	//} else {
-	//	morseIO = cwc.NewPiGPIO(config)
-	//}
 
 	core.StationClient(ctx, cancel, config)
 }

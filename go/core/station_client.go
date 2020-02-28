@@ -60,17 +60,6 @@ func StationClient(ctx context.Context, cancel func(), cfg *config.Config) {
 	// channel for configChanges
 	configChanges := make(chan config.ConfigChange)
 
-
-	// Run the morse receiver in a thread -- this will send and receive via
-	// the hardware
-	if false { //config.Keyer == "keyer" {
-		//go RunMorseRx(ctx, &hw.morseIn, toSend, config.RemoteEcho, config.Channel, config.KeyerMode,
-		//	config.Keyer.Speed, config.Keyer.Weight, true, config.SidetoneEnable)
-	} else {
-		//go RunMorseRx(ctx, &hw.MorseIn, toSend, config.RemoteEcho, config.Channel, 99, 0, 0,
-		//	false, config.SidetoneEnable)
-	}
-
 	go General(ctx, cfg)
 
 	go MorseRx(ctx, toSend, cfg)
