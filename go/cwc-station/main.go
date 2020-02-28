@@ -100,5 +100,5 @@ func main() {
 	//	morseIO = cwc.NewPiGPIO(config)
 	//}
 
-	core.StationClient(ctx, config)
+	core.StationClient(ctx, cancel, config)
 }

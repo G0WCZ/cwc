@@ -34,13 +34,14 @@ const LocalMulticast = "224.0.0.73:%d"
 // General  station client
 // Can be in local mode, in which case all is local muticast on the local network
 // Else the client of a reflector
-func StationClient(ctx context.Context, config *config.Config) {
+func StationClient(ctx context.Context, cancel func(), cfg *config.Config) {
 	var addr string
-	if config.NetworkMode == "local" {
-		addr = fmt.Sprintf(LocalMulticast, config.LocalPort)
+	
+	if cfg.NetworkMode == "local" {
+		addr = fmt.Sprintf(LocalMulticast, cfg.LocalPort)
 		glog.Infof("Starting in local mode with local multicast address %s", addr)
 	} else {
-		addr = config.ReflectorAddress
+		addr = cfg.ReflectorAddress
 		glog.Infof("Connecting to reflector %s", addr)
 	}
 
@@ -56,6 +57,10 @@ func StationClient(ctx context.Context, config *config.Config) {
 	// channel to send to hardware
 	toMorse := make(chan bitoip.RxMSG)
 
+	// channel for configChanges
+	configChanges := make(chan config.ConfigChange)
+
+
 	// Run the morse receiver in a thread -- this will send and receive via
 	// the hardware
 	if false { //config.Keyer == "keyer" {
@@ -66,11 +71,11 @@ func StationClient(ctx context.Context, config *config.Config) {
 		//	false, config.SidetoneEnable)
 	}
 
-	go General(ctx, config)
+	go General(ctx, cfg)
 
-	go MorseRx(ctx, toSend, config)
+	go MorseRx(ctx, toSend, cfg)
 
-	go MorseTx(ctx, config)
+	go MorseTx(ctx, cfg)
 
 	localRxAddress, err := net.ResolveUDPAddr("udp", "0.0.0.0:0")
 
@@ -87,16 +92,19 @@ func StationClient(ctx context.Context, config *config.Config) {
 	time.Sleep(time.Second * 1)
 
 	// get callsign into a []byte we can send
-	r := strings.NewReader(config.Callsign)
+	r := strings.NewReader(cfg.Callsign)
 	_, err = r.Read(csBase[0:16])
 
 	if err != nil {
-		glog.Errorf("Callsign %s can not be encoded", config.Callsign)
+		glog.Errorf("Callsign %s can not be encoded", cfg.Callsign)
 	}
+	
+	var currentCarrierKey bitoip.CarrierKeyType
+	var currentChannel bitoip.ChannelIdType = cfg.Channel
 
 	// transmit a listen request to the configured channel
 	bitoip.UDPTx(bitoip.ListenRequest, bitoip.ListenRequestPayload{
-		config.Channel,
+		cfg.Channel,
 		csBase,
 	},
 		resolvedAddress,
@@ -153,12 +161,13 @@ func StationClient(ctx context.Context, config *config.Config) {
 			switch tm.Verb {
 			case bitoip.CarrierEvent:
 				glog.V(2).Infof("carrier events to morse: %v", tm)
-				QueueForOutput(tm.Payload.(*bitoip.CarrierEventPayload), config)
+				QueueForOutput(tm.Payload.(*bitoip.CarrierEventPayload), cfg)
 
 			case bitoip.ListenConfirm:
 				glog.V(2).Infof("listen confirm: %v", tm)
 				lc := tm.Payload.(*bitoip.ListenConfirmPayload)
 				glog.Infof("listening channel %d with carrier key %d", lc.Channel, lc.CarrierKey)
+				currentCarrierKey = lc.CarrierKey
 				SetCarrierKey(lc.CarrierKey)
 
 			case bitoip.TimeSyncResponse:
@@ -202,7 +211,7 @@ func StationClient(ctx context.Context, config *config.Config) {
 
 				lastUDPSend = kat
 				p := bitoip.ListenRequestPayload{
-					config.Channel,
+					cfg.Channel,
 					csBase,
 				}
 				glog.V(2).Info("sending keepalive")
@@ -224,6 +233,30 @@ func StationClient(ctx context.Context, config *config.Config) {
 			bitoip.UDPTx(bitoip.TimeSync, bitoip.TimeSyncPayload{
 				tst.UnixNano(),
 			}, resolvedAddress)
+		
+		case cc := <-configChanges:
+			if cc == config.ConfigChangeRestart {
+				cancel()
+			} else if cc == config.ConfigChangeChannel {
+				glog.V(2).Infof("changing channel from %d to %d", currentChannel, cfg.Channel)	
+				
+				// unlisten current channel
+				bitoip.UDPTx(bitoip.Unlisten, bitoip.UnlistenPayload{
+					currentChannel,
+					currentCarrierKey,
+					},
+					resolvedAddress,
+				)
+			}	
+				// transmit a listen request to the configured channel
+				bitoip.UDPTx(bitoip.ListenRequest, bitoip.ListenRequestPayload{
+					cfg.Channel,
+					csBase,
+					},
+					resolvedAddress,
+				)
+				
+			}
 		}
-	}
 }
+

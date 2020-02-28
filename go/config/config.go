@@ -26,6 +26,12 @@ import (
 	"github.com/golang/glog"
 )
 
+type ConfigChange int
+
+var ConfigChangeRestart ConfigChange = 1
+var ConfigChangeChannel ConfigChange = 2
+
+
 type Config struct {
 	NetworkMode       string
 	ReflectorAddress  string
