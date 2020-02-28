@@ -76,8 +76,6 @@ var key_state = CHECK
 var dot_memory bool = false
 var dash_memory bool = false
 var kdelay = 0
-var dot_delay = 0
-var dash_delay = 0
 var cw_keyer_weight = 55
 var keyer_out = 0
 
@@ -153,22 +151,22 @@ func SetKeyerSpacing(s bool) {
 // RunMorseRx sets the morse hardware (key) receiver going.  This sets up a timer
 // to sample the morse input and runs it.
 
-func RunMorseRx(ctx context.Context, morseIO IO, toSend chan bitoip.CarrierEventPayload, echo bool,
-	channel bitoip.ChannelIdType, mode int, speed int, weight int, keyer bool, sidetone bool) {
-	localEcho = echo
-	channelId = channel
+func RunMorseRx(ctx context.Context, morseIO IO, toSend chan bitoip.CarrierEventPayload, config *Config, keyer bool) {
+	localEcho = config.RemoteEcho
+	channelId = config.Channel
 	LastBit = false // make sure turned off to begin -- the default state
 	if keyer {
 		TickTime = KeyerTickTime
 	}
 	ticker = time.NewTicker(TickTime)
 
-	if mode != 99 {
-		SetKeyMode(mode)
+	if config.KeyerMode != 99 {
+		SetKeyMode(config.KeyerMode)
 	}
-	if speed != 0 {
-		dot_delay = 1200 / speed
-		dash_delay = (dot_delay * 3 * weight) / 50
+	if config.KeyerSpeed != 0 {
+                CalcDelays()
+//		config.DotDelay = 1200 / config.KeyerSpeed
+//		config.DashDelay = (config.DotDelay * 3 * config.KeyerWeight) / 50
 	}
 
 	Startup(morseIO)
@@ -181,9 +179,9 @@ func RunMorseRx(ctx context.Context, morseIO IO, toSend chan bitoip.CarrierEvent
 
 		case t := <-ticker.C:
 			if keyer {
-				SampleKeyer(t, toSend, morseIO)
+				SampleKeyer(t, toSend, morseIO, config)
 			} else {
-				Sample(t, toSend, morseIO, sidetone)
+				Sample(t, toSend, morseIO, config)
 			}
 		}
 	}
@@ -212,7 +210,7 @@ func Startup(morseIO IO) {
 // This is called (currently) every 5ms to look for a change in input pin.
 //
 // TODO should have some sort of back-off if not used recently for power saving
-func Sample(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO, sidetone bool) {
+func Sample(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO, config *Config) {
 
 	TransmitToHardware(t, morseIO)
 
@@ -221,7 +219,7 @@ func Sample(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO, sid
 		// change so record it
 		LastBit = rxBit
 
-		if sidetone {
+		if config.SidetoneEnable {
 			morseIO.SetToneOut(rxBit)
 		}
 
@@ -277,7 +275,7 @@ func SetKeyerOut(state int, t time.Time, toSend chan bitoip.CarrierEventPayload,
 	}
 }
 
-func SampleKeyer(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO) {
+func SampleKeyer(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO, config *Config) {
 	TransmitToHardware(t, morseIO)
 
 	// if key_state != EXITLOOP {
@@ -305,7 +303,7 @@ func SampleKeyer(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO
 	case SENDDOT:
 		glog.V(2).Infof("SENDDOT")
 		SetKeyerOut(1, t, toSend, morseIO)
-		if kdelay == dot_delay {
+		if kdelay == config.DotDelay {
 			kdelay = 0
 			SetKeyerOut(0, t, toSend, morseIO)
 			key_state = DOTDELAY // add inter-character spacing of one dot length
@@ -329,7 +327,7 @@ func SampleKeyer(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO
 	case SENDDASH:
 		glog.V(2).Infof("SENDDASH")
 		SetKeyerOut(1, t, toSend, morseIO)
-		if kdelay == dash_delay {
+		if kdelay == config.DashDelay {
 			kdelay = 0
 			SetKeyerOut(0, t, toSend, morseIO)
 			key_state = DASHDELAY // add inter-character spacing of one dash length
@@ -350,7 +348,7 @@ func SampleKeyer(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO
 
 		// add dot delay at end of the dot and check for dash memory, then check if paddle still held
 	case DOTDELAY:
-		if kdelay == dot_delay {
+		if kdelay == config.DotDelay {
 			kdelay = 0
 			if dash_memory { // dash has been set during the dot so service
 				key_state = PREDASH
@@ -368,7 +366,7 @@ func SampleKeyer(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO
 
 	// add dot delay at end of the dash and check for dot memory, then check if paddle still held
 	case DASHDELAY:
-		if kdelay == dot_delay {
+		if kdelay == config.DotDelay {
 			kdelay = 0
 			if dot_memory { // dot has been set during the dash so service
 				key_state = PREDOT
@@ -424,7 +422,7 @@ func SampleKeyer(t time.Time, toSend chan bitoip.CarrierEventPayload, morseIO IO
 	// Actually add 2 x dot_delay since we already have a dot delay at the end of the character.
 	case LETTERSPACE:
 		glog.V(2).Infof("LETTERSPACE")
-		if kdelay == 2*dot_delay {
+		if kdelay == 2*config.DotDelay {
 			kdelay = 0
 			if dot_memory { // check if a dot or dash paddle was pressed during the delay
 				key_state = PREDOT

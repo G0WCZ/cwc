@@ -43,6 +43,8 @@ type Config struct {
 	KeyerSpeed        int
 	KeyerWeight       int
 	KeyerMode         int
+        DotDelay	  int
+        DashDelay         int
 }
 
 const HWKeyTip = 17
@@ -100,4 +102,9 @@ func ReadConfig(filename string) *Config {
 	}
 
 	return &cfg
+}
+
+func CalcDelays() {
+    cfg.DotDelay = 1200 / cfg.KeyerSpeed
+    cfg.DashDelay = (cfg.DotDelay * 3 * cfg.KeyerWeight) / 50
 }

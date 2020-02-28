@@ -88,13 +88,14 @@ func main() {
 
 	if config.HardwareType == "Serial" {
 		morseIO = cwc.NewSerialIO(config)
-	} else if config.HardwareType == "None" {
-		morseIO = cwc.NewNullIO(config)
-	} else if config.KeyType == "keyer" {
-		morseIO = cwc.NewKeyer(config)
-	} else {
-		morseIO = cwc.NewPiGPIO(config)
-	}
+	 } else if config.HardwareType == "None" {
+ 		morseIO = cwc.NewNullIO(config)
+ 	} else if config.KeyType == "keyer" {
+ 		morseIO = cwc.NewKeyer(config)
+ 	} else {
+ 		morseIO = cwc.NewPiGPIO(config)
+ 	}
 
-	cwc.StationClient(ctx, config, morseIO)
+        go cwc.WebServer(ctx, config, StationVersion())
+ 	cwc.StationClient(ctx, config, morseIO)
 }
