@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2019 Graeme Sutherland, Nodestone Limited
+Copyright (C) 2020 Graeme Sutherland, Nodestone Limited
 
 
 This program is free software: you can redistribute it and/or modify
@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"github.com/G0WCZ/cwc/bitoip"
 	"github.com/G0WCZ/cwc/config"
+	"github.com/G0WCZ/cwc/core/hw"
 	"net"
 	"strings"
 	"time"
@@ -36,7 +37,7 @@ const LocalMulticast = "224.0.0.73:%d"
 // Else the client of a reflector
 func StationClient(ctx context.Context, cancel func(), cfg *config.Config) {
 	var addr string
-	
+
 	if cfg.NetworkMode == "local" {
 		addr = fmt.Sprintf(LocalMulticast, cfg.LocalPort)
 		glog.Infof("Starting in local mode with local multicast address %s", addr)
@@ -87,7 +88,7 @@ func StationClient(ctx context.Context, cancel func(), cfg *config.Config) {
 	if err != nil {
 		glog.Errorf("Callsign %s can not be encoded", cfg.Callsign)
 	}
-	
+
 	var currentCarrierKey bitoip.CarrierKeyType
 	var currentChannel bitoip.ChannelIdType = cfg.Channel
 
@@ -134,7 +135,7 @@ func StationClient(ctx context.Context, cancel func(), cfg *config.Config) {
 	for {
 		select {
 		case <-ctx.Done():
-			// TODO morseIO.SetStatusLED(false)
+			SetStatus(hw.StatusLED, hw.Off)
 			return
 
 		case cep := <-toSend:
@@ -145,7 +146,7 @@ func StationClient(ctx context.Context, cancel func(), cfg *config.Config) {
 		case tm := <-toMorse:
 
 			// we have data, so turn signal LED on
-			// TODO morseIO.SetStatusLED(true)
+			SetStatus(hw.StatusLED, hw.On)
 
 			switch tm.Verb {
 			case bitoip.CarrierEvent:
@@ -196,7 +197,7 @@ func StationClient(ctx context.Context, cancel func(), cfg *config.Config) {
 			// check and send a keepalive if nothing else has happened
 			if kat.Sub(lastUDPSend) > time.Duration(20*time.Second) {
 				// turn off Status LED - to be turned back on by response above
-				// TODO morseIO.SetStatusLED(false)
+				SetStatus(hw.StatusLED, hw.Off)
 
 				lastUDPSend = kat
 				p := bitoip.ListenRequestPayload{
@@ -216,36 +217,35 @@ func StationClient(ctx context.Context, cancel func(), cfg *config.Config) {
 			}
 
 			// turn off Status LED - to be turned back on by response above
-			// TODO morseIO.SetStatusLED(false)
+			SetStatus(hw.StatusLED, hw.Off)
 
 			glog.V(2).Info("sending timesync")
 			bitoip.UDPTx(bitoip.TimeSync, bitoip.TimeSyncPayload{
 				tst.UnixNano(),
 			}, resolvedAddress)
-		
+
 		case cc := <-configChanges:
 			if cc == config.ConfigChangeRestart {
 				cancel()
 			} else if cc == config.ConfigChangeChannel {
-				glog.V(2).Infof("changing channel from %d to %d", currentChannel, cfg.Channel)	
-				
+				glog.V(2).Infof("changing channel from %d to %d", currentChannel, cfg.Channel)
+
 				// unlisten current channel
 				bitoip.UDPTx(bitoip.Unlisten, bitoip.UnlistenPayload{
 					currentChannel,
 					currentCarrierKey,
-					},
+				},
 					resolvedAddress,
 				)
-			}	
-				// transmit a listen request to the configured channel
-				bitoip.UDPTx(bitoip.ListenRequest, bitoip.ListenRequestPayload{
-					cfg.Channel,
-					csBase,
-					},
-					resolvedAddress,
-				)
-				
 			}
-		}
-}
+			// transmit a listen request to the configured channel
+			bitoip.UDPTx(bitoip.ListenRequest, bitoip.ListenRequestPayload{
+				cfg.Channel,
+				csBase,
+			},
+				resolvedAddress,
+			)
 
+		}
+	}
+}
