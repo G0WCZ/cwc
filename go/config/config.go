@@ -31,7 +31,6 @@ type ConfigChange int
 var ConfigChangeRestart ConfigChange = 1
 var ConfigChangeChannel ConfigChange = 2
 
-
 type Config struct {
 	NetworkMode       string
 	ReflectorAddress  string
@@ -108,7 +107,7 @@ type Advanced struct {
 
 var defaultConfig = Config{
 	NetworkMode:       "Reflector",
-	ReflectorAddress:  "cwc0.nodestone.io:7388",
+	ReflectorAddress:  "cwc.onlineradioclub.org:7388",
 	LocalPort:         5990,
 	MorseInHardware:   []string{"gpio"}, // GPIO or Serial or None
 	MorseOutHardware:  []string{"gpio"},

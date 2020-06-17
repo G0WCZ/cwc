@@ -1,7 +1,7 @@
 # Standard Configuration
 #
 NetworkMode = "reflector"
-ReflectorAddress = "cwc0.nodestone.io:7388"
+ReflectorAddress = "cwc.onlineradioclub.org:7388"
 LocalPort = 5990
 MorseInHardware = ["gpio"]
 MorseOutHardware = ["gpio"]
