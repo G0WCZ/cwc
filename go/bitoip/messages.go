@@ -108,7 +108,6 @@ const (
 	LastEvent BitEvent = 0x80 // high bit set to indicate last one
 )
 
-// slightly random
 const MaxBitEvents = (MaxMessageSizeInBytes - 22) / 5
 const MaxNsPerCarrierEvent = 2 ^ 32
 
