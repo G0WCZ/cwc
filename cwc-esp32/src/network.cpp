@@ -15,30 +15,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#include <Arduino.h>
-#include <WiFi.h>
+// Wifi, basic network and UDP stuff
 
-#define LED_BUILTIN 2
 
-const char *ssid = "EggHouse";
-const char *password = "";
-
-void setup() {
-  pinMode (LED_BUILTIN, OUTPUT);
-  Serial.begin(9600);
-  delay(20000);
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-    Serial.println("Establishing connection to WiFi..");
-  }
-  Serial.println(WiFi.localIP());
-}
-
-void loop() {
-  // put your main code here, to run repeatedly:
-  digitalWrite(LED_BUILTIN, HIGH);
-  delay(1000);
-  digitalWrite(LED_BUILTIN, LOW);
-  delay(1000);
-}

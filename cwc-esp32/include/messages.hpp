@@ -1,3 +1,21 @@
+/*
+Copyright (C) 2020 Graeme Sutherland, Nodestone Limited
+
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+#include <inttypes.h>
 
 #define MAX_MESSAGE_SIZE 200
 #define CALLSIGN_SIZE 16
@@ -11,12 +29,12 @@ typedef unsigned short CarrierKeyType;
 typedef char CallsignType[CALLSIGN_SIZE];
 typedef char KeyType[KEY_SIZE];
 typedef char ValueType[VALUE_SIZE];
-typedef long long time64;
-typedef long int time32;
+typedef uint64_t time64;
+typedef uint32_t time32;
 typedef char BitEvent;
 
 // Messages
-#define ENUMBERATE_CHANNELS 0x90
+#define ENUMERATE_CHANNELS 0x90
 #define LIST_CHANNELS 0x91
 #define TIME_SYNC 0x92
 #define TIME_SYNC_RESPONSE 0x93
@@ -30,31 +48,46 @@ typedef char BitEvent;
 #define MAX_CHANNELS_PER_MESSAGE (MAX_MESSAGE_SIZE - 1)/2
 
 typedef struct {
-   ChannelIdType channels[MAX_CHANNELS_PER_MESSAGE];
+    char verb = ENUMERATE_CHANNELS;
+} EnumerateChannelsPayload;
+
+typedef struct {
+    char verb = LIST_CHANNELS;
+    ChannelIdType channels[MAX_CHANNELS_PER_MESSAGE];
 } ListChannelsPayload;
 
 typedef struct {
+    char verb = TIME_SYNC;
+	time64 current_time;
+} TimeSyncPayload; 
+
+typedef struct {
+    char verb = TIME_SYNC_RESPONSE;
 	time64 given_time;
     time64 server_rx_time;
     time64 server_tx_time;
 } TimeSyncResponsePayload; 
 
 typedef struct {
+    char verb = LISTEN_REQUEST;
     ChannelIdType channel;
     CallsignType callsign;
 } ListenRequestPayload;
 
 typedef struct {
+    char verb = LISTEN_CONFIRM;
     ChannelIdType channel;
     CarrierKeyType carrier_key;
 } ListenConfirmPayload;
 
 typedef struct {
+    char verb = UNLISTEN;
     ChannelIdType channel;
     CarrierKeyType carrier_key;
 } UnlistenPayload;
 
 typedef struct {
+    char verb = KEYVALUE;
     ChannelIdType channel;
     CarrierKeyType carrier_key;
     KeyType key;
@@ -82,6 +115,7 @@ typedef struct {
 } CarrierBitEvent;
 
 typedef struct {
+    char verb = CARRIER_EVENT;
     ChannelIdType channel;
     CarrierKeyType carrier_key;
     time64 start_timestamp;
