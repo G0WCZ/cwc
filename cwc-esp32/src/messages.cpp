@@ -77,4 +77,22 @@ void listen_request(int channel, char * callsign) {
     strncpy(lrp.callsign, callsign, 16);
 
     msg_send((char *)&lrp, sizeof(lrp));
+}
+
+void unlisten(int channel, unsigned short key) {
+    UnlistenPayload up;
+    
+    up.channel = (ChannelIdType) channel;
+    up.carrier_key = (CarrierKeyType) key;
+
+    msg_send((char *)&up, sizeof(up));
 } 
+
+void key_value(char * key, char * value) {
+    KeyValuePayload kvp;
+    
+    strncpy(kvp.key, key, KEY_SIZE);
+    strncpy(kvp.value, value, VALUE_SIZE);
+
+    msg_send((char *)&kvp, sizeof(kvp));
+}
