@@ -15,10 +15,16 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-// Wifi, basic network and UDP stuff
+#include <inttypes.h>
+#include <sys/time.h>
 
+/**
+ * A time64 64 bit timestamp for now
+ */
+uint64_t timestamp_64_now() {
+    struct timeval tv_now;
 
-// wifi, then ntp, then...
-
-
+    gettimeofday(&tv_now, NULL);
+    return (uint64_t)tv_now.tv_sec * 1000000L + (uint64_t)tv_now.tv_usec;
+}
 

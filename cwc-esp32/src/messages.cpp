@@ -18,7 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <sys/time.h>
 #include <inttypes.h>
 #include <string.h>
-#include "messages.hpp"
+#include <WiFi.h>
+#include "timestamp.h"
+#include "messages.h"
 
 uint64_t
 ntoh64(const uint64_t *input)
@@ -59,12 +61,9 @@ void enumerate_channels() {
 }
 
 void time_sync() {
-    struct timeval tv_now;
     TimeSyncPayload tsp;
 
-    gettimeofday(&tv_now, NULL);
-    uint64_t now = (uint64_t)tv_now.tv_sec * 1000000L + (uint64_t)tv_now.tv_usec;
-    
+    uint64_t now = timestamp_64_now();
     tsp.current_time = hton64(&now);
      
     msg_send((char *)&tsp, sizeof(tsp));
@@ -73,7 +72,7 @@ void time_sync() {
 void listen_request(int channel, char * callsign) {
     ListenRequestPayload lrp;
     
-    lrp.channel = (ChannelIdType) channel;
+    lrp.channel = (ChannelIdType) htons(channel);
     strncpy(lrp.callsign, callsign, 16);
 
     msg_send((char *)&lrp, sizeof(lrp));
@@ -82,8 +81,8 @@ void listen_request(int channel, char * callsign) {
 void unlisten(int channel, unsigned short key) {
     UnlistenPayload up;
     
-    up.channel = (ChannelIdType) channel;
-    up.carrier_key = (CarrierKeyType) key;
+    up.channel = (ChannelIdType) htons(channel);
+    up.carrier_key = (CarrierKeyType) htons(key);
 
     msg_send((char *)&up, sizeof(up));
 } 
@@ -95,4 +94,10 @@ void key_value(char * key, char * value) {
     strncpy(kvp.value, value, VALUE_SIZE);
 
     msg_send((char *)&kvp, sizeof(kvp));
+}
+
+void carrier_event() {
+
+
+
 }
