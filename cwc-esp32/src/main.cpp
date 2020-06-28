@@ -20,8 +20,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #define LED_BUILTIN 2
 
-const char *ssid = "EggHouse";
-const char *password = "";
+const char *ssid = "$NETWORK"
+const char *password = "$PASSWORD";
 
 void setup() {
   pinMode (LED_BUILTIN, OUTPUT);

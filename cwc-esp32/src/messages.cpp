@@ -96,8 +96,16 @@ void key_value(char * key, char * value) {
     msg_send((char *)&kvp, sizeof(kvp));
 }
 
-void carrier_event() {
+void carrier_event(int channel, unsigned short key, uint64_t start_time, CarrierBitEvent (*bitEvents)[]) {
+    CarrierEventPayload cep;
+    cep.channel = htons(channel);
+    cep.carrier_key = htons(key);
+    cep.start_timestamp = hton64(&start_time);
 
+    for (int i=0; i<MAX_BIT_EVENTS; i++) {
+        cep.bit_events[i].bit_event = (*bitEvents)[i].bit_event;
+        cep.bit_events[i].time_offset = htonl((*bitEvents)[i].time_offset);
+    } 
 
-
+    msg_send((char *)&cep, sizeof(cep));
 }
