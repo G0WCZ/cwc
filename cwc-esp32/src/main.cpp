@@ -20,7 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #define LED_BUILTIN 2
 
-const char *ssid = "$NETWORK"
+const char *ssid = "$NETWORK";
 const char *password = "$PASSWORD";
 
 void setup() {

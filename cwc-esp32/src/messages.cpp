@@ -96,7 +96,7 @@ void key_value(char * key, char * value) {
     msg_send((char *)&kvp, sizeof(kvp));
 }
 
-void carrier_event(int channel, unsigned short key, uint64_t start_time, CarrierBitEvent (*bitEvents)[]) {
+void carrier_event(int channel, unsigned short key, uint64_t start_time, CarrierBitEvent (*bitEvents)[MAX_BIT_EVENTS]) {
     CarrierEventPayload cep;
     cep.channel = htons(channel);
     cep.carrier_key = htons(key);
