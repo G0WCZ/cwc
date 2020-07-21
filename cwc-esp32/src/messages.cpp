@@ -53,7 +53,8 @@ void msg_send(char * pkt, int len) {
 
 }
 
-// Message encode and decode functions
+// Message encode functions:
+// These do marshalling and network byte order conversions
 
 void enumerate_channels() {
     EnumerateChannelsPayload ecp;
@@ -98,6 +99,7 @@ void key_value(char * key, char * value) {
 
 void carrier_event(int channel, unsigned short key, uint64_t start_time, CarrierBitEvent (*bitEvents)[MAX_BIT_EVENTS]) {
     CarrierEventPayload cep;
+
     cep.channel = htons(channel);
     cep.carrier_key = htons(key);
     cep.start_timestamp = hton64(&start_time);
@@ -108,4 +110,54 @@ void carrier_event(int channel, unsigned short key, uint64_t start_time, Carrier
     } 
 
     msg_send((char *)&cep, sizeof(cep));
+}
+
+PayloadHandler handlers[MAX_VERBS];
+
+void set_handler(unsigned char verb, void (*handler)(void *payload)) {
+    handlers[verb-ZERO_VERB] = handler;
+}
+
+PayloadHandler get_handler(unsigned char verb){
+   return handlers[verb-ZERO_VERB]; 
+}
+
+
+void decode_message(char * message, int length) {
+    char verb = *message;
+    void *payload = nullptr;
+
+    switch (verb)
+    {
+        case LIST_CHANNELS: {
+            ListChannelsPayload *lcp = (ListChannelsPayload*)message;
+            for (int i=0; i<MAX_CHANNELS_PER_MESSAGE;i++) {
+                lcp->channels[i] = ntohs(lcp->channels[i]);
+            }
+            payload = lcp;
+        } break;
+        
+        case TIME_SYNC_RESPONSE: {
+            TimeSyncResponsePayload *tsrp = (TimeSyncResponsePayload*)message;
+            tsrp->given_time = ntoh64(&tsrp->given_time);
+            tsrp->server_rx_time = ntoh64(&tsrp->server_rx_time);
+            tsrp->server_tx_time = ntoh64(&tsrp->server_tx_time);
+            payload = tsrp;
+        } break;
+
+        case LISTEN_CONFIRM: {
+            ListenConfirmPayload *lcop = (ListenConfirmPayload*)message;
+            lcop->channel = ntohs(lcop->channel);
+            lcop->carrier_key = ntohs(lcop->carrier_key);
+            payload = lcop;
+        } break;
+
+
+        default: {
+        } break;
+    }
+
+    if (payload != nullptr) {
+        get_handler(verb)(payload);
+    }
 }

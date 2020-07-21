@@ -47,6 +47,11 @@ typedef char BitEvent;
 
 #define MAX_CHANNELS_PER_MESSAGE (MAX_MESSAGE_SIZE - 1)/2
 
+#define ZERO_VERB 0x81
+#define MAX_VERBS 0x20
+
+typedef void (*PayloadHandler)(void *payload);
+
 typedef struct {
     char verb = ENUMERATE_CHANNELS;
 } EnumerateChannelsPayload;
@@ -107,7 +112,7 @@ typedef struct {
 
 // slightly random
 #define MAX_BIT_EVENTS (MAX_MESSAGE_SIZE - 22)/5 
-#define MAX_NS_PER_CARRIER_EVENT = 2^32
+#define MAX_NS_PER_CARRIER_EVENT 2^32
 
 typedef struct {
     time32 time_offset;
