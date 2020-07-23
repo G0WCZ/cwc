@@ -15,24 +15,22 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-// Wifi, basic network and UDP stuff
-// wifi, then ntp, then...
-#include <WiFi.h>
-#include "debug.h"
-#include "dashboard.h"
+#define DS_ZERO 0
+#define DS_BOOTED 1
+#define DS_GOT_WIFI 2
+#define DS_WIFI_AP 3
+#define DS_REF_SEEK 4
+#define DS_REF_SYNC 5
+#define DS_REF_LOST 6
+#define DS_ERROR 7
 
+#define DS_MAX_STATES 8
 
-void network_setup(char *ssid, char *password) {
-    delay(10000);
-    debug_printf("Establishing connection to wifi %s\n", ssid);
+void dash_setup();
 
-    WiFi.begin(ssid, password);
-    
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(100);
-    }
-    dash_set_state(DS_GOT_WIFI); 
-    debug_print("Wifi connected. IP is ");
-    debug_println(WiFi.localIP());
-}
+void dash_set_state(int state);
+
+void dash_set_key(char *key, char *value);
+
+void dash_unset_key(char *key);
 

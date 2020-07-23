@@ -16,9 +16,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 // Basic control of CWC station
+#include "dashboard.h"
 #include "timesync.h"
 
+
 void station_setup() {
+    dash_set_state(DS_REF_SEEK);
     timesync_setup();
 }
 
