@@ -31,7 +31,7 @@ void network_setup(char *ssid, char *password) {
         delay(100);
     }
     
-    debug_printf("Wifi connected. IP is %s\n", WiFi.localIP());
+    debug_print("Wifi connected. IP is ");
+    debug_println(WiFi.localIP());
 }
-
 
