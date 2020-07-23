@@ -32,6 +32,7 @@ void network_setup(char *ssid, char *password) {
         delay(100);
     }
     dash_set_state(DS_GOT_WIFI); 
+    dash_set_key(String("LocalIP"), WiFi.localIP().toString());
     debug_print("Wifi connected. IP is ");
     debug_println(WiFi.localIP());
 }

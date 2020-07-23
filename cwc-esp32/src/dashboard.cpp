@@ -17,10 +17,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include <Arduino.h>
+#include <SimpleMap.h>
 #include "dashboard.h"
 
 #define LED_FLASH_RANGE 12
 #define LED_PIN 2
+
+using namespace std;
 
 // MAPPING FOR LED on/off
 bool led_flash_map[DS_MAX_STATES][LED_FLASH_RANGE] = {
@@ -37,6 +40,8 @@ bool led_flash_map[DS_MAX_STATES][LED_FLASH_RANGE] = {
 volatile int state_count = 0;
 int state = DS_ZERO;
 hw_timer_t *timer = NULL;
+
+SimpleMap <String, String> *kvp = NULL;
 
 void set_status_led(bool on) {
     digitalWrite(LED_PIN, on);
@@ -65,7 +70,14 @@ void stop_timer() {
 void dash_setup() {
     state = DS_ZERO;
     state_count = 0;
-    pinMode (LED_PIN, OUTPUT);
+
+    kvp = new SimpleMap<String, String>([](String &a, String &b) -> int {
+        if (a == b) return 0;
+        if (a > b) return 1;
+        /*if (a < b) */ return -1;
+    });
+
+    pinMode(LED_PIN, OUTPUT);
     set_status_led(false);
     start_timer();
 }
@@ -74,10 +86,10 @@ void dash_set_state(int new_state) {
     state = new_state;
 }
 
-void dash_set_key(char *key, char *value) {
-    //TODO
+void dash_set_key(String key, String value) {
+    kvp->put(key, value);
 }
 
-void dash_unset_key(char *key) {
-    //TODO
+void dash_unset_key(String key) {
+    kvp->remove(kvp->getIndex(key));
 }

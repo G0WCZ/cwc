@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <Arduino.h>
 #include <WiFi.h>
 #include "debug.h"
+#include "dashboard.h"
 #include "network.h"
 #include "station.h"
 
@@ -28,18 +29,19 @@ const char *ssid = "$NETWORK";
 const char *password = "$PASSWORD";
 
 void setup() {
+  dash_setup();
+  dash_set_state(DS_BOOTED);
   debug_begin(9600);
   debug_println("Starting debugging");
 
   network_setup((char *)ssid, (char *)password);
   station_setup();
-  pinMode (LED_BUILTIN, OUTPUT);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  digitalWrite(LED_BUILTIN, HIGH);
-  delay(1000);
-  digitalWrite(LED_BUILTIN, LOW);
-  delay(1000);
+  //digitalWrite(LED_BUILTIN, HIGH);
+  //delay(1000);
+  //digitalWrite(LED_BUILTIN, LOW);
+  //delay(1000);
 }

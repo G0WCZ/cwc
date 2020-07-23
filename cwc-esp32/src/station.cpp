@@ -21,7 +21,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
 void station_setup() {
-    dash_set_state(DS_REF_SEEK);
+    dash_set_state(DS_REF_SEEK); // set to "seeking reflector state"
     timesync_setup();
 }
 

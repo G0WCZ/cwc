@@ -15,6 +15,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+#include <Arduino.h>
+
 #define DS_ZERO 0
 #define DS_BOOTED 1
 #define DS_GOT_WIFI 2
@@ -30,7 +32,7 @@ void dash_setup();
 
 void dash_set_state(int state);
 
-void dash_set_key(char *key, char *value);
+void dash_set_key(String key, String value);
 
-void dash_unset_key(char *key);
+void dash_unset_key(String key);
 
