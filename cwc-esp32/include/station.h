@@ -15,23 +15,5 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-// Wifi, basic network and UDP stuff
-// wifi, then ntp, then...
-#include <WiFi.h>
-#include "debug.h"
 
-
-void network_setup(char *ssid, char *password) {
-    delay(10000);
-    debug_printf("Establishing connection to wifi %s\n", ssid);
-
-    WiFi.begin(ssid, password);
-    
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(100);
-    }
-    
-    debug_printf("Wifi connected. IP is %s\n", WiFi.localIP());
-}
-
-
+void station_setup(); 

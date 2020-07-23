@@ -147,3 +147,5 @@ typedef struct {
     Version my_code_version;
     Version latest_stable_version;
 } VersionInfoPayload;
+
+void set_handler(unsigned char verb, void (*handler)(void *payload));

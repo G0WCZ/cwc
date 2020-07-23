@@ -17,6 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include <Arduino.h>
 #include <WiFi.h>
+#include "debug.h"
+#include "network.h"
+#include "station.h"
+
 
 #define LED_BUILTIN 2
 
@@ -24,15 +28,12 @@ const char *ssid = "$NETWORK";
 const char *password = "$PASSWORD";
 
 void setup() {
+  debug_begin(9600);
+  debug_println("Starting debugging");
+
+  network_setup((char *)ssid, (char *)password);
+  station_setup();
   pinMode (LED_BUILTIN, OUTPUT);
-  Serial.begin(9600);
-  delay(20000);
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-    Serial.println("Establishing connection to WiFi..");
-  }
-  Serial.println(WiFi.localIP());
 }
 
 void loop() {

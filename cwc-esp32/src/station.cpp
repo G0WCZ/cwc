@@ -16,3 +16,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 // Basic control of CWC station
+#include "timesync.h"
+
+void station_setup() {
+    timesync_setup();
+}
+
+void station_run() {
+
+
+}
