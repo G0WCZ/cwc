@@ -18,16 +18,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <Arduino.h>
 #include <AsyncUDP.h>
+#include "config.h"
 
+
+AsyncUDP udp;
 
 void udp_transport_setup() {
-
-
-
+    udp.listen(get_config("LocalPort").toInt());
 }
 
 void udp_transport_run() {
-
-
 
 }

@@ -15,37 +15,31 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
+//
+// Very simple config system.. to be replaced with something better
+//
+
 #include <Arduino.h>
-#include <WiFi.h>
+#include <SimpleMap.h>
 #include "debug.h"
-#include "config.h"
-#include "dashboard.h"
-#include "network.h"
-#include "station.h"
+
+SimpleMap<String, String> *config = new SimpleMap<String, String>([](String &a, String &b) -> int {
+        if (a == b) return 0;
+        if (a > b) return 1;
+        /*if (a < b) */ return -1;
+    });
 
 
 
-#define LED_BUILTIN 2
-
-const char *ssid = "$NETWORK";
-const char *password = "$PASSWORD";
-
-void setup() {
-  config_setup();
-  dash_setup();
-  dash_set_state(DS_BOOTED);
-  debug_begin(9600);
-  debug_println("Starting debugging");
-
-  network_setup((char *)ssid, (char *)password);
-  station_setup();
-  debug_kvp();
+String get_config(String key) {
+    return config->get(key);
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
-  //digitalWrite(LED_BUILTIN, HIGH);
-  //delay(1000);
-  //digitalWrite(LED_BUILTIN, LOW);
-  //delay(1000);
+void set_config(String key, String value) {
+    config->put(key, value);
+}
+
+void config_setup() {
+    config->put("LocalPort", "7388");
 }
