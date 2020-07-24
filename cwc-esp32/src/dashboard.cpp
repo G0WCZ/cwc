@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <Arduino.h>
 #include <SimpleMap.h>
+#include "debug.h"
 #include "dashboard.h"
 
 #define LED_FLASH_RANGE 12
@@ -92,4 +93,12 @@ void dash_set_key(String key, String value) {
 
 void dash_unset_key(String key) {
     kvp->remove(kvp->getIndex(key));
+}
+
+void debug_kvp() {
+    for (int i=0; i<kvp->size(); i++) {
+        debug_println("===");
+        debug_println(kvp->getKey(i) + ": " + kvp->getData(i));
+        debug_println("===");
+    }
 }

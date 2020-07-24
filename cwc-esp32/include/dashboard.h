@@ -36,3 +36,4 @@ void dash_set_key(String key, String value);
 
 void dash_unset_key(String key);
 
+void debug_kvp(); 
