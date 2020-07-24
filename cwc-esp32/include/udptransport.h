@@ -15,18 +15,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-// Basic control of CWC station
-#include "dashboard.h"
-#include "timesync.h"
-#include "udptransport.h"
 
-void station_setup() {
-    dash_set_state(DS_REF_SEEK); // set to "seeking reflector state"
-    timesync_setup();
-    udp_transport_setup();
-}
-
-void station_run() {
-
-
-}
+void udp_transport_setup();
+void udp_transport_run();
