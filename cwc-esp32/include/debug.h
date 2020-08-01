@@ -19,5 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #define debug_begin(...) do { if (DEBUG) { Serial.begin(__VA_ARGS__); while(!Serial); }} while (0)
 #define debug_print(...) do { if (DEBUG) Serial.print(__VA_ARGS__); } while (0)
+#define debug_write(...) do { if (DEBUG) Serial.write(__VA_ARGS__); } while (0)
 #define debug_println(...) do { if (DEBUG) Serial.println(__VA_ARGS__); } while (0)
 #define debug_printf(...) do { if (DEBUG) Serial.printf(__VA_ARGS__); } while (0)

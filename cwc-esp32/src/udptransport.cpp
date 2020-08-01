@@ -18,15 +18,34 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <Arduino.h>
 #include <AsyncUDP.h>
+#include <WiFi.h>
+#include "debug.h"
 #include "config.h"
+#include "messages.h"
 
 
 AsyncUDP udp;
+IPAddress reflector_IP;
+int reflector_port;
 
 void udp_transport_setup() {
-    udp.listen(get_config("LocalPort").toInt());
+
+    WiFi.hostByName(get_config("ReflectorHost").c_str(), reflector_IP);
+    debug_print("reflector host: " + reflector_IP.toString() + "\n");
+
+    int reflector_port = get_config("ReflectorPort").toInt(); 
+    int local_port = get_config("LocalPort").toInt();
+
+    debug_print("Listening UDP port " + get_config("LocalPort") + "\n");
+    
+    int a = udp.listen(local_port);
+    debug_println(a);
+    udp.onPacket([](AsyncUDPPacket p) {
+        debug_write(p.data(), p.length());
+
+        decode_message(p.data(), p.length()); 
+    });
 }
 
 void udp_transport_run() {
-
 }

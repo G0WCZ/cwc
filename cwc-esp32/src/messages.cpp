@@ -123,7 +123,7 @@ PayloadHandler get_handler(unsigned char verb){
 }
 
 
-void decode_message(char * message, int length) {
+void decode_message(uint8_t * message, int length) {
     char verb = *message;
     void *payload = nullptr;
 

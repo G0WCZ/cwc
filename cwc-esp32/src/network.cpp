@@ -18,9 +18,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // Wifi, basic network and UDP stuff
 // wifi, then ntp, then...
 #include <WiFi.h>
+#include <time.h>
 #include "debug.h"
 #include "dashboard.h"
 
+
+const char* ntpServer = "pool.ntp.org";
+const long  gmtOffset_sec = 0;
+const int   daylightOffset_sec = 0;
 
 void network_setup(char *ssid, char *password) {
     delay(10000);
@@ -35,5 +40,17 @@ void network_setup(char *ssid, char *password) {
     dash_set_key(String("LocalIP"), WiFi.localIP().toString());
     debug_print("Wifi connected. IP is ");
     debug_println(WiFi.localIP());
+
+    // NTP setup
+    configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+
+    struct tm timeinfo;
+
+    if(!getLocalTime(&timeinfo)){
+      debug_println("Failed to obtain time");
+    } else {
+      debug_println(&timeinfo, "Time set to: %A, %B %d %Y %H:%M:%S");
+    }
+    
 }
 

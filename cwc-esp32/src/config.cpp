@@ -41,5 +41,7 @@ void set_config(String key, String value) {
 }
 
 void config_setup() {
-    config->put("LocalPort", "7388");
+    config->put("LocalPort", "5990"); // Local UDP Port
+    config->put("ReflectorHost", "cwc.onlineradioclub.org");
+    config->put("ReflectorPort", "7388");
 }

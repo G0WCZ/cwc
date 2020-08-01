@@ -149,3 +149,5 @@ typedef struct {
 } VersionInfoPayload;
 
 void set_handler(unsigned char verb, void (*handler)(void *payload));
+
+void decode_message(uint8_t * data, int length);

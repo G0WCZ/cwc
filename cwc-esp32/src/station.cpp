@@ -27,6 +27,5 @@ void station_setup() {
 }
 
 void station_run() {
-
-
+    udp_transport_run();
 }
