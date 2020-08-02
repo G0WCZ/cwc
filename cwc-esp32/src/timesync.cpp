@@ -15,6 +15,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+#include <Arduino.h>
+#include "debug.h"
 #include "messages.h"
 #include "timestamp.h"
 
@@ -41,7 +43,7 @@ void handle_time_sync_response(void * payload) {
     uint64_t now = timestamp_64_now();
 
     int64_t latest_time_offset = ((tsrp->server_rx_time - tsrp->given_time) - (tsrp->server_tx_time - now)) / 2;
-    int64_t latest_round_trip = (now = tsrp->given_time) - (tsrp->server_rx_time - tsrp->server_tx_time);
+    int64_t latest_round_trip = (now - tsrp->given_time) - (tsrp->server_rx_time - tsrp->server_tx_time);
     
     offsets[time_offset_index] = latest_time_offset;
     roundtrips[time_offset_index] = latest_round_trip;
@@ -63,6 +65,9 @@ void handle_time_sync_response(void * payload) {
     common_time_offset = offset_sum / time_sync_count;
     common_round_trip = roundtrip_sum / time_sync_count;
 
+    debug_printf("timesync offset: %ld ", ((common_time_offset & 0xffffffff)/1000));
+    debug_printf("timesync round trip: %ld\n", ((common_round_trip & 0xffffffff)/1000));
+    
 }
 
 int64_t get_time_offset() {

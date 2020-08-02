@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <inttypes.h>
 #include <string.h>
 #include <WiFi.h>
+#include "debug.h"
 #include "timestamp.h"
 #include "messages.h"
 
@@ -46,11 +47,20 @@ hton64(const uint64_t *input)
     return (ntoh64(input));
 }
 
+void (*sender)(char * pkt, int len) = NULL;
 /**
  * Send message via UDP
  */
 void msg_send(char * pkt, int len) {
+    if (sender != NULL) {
+        (*sender)(pkt, len);
+    } else {
+        debug_println("No message sender set");
+    }
+}
 
+void set_message_sender(void(*s)(char * pkt, int len)) {
+    sender = s;
 }
 
 // Message encode functions:
@@ -121,7 +131,6 @@ void set_handler(unsigned char verb, void (*handler)(void *payload)) {
 PayloadHandler get_handler(unsigned char verb){
    return handlers[verb-ZERO_VERB]; 
 }
-
 
 void decode_message(uint8_t * message, int length) {
     char verb = *message;

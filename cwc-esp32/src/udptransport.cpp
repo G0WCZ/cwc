@@ -28,20 +28,26 @@ AsyncUDP udp;
 IPAddress reflector_IP;
 int reflector_port;
 
+void udp_sender(char * pkt, int length) {
+    udp.writeTo((uint8_t *)pkt, length, reflector_IP, reflector_port);
+}
+
 void udp_transport_setup() {
 
     WiFi.hostByName(get_config("ReflectorHost").c_str(), reflector_IP);
     debug_print("reflector host: " + reflector_IP.toString() + "\n");
 
-    int reflector_port = get_config("ReflectorPort").toInt(); 
+    reflector_port = get_config("ReflectorPort").toInt(); 
     int local_port = get_config("LocalPort").toInt();
 
     debug_print("Listening UDP port " + get_config("LocalPort") + "\n");
     
-    int a = udp.listen(local_port);
-    debug_println(a);
+   udp.listen(local_port);
+
+    set_message_sender(&udp_sender);
+
     udp.onPacket([](AsyncUDPPacket p) {
-        debug_write(p.data(), p.length());
+        debug_printf("got packet length %d verb %d\n", p.length(), p.data()[0]);
 
         decode_message(p.data(), p.length()); 
     });

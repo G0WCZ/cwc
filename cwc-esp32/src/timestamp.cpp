@@ -25,6 +25,6 @@ uint64_t timestamp_64_now() {
     struct timeval tv_now;
 
     gettimeofday(&tv_now, NULL);
-    return (uint64_t)tv_now.tv_sec * 1000000L + (uint64_t)tv_now.tv_usec;
+    return (uint64_t)(tv_now.tv_sec * 1000000L + (uint64_t)tv_now.tv_usec) * 1000L;
 }
 

@@ -148,6 +148,10 @@ typedef struct {
     Version latest_stable_version;
 } VersionInfoPayload;
 
+void set_message_sender(void(*s)(char * pkt, int len)); 
+
 void set_handler(unsigned char verb, void (*handler)(void *payload));
 
 void decode_message(uint8_t * data, int length);
+
+void time_sync();

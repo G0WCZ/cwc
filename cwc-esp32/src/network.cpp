@@ -47,7 +47,7 @@ void network_setup(char *ssid, char *password) {
     struct tm timeinfo;
 
     if(!getLocalTime(&timeinfo)){
-      debug_println("Failed to obtain time");
+      debug_println("Failed to obtain ntp time");
     } else {
       debug_println(&timeinfo, "Time set to: %A, %B %d %Y %H:%M:%S");
     }

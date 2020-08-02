@@ -16,7 +16,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 // Basic control of CWC station
+
+#include <Arduino.h>
 #include "dashboard.h"
+#include "messages.h"
 #include "timesync.h"
 #include "udptransport.h"
 
@@ -28,4 +31,6 @@ void station_setup() {
 
 void station_run() {
     udp_transport_run();
+    time_sync();
+    delay(500);
 }
