@@ -15,6 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 #include <sys/time.h>
 #include <inttypes.h>
 #include <string.h>
@@ -53,6 +54,7 @@ void (*sender)(char * pkt, int len) = NULL;
  */
 void msg_send(char * pkt, int len) {
     if (sender != NULL) {
+        debug_printf("sending verb 0x%x len %d\n", pkt[0], len);
         (*sender)(pkt, len);
     } else {
         debug_println("No message sender set");
@@ -135,6 +137,8 @@ PayloadHandler get_handler(unsigned char verb){
 void decode_message(uint8_t * message, int length) {
     char verb = *message;
     void *payload = nullptr;
+
+    debug_printf("got verb 0x%x, length %d\n", verb, length);
 
     switch (verb)
     {

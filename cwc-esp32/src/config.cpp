@@ -44,4 +44,5 @@ void config_setup() {
     config->put("LocalPort", "5990"); // Local UDP Port
     config->put("ReflectorHost", "cwc.onlineradioclub.org");
     config->put("ReflectorPort", "7388");
+    config->put("Callsign", "G0WCZ-32");
 }

@@ -18,19 +18,41 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // Basic control of CWC station
 
 #include <Arduino.h>
+#include "debug.h"
+#include "config.h"
 #include "dashboard.h"
 #include "messages.h"
 #include "timesync.h"
 #include "udptransport.h"
 
+
+void listen_confirm(void * payload) {
+    ListenConfirmPayload *lcp = (ListenConfirmPayload *)payload;
+    debug_printf("Listen confirm for %d with carrier key %d\n", lcp->channel, lcp->carrier_key);
+}
+
+void channel_setup() {
+    char callsign[CALLSIGN_SIZE];
+
+    set_handler(LISTEN_CONFIRM, listen_confirm);
+
+    get_config("Callsign").toCharArray(callsign, CALLSIGN_SIZE);
+    
+    debug_printf("callsign is %s", callsign);
+
+    listen_request(0, callsign);
+}
+
+
 void station_setup() {
     dash_set_state(DS_REF_SEEK); // set to "seeking reflector state"
     timesync_setup();
     udp_transport_setup();
+    channel_setup();
 }
 
 void station_run() {
     udp_transport_run();
     time_sync();
-    delay(500);
+    delay(5000);
 }

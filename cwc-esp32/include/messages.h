@@ -15,6 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 #include <inttypes.h>
 
 #define MAX_MESSAGE_SIZE 200
@@ -58,11 +59,13 @@ typedef struct {
 
 typedef struct {
     char verb = LIST_CHANNELS;
+    char pad;
     ChannelIdType channels[MAX_CHANNELS_PER_MESSAGE];
 } ListChannelsPayload;
 
 typedef struct {
     char verb = TIME_SYNC;
+    char pad[3] = {0x00, 0x00, 0x00};
 	time64 current_time;
 } TimeSyncPayload; 
 
@@ -75,24 +78,28 @@ typedef struct {
 
 typedef struct {
     char verb = LISTEN_REQUEST;
+    char pad = 0x00;
     ChannelIdType channel;
     CallsignType callsign;
 } ListenRequestPayload;
 
 typedef struct {
     char verb = LISTEN_CONFIRM;
+    char pad = 0x00;
     ChannelIdType channel;
     CarrierKeyType carrier_key;
 } ListenConfirmPayload;
 
 typedef struct {
     char verb = UNLISTEN;
+    char pad = 0x00;
     ChannelIdType channel;
     CarrierKeyType carrier_key;
 } UnlistenPayload;
 
 typedef struct {
     char verb = KEYVALUE;
+    char pad = 0x00;
     ChannelIdType channel;
     CarrierKeyType carrier_key;
     KeyType key;
@@ -121,6 +128,7 @@ typedef struct {
 
 typedef struct {
     char verb = CARRIER_EVENT;
+    char pad = 0x00;
     ChannelIdType channel;
     CarrierKeyType carrier_key;
     time64 start_timestamp;
@@ -155,3 +163,5 @@ void set_handler(unsigned char verb, void (*handler)(void *payload));
 void decode_message(uint8_t * data, int length);
 
 void time_sync();
+
+void listen_request(int channel, char * callsign); 
