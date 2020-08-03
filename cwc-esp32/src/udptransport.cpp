@@ -47,7 +47,6 @@ void udp_transport_setup() {
     set_message_sender(&udp_sender);
 
     udp.onPacket([](AsyncUDPPacket p) {
-
         decode_message(p.data(), p.length()); 
     });
 }

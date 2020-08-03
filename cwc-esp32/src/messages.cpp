@@ -48,6 +48,14 @@ hton64(const uint64_t *input)
     return (ntoh64(input));
 }
 
+void debug_data(char *pkt, int len) {
+    debug_print("[");
+    for (int i=0; i<len; i++) {
+        debug_printf("%x ", pkt[i]);
+    }
+    debug_print("]\n");
+}
+
 void (*sender)(char * pkt, int len) = NULL;
 /**
  * Send message via UDP
@@ -55,6 +63,7 @@ void (*sender)(char * pkt, int len) = NULL;
 void msg_send(char * pkt, int len) {
     if (sender != NULL) {
         debug_printf("sending verb 0x%x len %d\n", pkt[0], len);
+        debug_data(pkt, len);
         (*sender)(pkt, len);
     } else {
         debug_println("No message sender set");
@@ -139,6 +148,7 @@ void decode_message(uint8_t * message, int length) {
     void *payload = nullptr;
 
     debug_printf("got verb 0x%x, length %d\n", verb, length);
+    debug_data((char*)message, length);
 
     switch (verb)
     {

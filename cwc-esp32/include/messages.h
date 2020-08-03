@@ -59,7 +59,7 @@ typedef struct {
 
 typedef struct {
     char verb = LIST_CHANNELS;
-    char pad;
+    char pad = 0x00;
     ChannelIdType channels[MAX_CHANNELS_PER_MESSAGE];
 } ListChannelsPayload;
 
@@ -71,9 +71,9 @@ typedef struct {
 
 typedef struct {
     char verb = TIME_SYNC_RESPONSE;
-	time64 given_time;
-    time64 server_rx_time;
-    time64 server_tx_time;
+	time64 given_time __attribute__((packed));
+    time64 server_rx_time __attribute__((packed));
+    time64 server_tx_time __attribute__((packed));
 } TimeSyncResponsePayload; 
 
 typedef struct {
@@ -85,7 +85,6 @@ typedef struct {
 
 typedef struct {
     char verb = LISTEN_CONFIRM;
-    char pad = 0x00;
     ChannelIdType channel;
     CarrierKeyType carrier_key;
 } ListenConfirmPayload;
@@ -124,6 +123,7 @@ typedef struct {
 typedef struct {
     time32 time_offset;
     BitEvent bit_event;
+    char pad[3];
 } CarrierBitEvent;
 
 typedef struct {
@@ -133,6 +133,7 @@ typedef struct {
     CarrierKeyType carrier_key;
     time64 start_timestamp;
     CarrierBitEvent bit_events[MAX_BIT_EVENTS];
+    char pad2;
     time64 send_time;
 } CarrierEventPayload;
 
