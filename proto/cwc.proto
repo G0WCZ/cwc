@@ -1,0 +1,89 @@
+/*
+Copyright (C) 2020 Graeme Sutherland, Nodestone Limited
+
+
+This program is fre software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*
+///
+// CWC Protocol
+//
+syntax = "proto2";
+
+message EnumerateChannels {}
+
+message ListChannels {
+    repeated uint32 channelId;
+}
+
+message TimeSync {
+    required uint64 currentTime;
+}
+
+message TimeSyncResponse {
+    required uint64 givenTime;
+    required uint64 serverRxTime;
+    required uint64 serverTxTime;
+}
+
+message ListenRequest {
+    required uint32 channelId;
+    required string callsign;
+}
+
+message ListenConfirm {
+    required unit32 channelId;
+    required uint32 carrierKey;
+}
+
+message UnlistenRequest {
+    required uint32 channelId;
+    required uint32 carrierKey;
+}
+
+message KeyValuePayload {
+    required uint32 channelId;
+    required uint32 carrierKey;
+    required string key;
+    required string value;
+}
+
+message CarrierEvent {
+
+    message BitEvent {
+        required uint32 timeOffset;
+        enum Event {
+            OFF = 0;
+            ON = 1;
+        } 
+    }
+
+    required uint32 channelId;
+    required uint32 carrierKey;
+    required uint64 startTimestamp;
+    required uint64 sendTimestamp;
+    repeated BitEvent event;
+}
+
+message VersionInfo {
+    message Version {
+        int32 major;
+        int32 minor;
+        int32 patch;
+        string release;
+    }
+
+    required VersionInfo myProtocolVersion;
+    required VersionInfo myCodeVersion;
+    required VersionInfo latestStableVersion;
+}
