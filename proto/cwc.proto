@@ -18,7 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ///
 // CWC Protocol
 //
-syntax = "proto2";
+syntax = "proto3";
+option go_package = "cwcpb";
 
 message EnumerateChannels {}
 
@@ -27,60 +28,60 @@ message ListChannels {
 }
 
 message TimeSync {
-    required uint64 current_time = 1;
+     uint64 current_time = 1;
 }
 
 message TimeSyncResponse {
-    required uint64 given_time = 1;
-    required uint64 server_rx_time = 2;
-    required uint64 server_tx_time = 3;
+     uint64 given_time = 1;
+     uint64 server_rx_time = 2;
+     uint64 server_tx_time = 3;
 }
 
 message ListenRequest {
-    required uint32 channel_id = 1;
-    required string callsign = 2;
+     uint32 channel_id = 1;
+     string callsign = 2;
 }
 
 message ListenConfirm {
-    required uint32 channel_id = 1;
-    required uint32 carrier_key = 2;
+     uint32 channel_id = 1;
+     uint32 carrier_key = 2;
 }
 
 message UnlistenRequest {
-    required uint32 channel_id = 1;
-    required uint32 carrier_key = 2;
+     uint32 channel_id = 1;
+     uint32 carrier_key = 2;
 }
 
 message KeyValuePayload {
-    required uint32 channel_id = 1;
-    required uint32 carrier_key = 2;
-    required string key = 3;
-    required string value = 4;
+     uint32 channel_id = 1;
+     uint32 carrier_key = 2;
+     string key = 3;
+     string value = 4;
 }
 
 message CarrierEvent {
 
     message BitEvent {
-        required uint32 time_offset = 1;
-        required bool bit_event = 2;
-        required bool last = 3;
+         uint32 time_offset = 1;
+         bool bit_event = 2;
+         bool last = 3;
     }
 
-    required uint32 channel_id = 2;
-    required uint32 carrier_key = 3;
-    required uint64 start_timestamp = 4;
-    required uint64 send_timestamp = 5;
+     uint32 channel_id = 2;
+     uint32 carrier_key = 3;
+     uint64 start_timestamp = 4;
+     uint64 send_timestamp = 5;
     repeated BitEvent bit_events = 6;
 }
 
 message VersionInfo {
     message Version {
-        required int32 major = 1;
-        required int32 minor = 2;
-        required int32 patch = 3;
-        required string release = 4;
+         int32 major = 1;
+         int32 minor = 2;
+         int32 patch = 3;
+         string release = 4;
     }
-    required VersionInfo my_protocol_version = 1;
-    required VersionInfo my_code_version = 2;
-    required VersionInfo latest_stable_version = 3;
+     VersionInfo my_protocol_version = 1;
+     VersionInfo my_code_version = 2;
+     VersionInfo latest_stable_version = 3;
 }
