@@ -52,7 +52,7 @@ message UnlistenRequest {
      uint32 carrier_key = 2;
 }
 
-message KeyValuePayload {
+message KeyValue {
      uint32 channel_id = 1;
      uint32 carrier_key = 2;
      string key = 3;
@@ -84,4 +84,19 @@ message VersionInfo {
      VersionInfo my_protocol_version = 1;
      VersionInfo my_code_version = 2;
      VersionInfo latest_stable_version = 3;
+}
+
+message CWCMessage {
+     oneof msg {
+          CarrierEvent carrier_event = 1;
+          TimeSync time_sync = 2;
+          TimeSyncResponse time_sync_response = 3;
+          ListenRequest listen_request = 4;
+          ListenConfirm listen_confirm = 5;
+          UnlistenRequest unlisten_request = 6;
+          EnumerateChannels enumerate_channels= 7;
+          ListChannels list_channels = 8;
+          VersionInfo version_info = 9;
+          KeyValue key_value = 10;
+     }
 }
