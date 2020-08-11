@@ -13,6 +13,6 @@ require (
 	github.com/stianeikeland/go-rpio v4.2.0+incompatible
 	go.bug.st/serial.v1 v0.0.0-20180827123349-5f7892a7bb45
 	golang.org/x/net v0.0.0-20190620200207-3b0461eec859 // indirect
-	google.golang.org/protobuf v1.25.0 // indirect
+	google.golang.org/protobuf v1.25.0
 	gotest.tools v2.2.0+incompatible
 )
