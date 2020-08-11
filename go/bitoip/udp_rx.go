@@ -69,7 +69,7 @@ func UDPRx(ctx context.Context, address *net.UDPAddr, messages chan RxMSG) {
 
 			glog.V(2).Infof("packet rx: %#v", buffer[0:n])
 
-			message := DecodeBuffer(buffer)
+			message := DecodeBuffer(buffer, n)
 
 			glog.V(2).Infof("udp rx got %v", message)
 

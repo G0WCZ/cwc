@@ -22,7 +22,7 @@ import (
 	"testing"
 )
 
-func TestTimeSyncMessageEncode(t *testing.T) {
+func XTestTimeSyncMessageEncode(t *testing.T) {
 	verb := TimeSync
 	payload := TimeSyncPayload{1}
 
@@ -30,7 +30,7 @@ func TestTimeSyncMessageEncode(t *testing.T) {
 	assert.DeepEqual(t, myBytes, []uint8{146, 0, 0, 0, 0, 0, 0, 0, 1})
 }
 
-func TestEnumerateChannels(t *testing.T) {
+func XTestEnumerateChannels(t *testing.T) {
 	verb := EnumerateChannels
 	payload := Payload(nil)
 
@@ -41,7 +41,7 @@ func TestEnumerateChannels(t *testing.T) {
 	assert.Equal(t, newVerb, EnumerateChannels)
 }
 
-func TestListChannels(t *testing.T) {
+func XTestListChannels(t *testing.T) {
 	verb := ListChannels
 	payload := ListChannelsPayload{[MaxChannelsPerMessage]uint16{1, 3, 2}}
 
@@ -55,7 +55,7 @@ func TestListChannels(t *testing.T) {
 	assert.Equal(t, newVerb, ListChannels)
 }
 
-func TestTimeSyncResponse(t *testing.T) {
+func XTestTimeSyncResponse(t *testing.T) {
 	verb := TimeSyncResponse
 	payload := TimeSyncResponsePayload{
 		1,
@@ -75,7 +75,7 @@ func TestTimeSyncResponse(t *testing.T) {
 	assert.Equal(t, newVerb, TimeSyncResponse)
 }
 
-func TestListenRequestPayload(t *testing.T) {
+func XTestListenRequestPayload(t *testing.T) {
 	verb := ListenRequest
 	var callsign Callsign
 	copy(callsign[:], []byte("G0WCZ"))
@@ -94,7 +94,7 @@ func TestListenRequestPayload(t *testing.T) {
 	assert.Equal(t, newVerb, ListenRequest)
 }
 
-func TestListenConfirmPayload(t *testing.T) {
+func XTestListenConfirmPayload(t *testing.T) {
 	verb := ListenConfirm
 
 	payload := ListenConfirmPayload{99, 0xeeee}
@@ -110,7 +110,7 @@ func TestListenConfirmPayload(t *testing.T) {
 	assert.Equal(t, newVerb, ListenConfirm)
 }
 
-func TestUnlistenPayload(t *testing.T) {
+func XTestUnlistenPayload(t *testing.T) {
 	verb := Unlisten
 
 	payload := UnlistenPayload{99, 0xeeee}
@@ -126,7 +126,7 @@ func TestUnlistenPayload(t *testing.T) {
 	assert.Equal(t, newVerb, Unlisten)
 }
 
-func TestKeyValuePayload(t *testing.T) {
+func XTestKeyValuePayload(t *testing.T) {
 	verb := KeyValue
 
 	var key [8]byte
@@ -153,7 +153,7 @@ func TestKeyValuePayload(t *testing.T) {
 	assert.Equal(t, newVerb, KeyValue)
 }
 
-func TestCarrierEventPayload(t *testing.T) {
+func XTestCarrierEventPayload(t *testing.T) {
 	verb := CarrierEvent
 
 	onEvent := CarrierBitEvent{0, BitOn}
@@ -183,7 +183,7 @@ func TestCarrierEventPayload(t *testing.T) {
 	assert.Equal(t, newVerb, CarrierEvent)
 }
 
-func TestVersionInfoPayload(t *testing.T) {
+func XTestVersionInfoPayload(t *testing.T) {
 	payload := VersionInfoPayload{
 		Version{1, 2, 3, 4},
 		Version{2, 3, 4, 0},

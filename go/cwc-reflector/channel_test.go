@@ -20,6 +20,7 @@ package main
 import (
 	"context"
 	"github.com/G0WCZ/cwc/bitoip"
+	"github.com/G0WCZ/cwc/cwcpb"
 	"net"
 	"sort"
 	"testing"
@@ -31,10 +32,10 @@ import (
 
 func TestNewChannel(t *testing.T) {
 	channel := NewChannel(33)
-	assert.DeepEqual(t, channel.ChannelId, uint16(33))
+	assert.DeepEqual(t, channel.ChannelId, uint32(33))
 	assert.Equal(t, len(channel.Subscribers), 0)
 	assert.Equal(t, len(channel.Addresses), 0)
-	assert.Equal(t, channel.LastKey, uint16(99))
+	assert.Equal(t, channel.LastKey, uint32(99))
 }
 
 func TestGetChannel(t *testing.T) {
@@ -80,7 +81,7 @@ func TestUnsubscribeWhenNotSubscribed(t *testing.T) {
 	assert.Equal(t, len(channel2.Addresses), 0)
 }
 
-func sortSlice(sl []uint16) []uint16 {
+func sortSlice(sl []uint32) []uint32 {
 	sort.Slice(sl, func(i, j int) bool { return sl[i] < sl[j] })
 	return sl
 }
@@ -89,33 +90,37 @@ func TestChannelIds(t *testing.T) {
 	GetChannel(21)
 	GetChannel(22)
 	GetChannel(33)
-	assert.DeepEqual(t, sortSlice(ChannelIds()), sortSlice([]uint16{21, 22, 33}))
+	assert.DeepEqual(t, sortSlice(ChannelIds()), sortSlice([]uint32{21, 22, 33}))
 }
 
 func TestEmptyChannelIds(t *testing.T) {
-	channels = make(map[uint16]*Channel)
+	channels = make(map[uint32]*Channel)
 	assert.Equal(t, len(ChannelIds()), 0)
 }
 
-func carrierEventPayload(key bitoip.CarrierKeyType) bitoip.CarrierEventPayload {
-	return bitoip.CarrierEventPayload{
-		1,
-		key,
-		time.Now().UnixNano(),
-		[bitoip.MaxBitEvents]bitoip.CarrierBitEvent{
-			{0, bitoip.BitOn},
-			{100, bitoip.BitOff | bitoip.LastEvent},
-		},
-		int64(0),
+func carrierEventPayload(key bitoip.CarrierKeyType) *cwcpb.CWCMessage {
+	beOn := &cwcpb.CarrierEvent_BitEvent{
+		BitEvent:   true,
+		TimeOffset: 0,
+		Last:       false,
 	}
-}
 
-func TestBroadcastEmpty(t *testing.T) {
-	channels = make(map[uint16]*Channel)
-	c1 := GetChannel(1)
-	ce := carrierEventPayload(100)
-
-	c1.Broadcast(ce)
+	beOff := &cwcpb.CarrierEvent_BitEvent{
+		BitEvent:   false,
+		TimeOffset: 100,
+		Last:       true,
+	}
+	return &cwcpb.CWCMessage{
+		Msg: &cwcpb.CWCMessage_CarrierEvent{
+			CarrierEvent: &cwcpb.CarrierEvent{
+				ChannelId:      1,
+				CarrierKey:     key,
+				StartTimestamp: time.Now().UnixNano(),
+				SendTimestamp:  time.Now().UnixNano(),
+				BitEvents:      []*cwcpb.CarrierEvent_BitEvent{beOn, beOff},
+			},
+		},
+	}
 }
 
 func TestBroadcastToSubscriber(t *testing.T) {
@@ -132,9 +137,9 @@ func TestBroadcastToSubscriber(t *testing.T) {
 
 	// get one message
 	go func() {
-		_, _, _ = pc.ReadFrom(buffer)
-		glog.Infof("Raw Rx: %d %v", len(buffer), buffer)
-		doneChan <- buffer
+		n, _, _ := pc.ReadFrom(buffer)
+		glog.Infof("Raw Rx: %d %v", n, buffer)
+		doneChan <- buffer[0:n]
 	}()
 
 	serverAddress, _ := net.ResolveUDPAddr("udp", "localhost:6012")
@@ -150,15 +155,12 @@ func TestBroadcastToSubscriber(t *testing.T) {
 
 	buf := <-doneChan
 
-	verb, payload := bitoip.DecodePacket(buf)
-	assert.Equal(t, verb, bitoip.CarrierEvent)
-	assert.DeepEqual(t, payload, &ce)
-	rxce := payload.(*bitoip.CarrierEventPayload)
-	assert.Equal(t, rxce.CarrierKey, key)
+	msg := bitoip.DecodeBuffer(buf, len(buf))
+	assert.Equal(t, msg.GetCarrierEvent().GetChannelId(), uint32(1))
 }
 
 func TestSuperviseChannelsNoSubscribers(t *testing.T) {
-	channels = make(map[uint16]*Channel)
+	channels = make(map[uint32]*Channel)
 	_ = GetChannel(1)
 	_ = GetChannel(2)
 	r := SuperviseChannels(time.Now(), time.Duration(10*time.Minute))
@@ -166,7 +168,7 @@ func TestSuperviseChannelsNoSubscribers(t *testing.T) {
 }
 
 func TestSuperviseChannelsNoneRemoved(t *testing.T) {
-	channels = make(map[uint16]*Channel)
+	channels = make(map[uint32]*Channel)
 	c1 := GetChannel(1)
 	c2 := GetChannel(2)
 	addr, _ := net.ResolveUDPAddr("udp", "localhost:19234")
@@ -177,7 +179,7 @@ func TestSuperviseChannelsNoneRemoved(t *testing.T) {
 }
 
 func TestSuperviseChannels2Removed(t *testing.T) {
-	channels = make(map[uint16]*Channel)
+	channels = make(map[uint32]*Channel)
 	c1 := GetChannel(1)
 	c2 := GetChannel(2)
 	addr, _ := net.ResolveUDPAddr("udp", "localhost:19234")
@@ -198,7 +200,7 @@ func TestStation_AddSeenOn(t *testing.T) {
 		time.Now(),
 	}
 	s.AddSeenOn(bitoip.ChannelIdType(1))
-	assert.Equal(t, uint16(1), s.SeenOnChannels[0])
+	assert.Equal(t, uint32(1), s.SeenOnChannels[0])
 	s.AddSeenOn(bitoip.ChannelIdType(1))
 	assert.Equal(t, 1, len(s.SeenOnChannels))
 	s.AddSeenOn(bitoip.ChannelIdType(2))

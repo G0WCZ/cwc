@@ -25,7 +25,7 @@ import (
 
 func UDPTx(message *cwcpb.CWCMessage, resolvedAddress *net.UDPAddr) {
 
-	messagePayload := EncodeBuffer(*message)
+	messagePayload := EncodeBuffer(message)
 	connection := UDPConnection()
 	n, err := connection.WriteToUDP(messagePayload, resolvedAddress)
 	glog.V(2).Infof("sent udp: %d, err %v", n, err)

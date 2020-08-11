@@ -67,11 +67,11 @@ message CarrierEvent {
          bool last = 3;
     }
 
-     uint32 channel_id = 2;
-     uint32 carrier_key = 3;
-     int64 start_timestamp = 4;
-     int64 send_timestamp = 5;
-    repeated BitEvent bit_events = 6;
+     uint32 channel_id = 4;
+     uint32 carrier_key = 5;
+     int64 start_timestamp = 6;
+     int64 send_timestamp = 7;
+    repeated BitEvent bit_events = 8;
 }
 
 message VersionInfo {

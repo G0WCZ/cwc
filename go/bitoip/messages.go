@@ -159,9 +159,10 @@ func EncodePayload(verb MessageVerb, payload Payload) []byte {
 }
 
 // Decode protobuf protocol message
-func DecodeBuffer(buffer []byte) *cwcpb.CWCMessage {
+func DecodeBuffer(buffer []byte, length int) *cwcpb.CWCMessage {
 	msg := &cwcpb.CWCMessage{}
-	if err := proto.Unmarshal(buffer, msg); err != nil {
+	err := proto.UnmarshalOptions{AllowPartial: true}.Unmarshal(buffer[0:length], msg)
+	if err != nil {
 		glog.Errorf("Bad protobuf decode: %v", err)
 		return nil
 	} else {
@@ -169,10 +170,10 @@ func DecodeBuffer(buffer []byte) *cwcpb.CWCMessage {
 	}
 }
 
-func EncodeBuffer(message cwcpb.CWCMessage) []byte {
-	buf, err := proto.Marshal(&message)
+func EncodeBuffer(message *cwcpb.CWCMessage) []byte {
+	buf, err := proto.Marshal(message)
 	if err != nil {
-		glog.Errorf("Protobuf marshall failed: %v", err)
+		glog.Errorf("Protobuf marshal failed: %v", err)
 	}
 	return buf
 }
