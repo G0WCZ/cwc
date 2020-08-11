@@ -23,8 +23,8 @@ import (
 	"github.com/G0WCZ/cwc/bitoip"
 	"github.com/G0WCZ/cwc/config"
 	"github.com/G0WCZ/cwc/core/hw"
+	"github.com/G0WCZ/cwc/cwcpb"
 	"net"
-	"strings"
 	"time"
 
 	"github.com/golang/glog"
@@ -53,7 +53,7 @@ func StationClient(ctx context.Context, cancel func(), cfg *config.Config) {
 		return
 	}
 	// channel to send to network
-	toSend := make(chan bitoip.CarrierEventPayload)
+	toSend := make(chan *cwcpb.CarrierEvent)
 
 	// channel to send to hardware
 	toMorse := make(chan bitoip.RxMSG)
@@ -76,29 +76,20 @@ func StationClient(ctx context.Context, cancel func(), cfg *config.Config) {
 	// start the UDP Receiver
 	go bitoip.UDPRx(ctx, localRxAddress, toMorse)
 
-	var csBase [16]byte
-
 	// Allow things to catch up. May not be needed anymore
 	time.Sleep(time.Second * 1)
-
-	// get callsign into a []byte we can send
-	r := strings.NewReader(cfg.Callsign)
-	_, err = r.Read(csBase[0:16])
-
-	if err != nil {
-		glog.Errorf("Callsign %s can not be encoded", cfg.Callsign)
-	}
 
 	var currentCarrierKey bitoip.CarrierKeyType
 	var currentChannel bitoip.ChannelIdType = cfg.Channel
 
-	// transmit a listen request to the configured channel
-	bitoip.UDPTx(bitoip.ListenRequest, bitoip.ListenRequestPayload{
-		cfg.Channel,
-		csBase,
-	},
-		resolvedAddress,
-	)
+	bitoip.UDPTx(&cwcpb.CWCMessage{
+		Msg: &cwcpb.CWCMessage_ListenRequest{
+			ListenRequest: &cwcpb.ListenRequest{
+				ChannelId: cfg.Channel,
+				Callsign:  cfg.Callsign,
+			},
+		},
+	}, resolvedAddress)
 
 	// Do time sync
 	// Set up buckets and fill the buckets with time offset and round-trip data
@@ -122,8 +113,12 @@ func StationClient(ctx context.Context, cancel func(), cfg *config.Config) {
 	timeSyncTick := time.Tick(5 * time.Second)
 
 	for i := 0; i < timeOffsetBucketSize; i++ {
-		bitoip.UDPTx(bitoip.TimeSync, bitoip.TimeSyncPayload{
-			time.Now().UnixNano(),
+		bitoip.UDPTx(&cwcpb.CWCMessage{
+			Msg: &cwcpb.CWCMessage_TimeSync{
+				TimeSync: &cwcpb.TimeSync{
+					CurrentTime: time.Now().UnixNano(),
+				},
+			},
 		}, resolvedAddress)
 	}
 
@@ -140,29 +135,33 @@ func StationClient(ctx context.Context, cancel func(), cfg *config.Config) {
 
 		case cep := <-toSend:
 			glog.V(2).Infof("carrier event payload to send: %v", cep)
+			msg := &cwcpb.CWCMessage{
+				Msg: &cwcpb.CWCMessage_CarrierEvent{
+					CarrierEvent: cep,
+				},
+			}
 			// TODO fill in some channel details
-			bitoip.UDPTx(bitoip.CarrierEvent, cep, resolvedAddress)
+			bitoip.UDPTx(msg, resolvedAddress)
 
 		case tm := <-toMorse:
 
 			// we have data, so turn signal LED on
 			SetStatus(hw.StatusLED, hw.On)
 
-			switch tm.Verb {
-			case bitoip.CarrierEvent:
-				glog.V(2).Infof("carrier events to morse: %v", tm)
-				QueueForOutput(tm.Payload.(*bitoip.CarrierEventPayload), cfg)
+			switch tm.Message.Msg.(type) {
+			case *cwcpb.CWCMessage_CarrierEvent:
+				glog.V(2).Infof("carrier events to morse: %v", tm.Message.Msg)
+				QueueForOutput(tm.Message.GetCarrierEvent(), cfg)
 
-			case bitoip.ListenConfirm:
-				glog.V(2).Infof("listen confirm: %v", tm)
-				lc := tm.Payload.(*bitoip.ListenConfirmPayload)
-				glog.Infof("listening channel %d with carrier key %d", lc.Channel, lc.CarrierKey)
-				currentCarrierKey = lc.CarrierKey
-				SetCarrierKey(lc.CarrierKey)
-
-			case bitoip.TimeSyncResponse:
+			case *cwcpb.CWCMessage_ListenConfirm:
+				glog.V(2).Infof("listen confirm: %v", tm.Message.Msg)
+				lc := tm.Message.GetListenConfirm()
+				glog.Infof("listening channel %d with carrier key %d", lc.GetChannelId(), lc.GetCarrierKey())
+				currentCarrierKey = lc.GetCarrierKey()
+				SetCarrierKey(lc.GetCarrierKey())
+			case *cwcpb.CWCMessage_TimeSyncResponse:
 				glog.V(2).Infof("time sync response %v", tm)
-				tsr := tm.Payload.(*bitoip.TimeSyncResponsePayload)
+				tsr := tm.Message.GetTimeSyncResponse()
 				now := time.Now().UnixNano()
 
 				// time offset and roundtrip calculation.  See how NTP does this. Basically
@@ -200,12 +199,17 @@ func StationClient(ctx context.Context, cancel func(), cfg *config.Config) {
 				SetStatus(hw.StatusLED, hw.Off)
 
 				lastUDPSend = kat
-				p := bitoip.ListenRequestPayload{
-					cfg.Channel,
-					csBase,
+
+				listenReq := &cwcpb.CWCMessage{
+					Msg: &cwcpb.CWCMessage_ListenRequest{
+						ListenRequest: &cwcpb.ListenRequest{
+							ChannelId: cfg.Channel,
+							Callsign:  cfg.Callsign,
+						},
+					},
 				}
 				glog.V(2).Info("sending keepalive")
-				bitoip.UDPTx(bitoip.ListenRequest, p, resolvedAddress)
+				bitoip.UDPTx(listenReq, resolvedAddress)
 			}
 
 		// do time sync
@@ -220,9 +224,15 @@ func StationClient(ctx context.Context, cancel func(), cfg *config.Config) {
 			SetStatus(hw.StatusLED, hw.Off)
 
 			glog.V(2).Info("sending timesync")
-			bitoip.UDPTx(bitoip.TimeSync, bitoip.TimeSyncPayload{
-				tst.UnixNano(),
-			}, resolvedAddress)
+
+			timeSyncReq := &cwcpb.CWCMessage{
+				Msg: &cwcpb.CWCMessage_TimeSync{
+					TimeSync: &cwcpb.TimeSync{
+						CurrentTime: tst.UnixNano(),
+					},
+				},
+			}
+			bitoip.UDPTx(timeSyncReq, resolvedAddress)
 
 		case cc := <-configChanges:
 			if cc == config.ConfigChangeRestart {
@@ -231,21 +241,27 @@ func StationClient(ctx context.Context, cancel func(), cfg *config.Config) {
 				glog.V(2).Infof("changing channel from %d to %d", currentChannel, cfg.Channel)
 
 				// unlisten current channel
-				bitoip.UDPTx(bitoip.Unlisten, bitoip.UnlistenPayload{
-					currentChannel,
-					currentCarrierKey,
-				},
-					resolvedAddress,
-				)
+				unlistenReq := &cwcpb.CWCMessage{
+					Msg: &cwcpb.CWCMessage_UnlistenRequest{
+						UnlistenRequest: &cwcpb.UnlistenRequest{
+							ChannelId:  currentChannel,
+							CarrierKey: currentCarrierKey,
+						},
+					},
+				}
+				bitoip.UDPTx(unlistenReq, resolvedAddress)
 			}
-			// transmit a listen request to the configured channel
-			bitoip.UDPTx(bitoip.ListenRequest, bitoip.ListenRequestPayload{
-				cfg.Channel,
-				csBase,
-			},
-				resolvedAddress,
-			)
 
+			// transmit a listen request to the configured channel
+			listenReq := &cwcpb.CWCMessage{
+				Msg: &cwcpb.CWCMessage_ListenRequest{
+					ListenRequest: &cwcpb.ListenRequest{
+						ChannelId: cfg.Channel,
+						Callsign:  cfg.Callsign,
+					},
+				},
+			}
+			bitoip.UDPTx(listenReq, resolvedAddress)
 		}
 	}
 }

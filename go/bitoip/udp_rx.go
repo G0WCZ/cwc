@@ -31,7 +31,7 @@ var conn *net.UDPConn
 
 type (
 	RxMSG struct {
-		Message    cwcpb.CWCMessage
+		Message    *cwcpb.CWCMessage
 		SrcAddress net.UDPAddr
 		RxTime     int64
 	}
@@ -73,7 +73,7 @@ func UDPRx(ctx context.Context, address *net.UDPAddr, messages chan RxMSG) {
 
 			glog.V(2).Infof("udp rx got %v", message)
 
-			messages <- RxMSG{*message, *addr, now}
+			messages <- RxMSG{message, *addr, now}
 		}
 	}()
 

@@ -22,6 +22,7 @@ import (
 	"github.com/G0WCZ/cwc/bitoip"
 	"github.com/G0WCZ/cwc/config"
 	"github.com/G0WCZ/cwc/core/hw"
+	"github.com/G0WCZ/cwc/cwcpb"
 	"github.com/golang/glog"
 	"sort"
 	"sync"
@@ -92,14 +93,14 @@ func CloseOutputs() {
 
 // Queue this stuff for sending to hardware -- LED or relay or PWM
 // by adding to queue that will be sent out based on the tick timing
-func QueueForOutput(carrierEvents *bitoip.CarrierEventPayload, config *config.Config) {
+func QueueForOutput(carrierEvents *cwcpb.CarrierEvent, config *config.Config) {
 	if (config.RemoteEcho || (carrierEvents.CarrierKey != carrierKey)) &&
-		carrierEvents.Channel == channelId {
+		carrierEvents.GetChannelId() == channelId {
 		// compose into events
 		newEvents := make([]hw.TimedBitEvent, 0)
 
 		// remove the calculated server time offset
-		start := time.Unix(0, carrierEvents.StartTimeStamp-timeOffset+(roundTrip/2))
+		start := time.Unix(0, carrierEvents.GetStartTimestamp()-timeOffset+(roundTrip/2))
 		diff := start.UnixNano() - time.Now().UnixNano()
 		if diff < 0 {
 			// if we have negative time, increase offset a little to 'allow'
@@ -108,12 +109,21 @@ func QueueForOutput(carrierEvents *bitoip.CarrierEventPayload, config *config.Co
 			glog.V(2).Infof("Negative time offset %v to current time", diff/1000)
 		}
 
-		for _, ce := range carrierEvents.BitEvents {
+		for _, ce := range carrierEvents.GetBitEvents() {
+			bitEvent := bitoip.BitEvent(0)
+			if ce.GetBitEvent() {
+				bitEvent = bitoip.BitEvent(hw.BitOn)
+			} else {
+				bitEvent = bitoip.BitEvent(hw.BitOff)
+			}
+			if ce.GetLast() {
+				bitEvent += bitoip.BitEvent(hw.LastEvent)
+			}
 			newEvents = append(newEvents, hw.TimedBitEvent{
-				start.Add(time.Duration(ce.TimeOffset)),
-				ce.BitEvent,
+				StartTime: start.Add(time.Duration(ce.GetTimeOffset())),
+				BitEvent:  bitEvent,
 			})
-			if (ce.BitEvent & bitoip.LastEvent) > 0 {
+			if (bitEvent & bitoip.LastEvent) > 0 {
 				break
 			}
 		}

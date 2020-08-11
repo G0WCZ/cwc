@@ -21,6 +21,7 @@ import (
 	"github.com/G0WCZ/cwc/bitoip"
 	"github.com/G0WCZ/cwc/config"
 	"github.com/G0WCZ/cwc/core/hw"
+	"github.com/G0WCZ/cwc/cwcpb"
 	"github.com/golang/glog"
 	"sync"
 	"time"
@@ -80,7 +81,7 @@ func SetRoundTrip(t int64) {
 // This is the morse receiver
 // This polls morse input "hardware" for data
 
-func MorseRx(ctx context.Context, morseReceived chan bitoip.CarrierEventPayload, config *config.Config) {
+func MorseRx(ctx context.Context, morseReceived chan *cwcpb.CarrierEvent, config *config.Config) {
 	OpenInputs(config)
 	// Setup
 	lastBit = false
@@ -126,7 +127,7 @@ func CloseInputs() {
 // Dual keyer and straight-key sampler. Does sampling and sends stuff out if ready
 // As a 1ms tick, this needs to be efficient
 // Either keyer or straight key sampling and post-processing
-func Sample(t time.Time, morseRecieved chan bitoip.CarrierEventPayload,
+func Sample(t time.Time, morseRecieved chan *cwcpb.CarrierEvent,
 	config *config.Config) {
 	// to hold output samples to resolve
 	newBit := false
@@ -164,7 +165,7 @@ func Sample(t time.Time, morseRecieved chan bitoip.CarrierEventPayload,
 
 // Flush events and place in the toSend channel to wake up the UDP sender to
 // transmit the packet.
-func Flush(events []hw.TimedBitEvent, toSend chan bitoip.CarrierEventPayload, config *config.Config) []hw.TimedBitEvent {
+func Flush(events []hw.TimedBitEvent, toSend chan *cwcpb.CarrierEvent, config *config.Config) []hw.TimedBitEvent {
 	glog.V(2).Infof("Flushing events %v", events)
 	RxMutex.Lock()
 	if len(events) > 0 {
@@ -177,29 +178,22 @@ func Flush(events []hw.TimedBitEvent, toSend chan bitoip.CarrierEventPayload, co
 
 // Build a payload (CarrierEventPayload) of on and off events. Called from Flush() to
 // make a packet ready to send.
-func BuildPayload(events []hw.TimedBitEvent, config *config.Config) bitoip.CarrierEventPayload {
+func BuildPayload(events []hw.TimedBitEvent, config *config.Config) *cwcpb.CarrierEvent {
 	baseTime := events[0].StartTime.UnixNano()
 	// packetStartTime := baseTime + timeOffset + roundTrip/2 + MaxSendTimespan.Nanoseconds()
 	packetStartTime := baseTime + timeOffset + roundTrip/2 + (config.Advanced.MaxSendTimespanMs * 1000)
-	cep := bitoip.CarrierEventPayload{
-		channelId,
-		carrierKey,
-		packetStartTime,
-		[bitoip.MaxBitEvents]bitoip.CarrierBitEvent{},
-		time.Now().UnixNano(),
+	cepb := &cwcpb.CarrierEvent{
+		ChannelId:      channelId,
+		CarrierKey:     carrierKey,
+		StartTimestamp: packetStartTime,
+		SendTimestamp:  time.Now().UnixNano(),
 	}
 	for i, event := range events {
-		bit := event.BitEvent
-
-		// mark last event this message
-		if i == (len(events) - 1) {
-			bit = bit | bitoip.LastEvent
-		}
-
-		cep.BitEvents[i] = bitoip.CarrierBitEvent{
-			uint32(event.StartTime.UnixNano() - baseTime),
-			bit,
-		}
+		cepb.BitEvents = append(cepb.BitEvents, &cwcpb.CarrierEvent_BitEvent{
+			BitEvent:   (uint8(event.BitEvent) & uint8(hw.BitOn)) != 0,
+			Last:       i == (len(events) - 1),
+			TimeOffset: uint32(event.StartTime.UnixNano() - baseTime),
+		})
 	}
-	return cep
+	return cepb
 }

@@ -19,14 +19,14 @@ package core
 
 import (
 	"context"
-	"github.com/G0WCZ/cwc/bitoip"
 	"github.com/G0WCZ/cwc/config"
+	"github.com/G0WCZ/cwc/cwcpb"
 	"testing"
 )
 
 func TestBasicStartStop(t *testing.T) {
 	c := config.DefaultConfig()
-	morseReceived := make(chan bitoip.CarrierEventPayload)
+	morseReceived := make(chan *cwcpb.CarrierEvent)
 	ctx := context.TODO()
 
 	go MorseRx(context.TODO(), morseReceived, c)

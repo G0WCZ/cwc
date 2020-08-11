@@ -41,7 +41,7 @@ func Handler(serverAddress *net.UDPAddr, msg bitoip.RxMSG) {
 		msg := msg.Message
 		glog.V(1).Infof("got carrier event %v", msg)
 		channel := GetChannel(msg.GetCarrierEvent().GetChannelId())
-		channel.Broadcast(&msg)
+		channel.Broadcast(msg)
 
 	// Subscribe request
 	case *cwcpb.CWCMessage_ListenRequest:
