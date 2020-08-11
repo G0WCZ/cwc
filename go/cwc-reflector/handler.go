@@ -19,8 +19,8 @@ package main
 
 import (
 	"github.com/G0WCZ/cwc/bitoip"
+	"github.com/G0WCZ/cwc/cwcpb"
 	"net"
-	"strings"
 	"time"
 
 	"github.com/golang/glog"
@@ -28,41 +28,50 @@ import (
 
 // Handle an incoming message to the reflector
 func Handler(serverAddress *net.UDPAddr, msg bitoip.RxMSG) {
-	switch msg.Verb {
+	switch msg.Message.Msg.(type) {
 	// Channel list
-	case bitoip.EnumerateChannels:
-		responsePayload := new(bitoip.ListChannelsPayload)
-		copy(responsePayload.Channels[:], ChannelIds())
-		bitoip.UDPTx(bitoip.ListChannels,
-			msg.Payload,
-			&msg.SrcAddress)
+	case *cwcpb.CWCMessage_EnumerateChannels:
+		cwcmsg := &cwcpb.CWCMessage{}
+		lc := &cwcpb.CWCMessage_ListChannels{}
+		lc.ListChannels.ChannelIds = append(lc.ListChannels.ChannelIds, ChannelIds()...)
+		cwcmsg.Msg = lc
+		bitoip.UDPTx(cwcmsg, &msg.SrcAddress)
 	// Carrier morse data
-	case bitoip.CarrierEvent:
-		ce := msg.Payload.(*bitoip.CarrierEventPayload)
-		glog.V(1).Infof("got carrier event %v", ce)
-		channel := GetChannel(ce.Channel)
-		channel.Broadcast(*ce)
+	case *cwcpb.CWCMessage_CarrierEvent:
+		msg := msg.Message
+		glog.V(1).Infof("got carrier event %v", msg)
+		channel := GetChannel(msg.GetCarrierEvent().GetChannelId())
+		channel.Broadcast(&msg)
 
 	// Subscribe request
-	case bitoip.ListenRequest:
-		lr := msg.Payload.(*bitoip.ListenRequestPayload)
-		channel := GetChannel(lr.Channel)
-		key := channel.Subscribe(msg.SrcAddress, strings.Trim(string(lr.Callsign[:]), "\x00"))
-		lcp := bitoip.ListenConfirmPayload{lr.Channel, key}
-
-		bitoip.UDPTx(bitoip.ListenConfirm, lcp, &msg.SrcAddress)
+	case *cwcpb.CWCMessage_ListenRequest:
+		lr := msg.Message.GetListenRequest()
+		channel := GetChannel(lr.GetChannelId())
+		key := channel.Subscribe(msg.SrcAddress, lr.Callsign)
+		lcp := &cwcpb.CWCMessage_ListenConfirm{
+			ListenConfirm: &cwcpb.ListenConfirm{
+				ChannelId:  lr.GetChannelId(),
+				CarrierKey: key,
+			},
+		}
+		lcMsg := &cwcpb.CWCMessage{
+			Msg: lcp,
+		}
+		bitoip.UDPTx(lcMsg, &msg.SrcAddress)
 
 	// Time sync
-	case bitoip.TimeSync:
-		ts := msg.Payload.(*bitoip.TimeSyncPayload)
-
-		tsr := bitoip.TimeSyncResponsePayload{
-			ts.CurrentTime,
-			msg.RxTime,
-			time.Now().UnixNano(),
+	case *cwcpb.CWCMessage_TimeSync:
+		tsr := msg.Message.GetTimeSync()
+		response := &cwcpb.CWCMessage_TimeSyncResponse{
+			TimeSyncResponse: &cwcpb.TimeSyncResponse{
+				GivenTime:    tsr.GetCurrentTime(),
+				ServerRxTime: msg.RxTime,
+				ServerTxTime: time.Now().UnixNano(),
+			},
 		}
-
-		bitoip.UDPTx(bitoip.TimeSyncResponse, tsr, &msg.SrcAddress)
+		responseMsg := &cwcpb.CWCMessage{
+			Msg: response,
+		}
+		bitoip.UDPTx(responseMsg, &msg.SrcAddress)
 	}
-
 }

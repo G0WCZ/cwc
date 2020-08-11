@@ -19,22 +19,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // CWC Protocol
 //
 syntax = "proto3";
-option go_package = "cwcpb";
+option go_package = ".;cwcpb";
 
 message EnumerateChannels {}
 
 message ListChannels {
-    repeated uint32 channel_id = 1;
+    repeated uint32 channel_ids = 1;
 }
 
 message TimeSync {
-     uint64 current_time = 1;
+     int64 current_time = 1;
 }
 
 message TimeSyncResponse {
-     uint64 given_time = 1;
-     uint64 server_rx_time = 2;
-     uint64 server_tx_time = 3;
+     int64 given_time = 1;
+     int64 server_rx_time = 2;
+     int64 server_tx_time = 3;
 }
 
 message ListenRequest {
@@ -69,8 +69,8 @@ message CarrierEvent {
 
      uint32 channel_id = 2;
      uint32 carrier_key = 3;
-     uint64 start_timestamp = 4;
-     uint64 send_timestamp = 5;
+     int64 start_timestamp = 4;
+     int64 send_timestamp = 5;
     repeated BitEvent bit_events = 6;
 }
 

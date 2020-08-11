@@ -21,6 +21,8 @@ package bitoip
 import (
 	"bytes"
 	"encoding/binary"
+	"github.com/G0WCZ/cwc/cwcpb"
+	"google.golang.org/protobuf/proto"
 	"log"
 	"reflect"
 
@@ -35,8 +37,8 @@ var byteOrder = binary.BigEndian
 
 type (
 	MessageVerb    = byte
-	ChannelIdType  = uint16
-	CarrierKeyType = uint16
+	ChannelIdType  = uint32
+	CarrierKeyType = uint32
 	Callsign       = [CallsignSize]byte
 	Payload        = interface{}
 )
@@ -154,6 +156,25 @@ func EncodePayload(verb MessageVerb, payload Payload) []byte {
 		}
 	}
 	return buf.Bytes()
+}
+
+// Decode protobuf protocol message
+func DecodeBuffer(buffer []byte) *cwcpb.CWCMessage {
+	msg := &cwcpb.CWCMessage{}
+	if err := proto.Unmarshal(buffer, msg); err != nil {
+		glog.Errorf("Bad protobuf decode: %v", err)
+		return nil
+	} else {
+		return msg
+	}
+}
+
+func EncodeBuffer(message cwcpb.CWCMessage) []byte {
+	buf, err := proto.Marshal(&message)
+	if err != nil {
+		glog.Errorf("Protobuf marshall failed: %v", err)
+	}
+	return buf
 }
 
 func DecodePacket(lineBuffer []byte) (MessageVerb, interface{}) {

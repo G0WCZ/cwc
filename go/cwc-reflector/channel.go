@@ -19,6 +19,7 @@ package main
 
 import (
 	"github.com/G0WCZ/cwc/bitoip"
+	"github.com/G0WCZ/cwc/cwcpb"
 	"net"
 	"sort"
 	"time"
@@ -45,7 +46,7 @@ type Channel struct {
 	LastKey     bitoip.CarrierKeyType
 }
 
-type ChannelMap map[uint16]*Channel
+type ChannelMap map[uint32]*Channel
 
 var channels = make(ChannelMap)
 
@@ -92,8 +93,8 @@ func NewChannel(channelId bitoip.ChannelIdType) Channel {
 }
 
 // Return array of channel Ids of existing channels
-func ChannelIds() []uint16 {
-	keys := make([]uint16, 0, len(channels))
+func ChannelIds() []uint32 {
+	keys := make([]uint32, 0, len(channels))
 	for k := range channels {
 		keys = append(keys, k)
 	}
@@ -169,9 +170,10 @@ func (c *Channel) Unsubscribe(address net.UDPAddr) {
 
 // Broadcast this carrier event to all on this channel
 // and always return to sender (who can ignore if they wish, or can use as net sidetone
-func (c *Channel) Broadcast(event bitoip.CarrierEventPayload) {
+func (c *Channel) Broadcast(msg *cwcpb.CWCMessage) {
+	event := msg.GetCarrierEvent()
 	glog.V(2).Infof("broadcast event %v", event)
-	txr, ok := c.Subscribers[event.CarrierKey]
+	txr, ok := c.Subscribers[event.GetCarrierKey()]
 
 	if !ok {
 		glog.Infof("broadcast from unsubscribed key %v dropped", event.CarrierKey)
@@ -181,7 +183,7 @@ func (c *Channel) Broadcast(event bitoip.CarrierEventPayload) {
 	for _, v := range c.Subscribers {
 		if txr.LastTx.Sub(v.LastListen) < StationGoneTimeout {
 			glog.V(2).Infof("sending to subs %v: %v", v.Address, event)
-			bitoip.UDPTx(bitoip.CarrierEvent, event, &v.Address)
+			bitoip.UDPTx(msg, &v.Address)
 		}
 	}
 

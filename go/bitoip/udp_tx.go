@@ -18,13 +18,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package bitoip
 
 import (
+	"github.com/G0WCZ/cwc/cwcpb"
 	"github.com/golang/glog"
 	"net"
 )
 
-func UDPTx(verb MessageVerb, payload Payload, resolvedAddress *net.UDPAddr) {
+func UDPTx(message *cwcpb.CWCMessage, resolvedAddress *net.UDPAddr) {
 
-	messagePayload := EncodePayload(verb, payload)
+	messagePayload := EncodeBuffer(*message)
 	connection := UDPConnection()
 	n, err := connection.WriteToUDP(messagePayload, resolvedAddress)
 	glog.V(2).Infof("sent udp: %d, err %v", n, err)

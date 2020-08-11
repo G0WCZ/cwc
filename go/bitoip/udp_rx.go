@@ -19,6 +19,7 @@ package bitoip
 
 import (
 	"context"
+	"github.com/G0WCZ/cwc/cwcpb"
 	"github.com/golang/glog"
 	"net"
 	"time"
@@ -28,12 +29,13 @@ const maxBufferSize = 508
 
 var conn *net.UDPConn
 
-type RxMSG struct {
-	Verb       MessageVerb
-	Payload    Payload
-	SrcAddress net.UDPAddr
-	RxTime     int64
-}
+type (
+	RxMSG struct {
+		Message    cwcpb.CWCMessage
+		SrcAddress net.UDPAddr
+		RxTime     int64
+	}
+)
 
 func UDPConnection() *net.UDPConn {
 	return conn
@@ -67,11 +69,11 @@ func UDPRx(ctx context.Context, address *net.UDPAddr, messages chan RxMSG) {
 
 			glog.V(2).Infof("packet rx: %#v", buffer[0:n])
 
-			verb, payload := DecodePacket(buffer)
+			message := DecodeBuffer(buffer)
 
-			glog.V(2).Infof("udp rx got %v", payload)
+			glog.V(2).Infof("udp rx got %v", message)
 
-			messages <- RxMSG{verb, payload, *addr, now}
+			messages <- RxMSG{*message, *addr, now}
 		}
 	}()
 
