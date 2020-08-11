@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2019 Graeme Sutherland, Nodestone Limited
+Copyright (C) 2019-2020 Graeme Sutherland, Nodestone Limited
 
 
 This program is free software: you can redistribute it and/or modify
@@ -18,9 +18,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package bitoip
 
 import (
+	"github.com/G0WCZ/cwc/cwcpb"
 	"gotest.tools/assert"
 	"testing"
 )
+
+func TestBasicEncodeDecodeBuffer(t *testing.T) {
+	msg := &cwcpb.CWCMessage{
+		Msg: &cwcpb.CWCMessage_ListenRequest{
+			ListenRequest: &cwcpb.ListenRequest{
+				ChannelId: uint32(2),
+				Callsign:  "G0AAA",
+			},
+		},
+	}
+
+	buf := EncodeBuffer(msg)
+	decoded := DecodeBuffer(buf, len(buf))
+
+	assert.Equal(t, decoded.GetListenRequest().GetChannelId(), uint32(2))
+	assert.Equal(t, decoded.GetListenRequest().GetCallsign(), "G0AAA")
+}
 
 func XTestTimeSyncMessageEncode(t *testing.T) {
 	verb := TimeSync
