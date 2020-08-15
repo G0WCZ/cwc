@@ -24,9 +24,10 @@ import (
 	"github.com/G0WCZ/cwc/bitoip"
 	"github.com/G0WCZ/cwc/config"
 	"github.com/G0WCZ/cwc/core"
-
 	"github.com/golang/glog"
 )
+
+import _ "github.com/tam7t/sigprof"
 
 const maxBufferSize = 508
 
@@ -39,7 +40,6 @@ func main() {
 	var channel = flag.Int("ch", -1, "-ch <n> to connect to the channel n")
 	var callsign = flag.String("de", "", "-de <callsign>")
 	var noIO = flag.Bool("noio", false, "-noio uses fake morse IO connections")
-
 	// parse Command line
 	flag.Parse()
 
@@ -85,7 +85,6 @@ func main() {
 	fmt.Println(DisplayVersion())
 
 	glog.Info(DisplayVersion())
-
 
 	core.StationClient(ctx, cancel, config)
 }

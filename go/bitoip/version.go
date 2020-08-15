@@ -21,7 +21,7 @@ package bitoip
  * Protocol Version using semantic versioning
  * See: https://semver.org/
  */
-var protocolVersion = Version{uint8(2), uint8(1), uint8(0), Alpha}
+var protocolVersion = Version{uint8(3), uint8(0), uint8(1), Alpha}
 
 func ProtocolVersionBytes() []byte {
 	return protocolVersion.Bytes()

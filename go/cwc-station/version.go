@@ -27,7 +27,7 @@ import (
  * See: https://semver.org/
  */
 
-var stationVersion = bitoip.Version{uint8(5), uint8(0), uint8(0), bitoip.Alpha}
+var stationVersion = bitoip.Version{uint8(6), uint8(0), uint8(0), bitoip.Alpha}
 
 func StationVersion() string {
 	return stationVersion.String()

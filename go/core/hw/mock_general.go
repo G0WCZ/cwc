@@ -49,7 +49,7 @@ func (G *MockGeneral) Close() error {
 }
 
 func (G *MockGeneral) Name() string {
-	return G.Name()
+	return G.name
 }
 
 func NewMockGeneral(config *config.Config, name string, adapterName string) GeneralIO {

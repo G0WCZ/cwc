@@ -27,7 +27,7 @@ import (
  * See: https://semver.org/
  */
 
-var reflectorVersion = bitoip.Version{uint8(3), uint8(3), uint8(0), bitoip.Alpha}
+var reflectorVersion = bitoip.Version{uint8(6), uint8(0), uint8(0), bitoip.Alpha}
 
 func ReflectorVersion() string {
 	return reflectorVersion.String()

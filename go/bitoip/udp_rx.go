@@ -45,9 +45,13 @@ func UDPRx(ctx context.Context, address *net.UDPAddr, messages chan RxMSG) {
 	var err error
 
 	conn, err = net.ListenUDP("udp", address)
-
 	if err != nil {
 		glog.Fatalf("Can not open local connection: %v", err)
+		return
+	}
+	err = conn.SetReadDeadline(time.Time{})
+	if err != nil {
+		glog.Fatalf("Can not zero read deadline: %v", err)
 		return
 	}
 	defer conn.Close()
@@ -60,12 +64,13 @@ func UDPRx(ctx context.Context, address *net.UDPAddr, messages chan RxMSG) {
 	go func() {
 		for {
 			n, addr, err := conn.ReadFromUDP(buffer)
-			now := time.Now().UnixNano()
 
 			if err != nil {
 				doneChan <- err
 				return
 			}
+
+			now := time.Now().UnixNano()
 
 			glog.V(2).Infof("packet rx: %#v", buffer[0:n])
 
