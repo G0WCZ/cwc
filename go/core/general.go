@@ -40,29 +40,29 @@ func General(ctx context.Context, config *config.Config) {
 
 func OpenGenerals(config *config.Config) {
 	generals = hw.ParseGeneralIOs(config)
-	for _, general := range generals {
-		glog.Infof("opening general %s", general.Name())
-		general.Open()
+	for _, g := range generals {
+		glog.Infof("opening general %s", g.Name())
+		g.Open()
 	}
 }
 
 func CloseGenerals(config *config.Config) {
-	for _, general := range generals {
-		glog.Infof("closing general %s", general.Name())
-		general.Close()
+	for _, g := range generals {
+		glog.Infof("closing general %s", g.Name())
+		g.Close()
 	}
 }
 
 func SetStatus(name string, value string) {
-	for _, general := range generals {
-		general.SetStatus(name, value)
+	for _, g := range generals {
+		g.SetStatus(name, value)
 	}
 }
 
 func GetStatus(name string) []string {
 	var vals []string
-	for _, general := range generals {
-		vals = append(vals, general.GetStatus(name))
+	for _, g := range generals {
+		vals = append(vals, g.GetStatus(name))
 	}
 	return vals
 }

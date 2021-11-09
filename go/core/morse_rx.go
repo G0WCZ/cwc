@@ -111,14 +111,14 @@ func OpenInputs(config *config.Config) {
 	// assume not active to start with
 	lastBit = false
 
-	for _, input := range inputs {
-		input.Open()
+	for _, i := range inputs {
+		i.Open()
 	}
 }
 
 func CloseInputs() {
-	for _, input := range inputs {
-		input.Close()
+	for _, i := range inputs {
+		i.Close()
 	}
 
 	lastBit = false
@@ -132,13 +132,13 @@ func Sample(t time.Time, morseRecieved chan *cwcpb.CarrierEvent,
 	// to hold output samples to resolve
 	newBit := false
 
-	for idx, input := range inputs {
+	for idx, i := range inputs {
 		// for each input
-		if input.UseKeyer() {
-			newBit = newBit || hw.KeyerSampleInput(t, idx, input)
+		if i.UseKeyer() {
+			newBit = newBit || hw.KeyerSampleInput(t, idx, i)
 		} else {
 			// bits are active high
-			newBit = newBit || input.Bit()
+			newBit = newBit || i.Bit()
 		}
 	}
 

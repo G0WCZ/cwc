@@ -159,6 +159,7 @@ func StationClient(ctx context.Context, cancel func(), cfg *config.Config) {
 				glog.Infof("listening channel %d with carrier key %d", lc.GetChannelId(), lc.GetCarrierKey())
 				currentCarrierKey = lc.GetCarrierKey()
 				SetCarrierKey(lc.GetCarrierKey())
+
 			case *cwcpb.CWCMessage_TimeSyncResponse:
 				glog.V(2).Infof("time sync response %v", tm)
 				tsr := tm.Message.GetTimeSyncResponse()
