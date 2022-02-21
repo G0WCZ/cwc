@@ -233,7 +233,7 @@ reflector: 96 00 01 00 02
 
 ## License
 
-    Copyright (C) 2019 Graeme Sutherland, Nodestone Limited
+    Copyright 2022 Graeme Sutherland
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

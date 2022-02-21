@@ -9,7 +9,7 @@ The transmission of carrier messages is at their full size. These ought to be
 variable length on the wire.  This should be fixed in a backward-compatible kind of way.
 
 ## License
-    Copyright (C) 2019 Graeme Sutherland, Nodestone Limited
+    Copyright 2022 Graeme Sutherland
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
