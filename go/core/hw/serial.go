@@ -20,9 +20,8 @@ package hw
 import (
 	"github.com/G0WCZ/cwc/config"
 	"strings"
-
 	"github.com/golang/glog"
-	"go.bug.st/serial.v1"
+	"go.bug.st/serial"
 )
 
 /*

@@ -19,7 +19,7 @@ package hw
 
 import (
 	"github.com/golang/glog"
-	"go.bug.st/serial.v1"
+	"go.bug.st/serial"
 )
 
 /**

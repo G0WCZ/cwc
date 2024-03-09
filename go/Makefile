@@ -4,6 +4,10 @@ GO := go
 build: */*.go */*/*.go
 	${GO} build ./...
 
+clean: 
+	rm -rf dist
+	${GO} clean ./...
+
 test:
 	${GO} test ./...
 
@@ -46,7 +50,7 @@ dist/osx/reflector/cwc-reflector:
 
 dist/osx/station/cwc-station:
 	mkdir -p dist/osx/station
-	GOOS=darwin GOARCH=amd64 ${GO} build -o dist/osx/station/cwc-reflector ./cwc-station
+	GOOS=darwin GOARCH=amd64 ${GO} build -o dist/osx/station/cwc-station ./cwc-station
 
 dist-windows: dist/windows/reflector/cwc-reflector.zip dist/windows/cwc-station
 
@@ -61,5 +65,3 @@ dist/windows/cwc-station:
 	echo "No windows station build due to rpio needing mmap"
 #	mkdir -p dist/windows/station
 #	GOOS=windows GOARCH=386 ${GO} build -o dist/windows/station/cwc-station.exe ./cwc-station
-
-

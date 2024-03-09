@@ -19,7 +19,7 @@ package hw
 
 import (
 	"github.com/G0WCZ/cwc/config"
-	"go.bug.st/serial.v1"
+	"go.bug.st/serial"
 )
 
 type SerialIn struct {
