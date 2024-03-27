@@ -1,7 +1,6 @@
 /*
 Copyright (C) 2020 Graeme Sutherland, Nodestone Limited
 
-
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -49,7 +48,7 @@ func (G *MockGeneral) Close() error {
 }
 
 func (G *MockGeneral) Name() string {
-	return G.Name()
+	return G.name
 }
 
 func NewMockGeneral(config *config.Config, name string, adapterName string) GeneralIO {

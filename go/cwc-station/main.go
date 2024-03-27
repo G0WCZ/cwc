@@ -1,7 +1,6 @@
 /*
 Copyright (C) 2019 Graeme Sutherland, Nodestone Limited
 
-
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -21,6 +20,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+
 	"github.com/G0WCZ/cwc/bitoip"
 	"github.com/G0WCZ/cwc/config"
 	"github.com/G0WCZ/cwc/core"
@@ -74,8 +74,9 @@ func main() {
 	}
 
 	if *noIO {
-		config.MorseInHardware = []string{"nullio"}
-		config.MorseOutHardware = []string{"nullio"}
+		config.MorseInHardware = []string{"mock"}
+		config.MorseOutHardware = []string{"mock"}
+		config.GeneralHardware = []string{"mock"}
 	}
 
 	// context
@@ -85,7 +86,6 @@ func main() {
 	fmt.Println(DisplayVersion())
 
 	glog.Info(DisplayVersion())
-
 
 	core.StationClient(ctx, cancel, config)
 }
